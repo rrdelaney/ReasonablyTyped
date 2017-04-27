@@ -1,0 +1,1 @@
+rebuild -I flow/src/parser -use-ocamlfind -pkgs sedlex src/index.native
