@@ -1,6 +1,6 @@
-open Modulegen.JsDecl;
+open Modulegen.BsDecl;
 
-open Module_gen.JsType;
+open Modulegen.BsType;
 
 let stack_to_code =
   fun

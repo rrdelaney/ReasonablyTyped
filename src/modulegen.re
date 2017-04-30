@@ -16,7 +16,7 @@ open Ast.Statement.DeclareVariable;
 
 open Ast.Statement.DeclareFunction;
 
-module JsType = {
+module BsType = {
   type t =
     | Null
     | Number
@@ -28,34 +28,34 @@ module JsType = {
 
 let string_of_id (loc: Loc.t, id: string) => id;
 
-let rec type_annotation_to_jstype (annotation: option Ast.Type.annotation) =>
+let rec type_annotation_to_bstype (annotation: option Ast.Type.annotation) =>
   switch annotation {
-  | Some (_, (_, t)) => type_to_jstype t
-  | None => JsType.Unknown
+  | Some (_, (_, t)) => type_to_bstype t
+  | None => BsType.Unknown
   }
-and type_to_jstype =
+and type_to_bstype =
   fun
-  | Any => JsType.Any
-  | Null => JsType.Null
-  | Number => JsType.Number
-  | Function f => function_type_to_jstype f
-  | _ => JsType.Unknown
-and function_type_to_jstype {params: (formal, rest), returnType: (_, rt)} => {
+  | Any => BsType.Any
+  | Null => BsType.Null
+  | Number => BsType.Number
+  | Function f => function_type_to_bstype f
+  | _ => BsType.Unknown
+and function_type_to_bstype {params: (formal, rest), returnType: (_, rt)} => {
   let params =
     if (List.length formal > 0) {
       List.map
-        (fun ((_, {typeAnnotation: (_, t)}): Ast.Type.Function.Param.t) => type_to_jstype t) formal
+        (fun ((_, {typeAnnotation: (_, t)}): Ast.Type.Function.Param.t) => type_to_bstype t) formal
     } else {
-      [JsType.Unit]
+      [BsType.Unit]
     };
-  let return = type_to_jstype rt;
-  JsType.Function params return
+  let return = type_to_bstype rt;
+  BsType.Function params return
 };
 
-module JsDecl = {
+module BsDecl = {
   type t =
-    | VarDecl string JsType.t
-    | FuncDecl string JsType.t
+    | VarDecl string BsType.t
+    | FuncDecl string BsType.t
     | ModuleDecl string (list t)
     | Unknown;
 };
@@ -63,41 +63,41 @@ module JsDecl = {
 let declaration_to_jsdecl =
   fun
   | Variable (loc, {id, typeAnnotation}) =>
-    JsDecl.VarDecl (string_of_id id) (type_annotation_to_jstype typeAnnotation)
+    BsDecl.VarDecl (string_of_id id) (type_annotation_to_bstype typeAnnotation)
   | Function (loc, {id, typeAnnotation}) =>
-    JsDecl.FuncDecl (string_of_id id) (type_annotation_to_jstype (Some typeAnnotation))
-  | _ => JsDecl.Unknown;
+    BsDecl.FuncDecl (string_of_id id) (type_annotation_to_bstype (Some typeAnnotation))
+  | _ => BsDecl.Unknown;
 
 let rec statement_to_stack (loc, s) =>
   switch s {
   | Ast.Statement.DeclareExportDeclaration {declaration: Some declaration} =>
     declaration_to_jsdecl declaration
   | Ast.Statement.DeclareModule s => declare_module_to_jsdecl s
-  | _ => JsDecl.Unknown
+  | _ => BsDecl.Unknown
   }
 and block_to_stack (loc, {body}) => List.map statement_to_stack body
 and declare_module_to_jsdecl {id, body} =>
   switch id {
-  | Literal (loc, {raw}) => JsDecl.ModuleDecl raw (block_to_stack body)
-  | _ => JsDecl.Unknown
+  | Literal (loc, {raw}) => BsDecl.ModuleDecl raw (block_to_stack body)
+  | _ => BsDecl.Unknown
   };
 
 let rec show_type =
   fun
-  | JsType.Any => "any"
-  | JsType.Unit => "unit"
-  | JsType.Function params return =>
+  | BsType.Any => "any"
+  | BsType.Unit => "unit"
+  | BsType.Function params return =>
     String.concat " => " (List.map show_type params) ^ " => " ^ show_type return
-  | JsType.Null => "null"
-  | JsType.Number => "number"
-  | JsType.Unknown => "??";
+  | BsType.Null => "null"
+  | BsType.Number => "number"
+  | BsType.Unknown => "??";
 
 let rec show_decl =
   fun
-  | JsDecl.ModuleDecl name decls =>
+  | BsDecl.ModuleDecl name decls =>
     "module " ^ name ^ " = {\n  " ^ String.concat "\n  " (List.map show_decl decls) ^ "\n}"
-  | JsDecl.Unknown => "external ??"
-  | JsDecl.FuncDecl name of_type =>
+  | BsDecl.Unknown => "external ??"
+  | BsDecl.FuncDecl name of_type =>
     "external " ^ name ^ " : " ^ show_type of_type ^ " = \"\" [@@bs.send];"
-  | JsDecl.VarDecl name of_type =>
+  | BsDecl.VarDecl name of_type =>
     "external " ^ name ^ " : " ^ show_type of_type ^ " = \"\" [@@bs.val];";
