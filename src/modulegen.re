@@ -85,7 +85,7 @@ and declare_module_to_jsdecl {id, body} =>
 let rec show_type =
   fun
   | JsType.Any => "any"
-  | JsType.Unit => "()"
+  | JsType.Unit => "unit"
   | JsType.Function params return =>
     String.concat " => " (List.map show_type params) ^ " => " ^ show_type return
   | JsType.Null => "null"
@@ -95,7 +95,9 @@ let rec show_type =
 let rec show_decl =
   fun
   | JsDecl.ModuleDecl name decls =>
-    "declare module " ^ name ^ " {\n  " ^ String.concat "\n  " (List.map show_decl decls) ^ "\n}"
-  | JsDecl.Unknown => "declare ??"
-  | JsDecl.FuncDecl name of_type => "declare export function " ^ name ^ ": " ^ show_type of_type
-  | JsDecl.VarDecl name of_type => "declare export var " ^ name ^ ": " ^ show_type of_type;
+    "module " ^ name ^ " = {\n  " ^ String.concat "\n  " (List.map show_decl decls) ^ "\n}"
+  | JsDecl.Unknown => "external ??"
+  | JsDecl.FuncDecl name of_type =>
+    "external " ^ name ^ " : " ^ show_type of_type ^ " = \"\" [@@bs.send];"
+  | JsDecl.VarDecl name of_type =>
+    "external " ^ name ^ " : " ^ show_type of_type ^ " = \"\" [@@bs.val];";

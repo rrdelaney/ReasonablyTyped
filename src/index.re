@@ -9,6 +9,14 @@ let (_loc, statements, errors) = {
 
 let stacks = List.map Modulegen.statement_to_stack statements;
 
-let modules = List.map Codegen.stack_to_code stacks;
+let (module_id, module_code) = {
+  let result = stacks |> List.map Codegen.stack_to_code |> List.hd;
+  switch result {
+  | Some m => m
+  | None => ("??", "??")
+  }
+};
 
-List.iter print_endline modules;
+print_endline ("Module: " ^ module_id);
+
+print_endline module_code;
