@@ -8,6 +8,10 @@ open Ast.Literal;
 
 open Ast.Type;
 
+open Ast.Type.Function;
+
+open Ast.Type.Function.Param;
+
 open Ast.Statement.DeclareExportDeclaration;
 
 open Ast.Statement.DeclareVariable;
@@ -24,22 +28,40 @@ let (locs, statements, comments) = ocaml_ast;
 
 let string_of_id (loc: Loc.t, id: string) => id;
 
-let string_of_type (annotation: option Ast.Type.annotation) =>
+let rec string_of_type_annotation (annotation: option Ast.Type.annotation) =>
   switch annotation {
-  | Some (_, (_, Any)) => "any"
-  | Some (_, (_, Null)) => "null"
-  | Some (_, (_, Number)) => "number"
-  | Some (_, (_, Function f)) => "function"
-  | Some _ => "??"
+  | Some (_, (_, t)) => string_of_type t
   | None => "any"
-  };
+  }
+and string_of_type =
+  fun
+  | Any => "any"
+  | Null => "null"
+  | Number => "number"
+  | Function f => string_of_function_type f
+  | _ => "??"
+and string_of_function_type {params: (formal, rest), returnType: (_, rt)} =>
+  (
+    if (List.length formal > 0) {
+      String.concat
+        " => "
+        (
+          List.map
+            (fun ((_, {typeAnnotation: (_, t)}): Ast.Type.Function.Param.t) => string_of_type t)
+            formal
+        )
+    } else {
+      "()"
+    }
+  ) ^
+  " => " ^ string_of_type rt;
 
 let string_of_declaration =
   fun
   | Variable (loc, {id, typeAnnotation}) =>
-    "variable " ^ string_of_id id ^ " as " ^ string_of_type typeAnnotation
+    "variable " ^ string_of_id id ^ " as " ^ string_of_type_annotation typeAnnotation
   | Function (loc, {id, typeAnnotation}) =>
-    "function " ^ string_of_id id ^ " as " ^ string_of_type (Some typeAnnotation)
+    "function " ^ string_of_id id ^ " as " ^ string_of_type_annotation (Some typeAnnotation)
   | _ => "??";
 
 let string_of_declare_export_declaration =
