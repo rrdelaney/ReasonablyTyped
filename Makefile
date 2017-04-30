@@ -1,6 +1,6 @@
 INCLUDE=flow/src/parser
 PKGS=sedlex
-MAIN=src/index.re
+MAIN=src/index.native
 
 all: build
 

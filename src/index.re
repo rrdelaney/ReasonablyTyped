@@ -7,6 +7,8 @@ let (_loc, statements, errors) = {
   ocaml_ast
 };
 
-let sss = List.map Modulegen.statement_to_stack statements;
+let stacks = List.map Modulegen.statement_to_stack statements;
 
-List.iter (fun d => print_endline (Modulegen.show_decl d)) sss;
+let modules = List.map Codegen.stack_to_code stacks;
+
+List.iter print_endline modules;
