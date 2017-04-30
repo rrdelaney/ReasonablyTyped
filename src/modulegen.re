@@ -20,8 +20,9 @@ module JsType = {
   type t =
     | Null
     | Number
-    | Function
+    | Function (list t) t
     | Unknown
+    | Unit
     | Any;
 };
 
@@ -39,22 +40,18 @@ and type_to_jstype =
   | Number => JsType.Number
   | Function f => function_type_to_jstype f
   | _ => JsType.Unknown
-and function_type_to_jstype {params: (formal, rest), returnType: (_, rt)} => JsType.Function;
-
-/*(
+and function_type_to_jstype {params: (formal, rest), returnType: (_, rt)} => {
+  let params =
     if (List.length formal > 0) {
-      String.concat
-        " => "
-        (
-          List.map
-            (fun ((_, {typeAnnotation: (_, t)}): Ast.Type.Function.Param.t) => type_to_jstype t)
-            formal
-        )
+      List.map
+        (fun ((_, {typeAnnotation: (_, t)}): Ast.Type.Function.Param.t) => type_to_jstype t) formal
     } else {
-      "()"
-    }
-  ) ^
-  " => " ^ type_to_jstype rt;*/
+      [JsType.Unit]
+    };
+  let return = type_to_jstype rt;
+  JsType.Function params return
+};
+
 module JsDecl = {
   type t =
     | VarDecl string JsType.t
@@ -85,10 +82,12 @@ and declare_module_to_jsdecl {id, body} =>
   | _ => JsDecl.Unknown
   };
 
-let show_type =
+let rec show_type =
   fun
   | JsType.Any => "any"
-  | JsType.Function => "function"
+  | JsType.Unit => "()"
+  | JsType.Function params return =>
+    String.concat " => " (List.map show_type params) ^ " => " ^ show_type return
   | JsType.Null => "null"
   | JsType.Number => "number"
   | JsType.Unknown => "??";
@@ -96,7 +95,7 @@ let show_type =
 let rec show_decl =
   fun
   | JsDecl.ModuleDecl name decls =>
-    "Module " ^ name ^ "\n" ^ String.concat "\n" (List.map show_decl decls)
+    "declare module " ^ name ^ " {\n  " ^ String.concat "\n  " (List.map show_decl decls) ^ "\n}"
   | JsDecl.Unknown => "declare ??"
-  | JsDecl.FuncDecl name of_type => "declare function " ^ name ^ ": " ^ show_type of_type
-  | JsDecl.VarDecl name of_type => "declare var " ^ name ^ ": " ^ show_type of_type;
+  | JsDecl.FuncDecl name of_type => "declare export function " ^ name ^ ": " ^ show_type of_type
+  | JsDecl.VarDecl name of_type => "declare export var " ^ name ^ ": " ^ show_type of_type;
