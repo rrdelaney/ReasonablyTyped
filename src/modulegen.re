@@ -20,8 +20,10 @@ module BsType = {
   type t =
     | Null
     | Number
+    | String
     | Function (list (string, t)) t
     | Unknown
+    | Boolean
     | Unit
     | Any;
 };
@@ -38,6 +40,8 @@ and type_to_bstype =
   | Any => BsType.Any
   | Null => BsType.Null
   | Number => BsType.Number
+  | String => BsType.String
+  | Boolean => BsType.Boolean
   | Function f => function_type_to_bstype f
   | _ => BsType.Unknown
 and function_type_to_bstype {params: (formal, rest), returnType: (_, rt)} => {
@@ -66,6 +70,7 @@ module BsDecl = {
     | VarDecl string BsType.t
     | FuncDecl string BsType.t
     | ModuleDecl string (list t)
+    | ExportsDecl BsType.t
     | Unknown;
 };
 
@@ -79,6 +84,8 @@ let declaration_to_jsdecl =
 
 let rec statement_to_stack (loc, s) =>
   switch s {
+  | Ast.Statement.DeclareModuleExports annotation =>
+    BsDecl.ExportsDecl (type_annotation_to_bstype (Some annotation))
   | Ast.Statement.DeclareExportDeclaration {declaration: Some declaration} =>
     declaration_to_jsdecl declaration
   | Ast.Statement.DeclareModule s => declare_module_to_jsdecl s
@@ -113,10 +120,13 @@ let rec show_type =
     "): " ^ show_type return
   | BsType.Null => "null"
   | BsType.Number => "number"
+  | BsType.Boolean => "boolean"
+  | BsType.String => "string"
   | BsType.Unknown => "??";
 
 let rec show_decl =
   fun
+  | BsDecl.ExportsDecl of_type => "declare module.exports: " ^ show_type of_type
   | BsDecl.ModuleDecl name decls =>
     "declare module " ^ name ^ " {\n  " ^ String.concat "\n  " (List.map show_decl decls) ^ "\n}"
   | BsDecl.Unknown => "external ??"
