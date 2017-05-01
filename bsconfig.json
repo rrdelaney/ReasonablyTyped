@@ -1,0 +1,11 @@
+{
+  "name": "reasonably-typed",
+  "generate-merlin": false,
+  "sources": [
+    "src",
+    "flow/src/parser"
+  ],
+  "bsc-flags": [
+    "-I ~/.opam/system/lib/sedlex/"
+  ]
+}

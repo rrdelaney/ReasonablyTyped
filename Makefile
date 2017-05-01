@@ -1,11 +1,12 @@
+OCAMLC=rebuild
 INCLUDE=flow/src/parser
 PKGS=sedlex
-MAIN=src/index.native
+MAIN=src/cmd.native
 
 all: build
 
 build:
-	rebuild \
+	$(OCAMLC) \
 		-Is $(INCLUDE) \
 		-use-ocamlfind \
 		-pkgs $(PKGS) \
