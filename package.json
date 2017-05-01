@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/rrdelaney/ReasonablyTyped/issues"
   },
-  "homepage": "https://github.com/rrdelaney/ReasonablyTyped"
+  "homepage": "https://github.com/rrdelaney/ReasonablyTyped",
+  "devDependencies": {
+    "bs-platform": "^1.7.3"
+  }
 }

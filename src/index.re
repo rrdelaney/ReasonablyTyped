@@ -9,7 +9,7 @@ let (_loc, statements, errors) = {
 
 let stacks = List.map Modulegen.statement_to_stack statements;
 
-print_endline "(* Flow Definition *)";
+print_endline "=== Flow Definition ===";
 
 List.iter (fun m => print_endline (Modulegen.show_decl m)) stacks;
 
@@ -23,8 +23,8 @@ let (module_id, module_code) = {
 
 print_newline ();
 
-print_endline "(* Bucklescript Definition *)";
+print_endline "=== Bucklescript Definition ===";
 
-print_endline ("Module: " ^ module_id);
+print_endline ("/* Module: " ^ module_id ^ " */");
 
 print_endline module_code;
