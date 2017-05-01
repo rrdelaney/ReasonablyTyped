@@ -16,6 +16,7 @@ let rec bstype_to_code =
   | Null => "null"
   | Unknown => "??"
   | Any => "_"
+  | Object props => "object"
   | Number => "number"
   | String => "string"
   | Boolean => "bool"

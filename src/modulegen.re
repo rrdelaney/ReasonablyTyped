@@ -10,6 +10,12 @@ open Ast.Type.Function;
 
 open Ast.Type.Function.Param;
 
+open Ast.Type.Object;
+
+open Ast.Type.Object.Property;
+
+open Ast.Expression.Object.Property;
+
 open Ast.Statement.DeclareExportDeclaration;
 
 open Ast.Statement.DeclareVariable;
@@ -22,6 +28,7 @@ module BsType = {
     | Number
     | String
     | Function (list (string, t)) t
+    | Object (list (string, t))
     | Unknown
     | Boolean
     | Unit
@@ -29,6 +36,14 @@ module BsType = {
 };
 
 let string_of_id (loc: Loc.t, id: string) => id;
+
+let string_of_key (key: Ast.Expression.Object.Property.key) =>
+  switch key {
+  | Identifier id => string_of_id id
+  | _ => "??"
+  };
+
+let value_to_bstype (value: Ast.Type.Object.Property.value) => BsType.Any;
 
 let rec type_annotation_to_bstype (annotation: option Ast.Type.annotation) =>
   switch annotation {
@@ -44,6 +59,7 @@ and type_to_bstype =
   | String => BsType.String
   | Boolean => BsType.Boolean
   | Function f => function_type_to_bstype f
+  | Object o => object_type_to_bstype o
   | _ => BsType.Unknown
 and function_type_to_bstype {params: (formal, rest), returnType: (_, rt)} => {
   let params =
@@ -64,7 +80,17 @@ and function_type_to_bstype {params: (formal, rest), returnType: (_, rt)} => {
     };
   let return = type_to_bstype rt;
   BsType.Function params return
-};
+}
+and object_type_to_bstype {properties} =>
+  BsType.Object (
+    List.map
+      (
+        fun
+        | Property (loc, {key, value}) => (string_of_key key, value_to_bstype value)
+        | _ => ("??", BsType.Unknown)
+      )
+      properties
+  );
 
 module BsDecl = {
   type t =
@@ -127,6 +153,9 @@ let rec show_type =
   | BsType.Number => "number"
   | BsType.Boolean => "boolean"
   | BsType.String => "string"
+  | BsType.Object props =>
+    "{ " ^
+    String.concat ", " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
   | BsType.Unknown => "??";
 
 let rec show_decl =
