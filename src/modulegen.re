@@ -37,6 +37,7 @@ let rec type_annotation_to_bstype (annotation: option Ast.Type.annotation) =>
   }
 and type_to_bstype =
   fun
+  | Mixed => BsType.Any
   | Any => BsType.Any
   | Null => BsType.Null
   | Number => BsType.Number
