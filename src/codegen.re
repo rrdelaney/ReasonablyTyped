@@ -40,6 +40,7 @@ let rec declaration_to_code module_id =>
   | ModuleDecl id statements =>
     "module " ^
     id ^ " = {\n" ^ String.concat "\n  " (List.map (declaration_to_code id) statements) ^ "\n};"
+  | TypeDecl => "$$type$$"
   | Unknown => "??;";
 
 let stack_to_code =
