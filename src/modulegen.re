@@ -20,7 +20,7 @@ module BsType = {
   type t =
     | Null
     | Number
-    | Function (list t) t
+    | Function (list (string, t)) t
     | Unknown
     | Unit
     | Any;
@@ -44,9 +44,18 @@ and function_type_to_bstype {params: (formal, rest), returnType: (_, rt)} => {
   let params =
     if (List.length formal > 0) {
       List.map
-        (fun ((_, {typeAnnotation: (_, t)}): Ast.Type.Function.Param.t) => type_to_bstype t) formal
+        (
+          fun ((_, {typeAnnotation: (_, t), name}): Ast.Type.Function.Param.t) => (
+            switch name {
+            | Some id => string_of_id id
+            | None => ""
+            },
+            type_to_bstype t
+          )
+        )
+        formal
     } else {
-      [BsType.Unit]
+      [("", BsType.Unit)]
     };
   let return = type_to_bstype rt;
   BsType.Function params return
@@ -87,7 +96,21 @@ let rec show_type =
   | BsType.Any => "any"
   | BsType.Unit => "unit"
   | BsType.Function params return =>
-    String.concat " => " (List.map show_type params) ^ " => " ^ show_type return
+    "(" ^
+    String.concat
+      ", "
+      (
+        List.map
+          (
+            fun (name, type_of) =>
+              switch type_of {
+              | BsType.Unit => ""
+              | _ => name ^ ": " ^ show_type type_of
+              }
+          )
+          params
+      ) ^
+    "): " ^ show_type return
   | BsType.Null => "null"
   | BsType.Number => "number"
   | BsType.Unknown => "??";
@@ -97,5 +120,5 @@ let rec show_decl =
   | BsDecl.ModuleDecl name decls =>
     "declare module " ^ name ^ " {\n  " ^ String.concat "\n  " (List.map show_decl decls) ^ "\n}"
   | BsDecl.Unknown => "external ??"
-  | BsDecl.FuncDecl name of_type => "declare function " ^ name ^ "() : " ^ show_type of_type
-  | BsDecl.VarDecl name of_type => "declare var " ^ name ^ ": " ^ show_type of_type;
+  | BsDecl.FuncDecl name of_type => "declare export function " ^ name ^ show_type of_type
+  | BsDecl.VarDecl name of_type => "declare export var " ^ name ^ ": " ^ show_type of_type;
