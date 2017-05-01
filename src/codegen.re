@@ -18,7 +18,7 @@ let rec bstype_to_code =
   | Any => "any"
   | Number => "number"
   | String => "string"
-  | Boolean => "boolean"
+  | Boolean => "bool"
   | Function params rt =>
     String.concat " => " (List.map (fun (name, param_type) => bstype_to_code param_type) params) ^
     " => " ^ bstype_to_code rt;
