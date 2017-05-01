@@ -9,6 +9,10 @@ let (_loc, statements, errors) = {
 
 let stacks = List.map Modulegen.statement_to_stack statements;
 
+print_endline "(* Flow Definition *)";
+
+List.iter (fun m => print_endline (Modulegen.show_decl m)) stacks;
+
 let (module_id, module_code) = {
   let result = stacks |> List.map Codegen.stack_to_code |> List.hd;
   switch result {
@@ -16,6 +20,10 @@ let (module_id, module_code) = {
   | None => ("??", "??")
   }
 };
+
+print_newline ();
+
+print_endline "(* Bucklescript Definition *)";
 
 print_endline ("Module: " ^ module_id);
 

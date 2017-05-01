@@ -95,9 +95,7 @@ let rec show_type =
 let rec show_decl =
   fun
   | BsDecl.ModuleDecl name decls =>
-    "module " ^ name ^ " = {\n  " ^ String.concat "\n  " (List.map show_decl decls) ^ "\n}"
+    "declare module " ^ name ^ " {\n  " ^ String.concat "\n  " (List.map show_decl decls) ^ "\n}"
   | BsDecl.Unknown => "external ??"
-  | BsDecl.FuncDecl name of_type =>
-    "external " ^ name ^ " : " ^ show_type of_type ^ " = \"\" [@@bs.send];"
-  | BsDecl.VarDecl name of_type =>
-    "external " ^ name ^ " : " ^ show_type of_type ^ " = \"\" [@@bs.val];";
+  | BsDecl.FuncDecl name of_type => "declare function " ^ name ^ "() : " ^ show_type of_type
+  | BsDecl.VarDecl name of_type => "declare var " ^ name ^ ": " ^ show_type of_type;
