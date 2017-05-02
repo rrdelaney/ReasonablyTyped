@@ -43,8 +43,6 @@ let string_of_key (key: Ast.Expression.Object.Property.key) =>
   | _ => "??"
   };
 
-let value_to_bstype (value: Ast.Type.Object.Property.value) => BsType.Any;
-
 let rec type_annotation_to_bstype (annotation: option Ast.Type.annotation) =>
   switch annotation {
   | Some (_, (_, t)) => type_to_bstype t
@@ -81,6 +79,12 @@ and function_type_to_bstype {params: (formal, rest), returnType: (_, rt)} => {
   let return = type_to_bstype rt;
   BsType.Function params return
 }
+and value_to_bstype (value: Ast.Type.Object.Property.value) =>
+  switch value {
+  | Init (loc, t) => type_to_bstype t
+  | Get (loc, func) => function_type_to_bstype func
+  | Set (loc, func) => function_type_to_bstype func
+  }
 and object_type_to_bstype {properties} =>
   BsType.Object (
     List.map
