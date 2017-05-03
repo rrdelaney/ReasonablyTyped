@@ -1,6 +1,12 @@
 # ReasonablyTyped
 
-Converts Flow library definitions to Bucklescript interfaces
+> Converts Flow library definitions to Bucklescript interfaces
+
+# Installation
+
+```
+$ npm install --global reasonably-typed
+```
 
 # Building
 
