@@ -22,4 +22,6 @@ byte:
 		src/$(JS_MAIN)
 
 js: byte
-	$(JSC) $(JS_MAIN)
+	$(JSC) \
+		$(JS_MAIN) \
+		--custom-header="#!/usr/bin/env node"
