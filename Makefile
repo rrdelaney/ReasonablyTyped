@@ -1,13 +1,25 @@
 OCAMLC=rebuild
 INCLUDE=flow/src/parser
 PKGS=sedlex
-MAIN=src/cmd.native
+MAIN=cmd.native
+JSC=js_of_ocaml
+JS_MAIN=cmd.byte
 
-all: build
+all: native
 
-build:
+native:
 	$(OCAMLC) \
 		-Is $(INCLUDE) \
 		-use-ocamlfind \
 		-pkgs $(PKGS) \
-		$(MAIN)
+		src/$(MAIN)
+
+byte:
+	$(OCAMLC) \
+		-Is $(INCLUDE) \
+		-use-ocamlfind \
+		-pkgs $(PKGS) \
+		src/$(JS_MAIN)
+
+js: byte
+	$(JSC) $(JS_MAIN)
