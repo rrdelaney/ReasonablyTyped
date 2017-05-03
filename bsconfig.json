@@ -2,10 +2,10 @@
   "name": "reasonably-typed",
   "generate-merlin": false,
   "sources": [
-    "src",
-    "flow/src/parser"
+    "flow/src/parser",
+    "src"
   ],
   "bsc-flags": [
-    "-I ~/.opam/system/lib/sedlex/"
+    "-I ~/.opam/4.02.3+buckle-master/lib/sedlex"
   ]
 }

@@ -3,11 +3,18 @@ open Modulegen.BsDecl;
 open Modulegen.BsType;
 
 module Utils = {
-  let unquote str => String.concat "" (String.split_on_char '\'' str);
-  let to_module_name str => {
-    let toks = String.split_on_char '-' (unquote str);
-    String.concat "_" toks
-  };
+  let unquote str => String.sub str 1 (String.length str - 2);
+  let to_module_name str =>
+    String.map
+      (
+        fun ch =>
+          if (ch == '-') {
+            '_'
+          } else {
+            ch
+          }
+      )
+      (unquote str);
 };
 
 let rec bstype_to_code =
