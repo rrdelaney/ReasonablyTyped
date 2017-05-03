@@ -6,13 +6,6 @@
   "bin": {
     "retyped": "./cmd.js"
   },
-  "dependencies": {
-    "bs-platform": "^1.7.3"
-  },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/rrdelaney/ReasonablyTyped"
@@ -21,7 +14,7 @@
     "Reason",
     "OCaml",
     "Bucklescript",
-    "FLow"
+    "Flow"
   ],
   "author": "Ryan Delaney <rrdelaney@outlook.com>",
   "license": "MIT",
