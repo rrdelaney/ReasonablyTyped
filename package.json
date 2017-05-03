@@ -1,0 +1,32 @@
+{
+  "name": "reasonably-typed",
+  "version": "0.1.0",
+  "description": "Converts flow definitions to Bucklescript definitions",
+  "main": "cmd.js",
+  "bin": {
+    "retyped": "./cmd.js"
+  },
+  "dependencies": {
+    "bs-platform": "^1.7.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rrdelaney/ReasonablyTyped"
+  },
+  "keywords": [
+    "Reason",
+    "OCaml",
+    "Bucklescript",
+    "FLow"
+  ],
+  "author": "Ryan Delaney <rrdelaney@outlook.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rrdelaney/ReasonablyTyped/issues"
+  },
+  "homepage": "https://github.com/rrdelaney/ReasonablyTyped"
+}
