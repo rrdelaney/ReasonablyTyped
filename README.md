@@ -27,6 +27,16 @@ See the example directory for usage details.
 
 For more information, run with `-help`.
 
+# Roadmap
+
+- [x] Basic types like `string`
+- [x] Function types
+- [x] Record types
+- [ ] Union and intersection types
+- [ ] Classes
+- [ ] Generics
+- [ ] Built-ins like Promises and React
+
 # Building
 
 ## Native
