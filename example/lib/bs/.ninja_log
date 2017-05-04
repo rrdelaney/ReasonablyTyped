@@ -1,0 +1,19 @@
+# ninja log v5
+0	101	0	src/index.mlast	bf671f640d759cba
+102	119	0	src/index.mlast.d	2c1a33d1eeb47d73
+0	29	0	src/index.cmj	9506ddd0a076ce27
+0	29	0	/Users/ryan/Documents/dev/ReasonablyTyped/example/lib/js/src/index.js	9506ddd0a076ce27
+0	29	0	src/index.cmi	9506ddd0a076ce27
+0	63	0	src/index.cmj	40f5b66ab3700649
+0	63	0	/Users/ryan/Documents/dev/ReasonablyTyped/example/lib/js/src/index.js	40f5b66ab3700649
+0	63	0	src/index.cmi	40f5b66ab3700649
+0	82	0	flow-typed/npm/is_absolute_url.mlast	19445e8198c4f17d
+82	102	0	flow-typed/npm/is_absolute_url.mlast.d	44e1941a2b5feed3
+0	21	0	flow-typed/npm/is_absolute_url.cmj	643d9a8e6afbd44f
+0	21	0	/Users/ryan/Documents/dev/ReasonablyTyped/example/lib/js/flow-typed/npm/is_absolute_url.js	643d9a8e6afbd44f
+0	21	0	flow-typed/npm/is_absolute_url.cmi	643d9a8e6afbd44f
+0	38	0	src/index.mlast	bf671f640d759cba
+38	51	0	src/index.mlast.d	2c1a33d1eeb47d73
+1	27	0	src/index.cmj	40f5b66ab3700649
+1	27	0	/Users/ryan/Documents/dev/ReasonablyTyped/example/lib/js/src/index.js	40f5b66ab3700649
+1	27	0	src/index.cmi	40f5b66ab3700649

@@ -1,5 +1,4 @@
 node_modules/
-lib/
 _build/
 *.native
 *.byte
