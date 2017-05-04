@@ -6,7 +6,7 @@
   "scripts": {
     "build": "bsb",
     "install-types": "flow-typed install",
-    "generate-interfaces": "../cmd.native -help"
+    "generate-interfaces": "../cmd.native flow-typed/npm/is-absolute-url_v2.x.x.js"
   },
   "keywords": [],
   "author": "",

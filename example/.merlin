@@ -5,4 +5,6 @@ B /Users/ryan/Documents/dev/ReasonablyTyped/example/node_modules/bs-platform/lib
 FLG -nostdlib -no-alias-deps -color always -w -40+6+7+27+32..39+44+45
 S src
 B lib/bs/src
+S flow-typed/npm
+B lib/bs/flow-typed/npm
 ####BSB GENERATED: NO EDIT}

@@ -57,5 +57,8 @@ let rec declaration_to_code module_id =>
 let stack_to_code =
   fun
   | ModuleDecl id statements =>
-    Some (id, String.concat "\n" (List.map (declaration_to_code id) statements))
+    Some (
+      Utils.to_module_name id,
+      String.concat "\n" (List.map (declaration_to_code id) statements)
+    )
   | _ => None;

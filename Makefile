@@ -3,7 +3,7 @@ INCLUDE=flow/src/parser
 PKGS=sedlex
 MAIN=cmd.native
 JSC=js_of_ocaml
-JS_MAIN=cmd.byte
+JS_MAIN=retyped.byte
 
 all: native
 
@@ -11,17 +11,17 @@ native:
 	$(OCAMLC) \
 		-Is $(INCLUDE) \
 		-use-ocamlfind \
-		-pkgs $(PKGS) \
+		-package $(PKGS) \
 		src/$(MAIN)
 
 byte:
 	$(OCAMLC) \
 		-Is $(INCLUDE) \
 		-use-ocamlfind \
-		-pkgs $(PKGS) \
+		-package $(PKGS) \
+		-package js_of_ocaml \
 		src/$(JS_MAIN)
 
 js: byte
 	$(JSC) \
-		$(JS_MAIN) \
-		--custom-header="#!/usr/bin/env node"
+		$(JS_MAIN)

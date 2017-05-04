@@ -1,7 +1,7 @@
 {
   "name": "retyped-example",
   "sources": [
-    "reasonably-types/npm",
+    "flow-typed/npm",
     "src"
   ]
 }

@@ -1,8 +1,3 @@
-/*if (Array.length Sys.argv < 2) {
-    print_endline "Usage:\n  cmd <file_name> <file_contents>\n";
-    exit 0
-  };
-  */
 let debug = ref false;
 
 let usage_msg = "retyped Options available:";
@@ -16,6 +11,18 @@ let load_file fname => {
   really_input ic s 0 n;
   close_in ic;
   s
+};
+
+let write_file fname contents => {
+  let oc = open_out fname;
+  output_string oc contents;
+  close_out oc
+};
+
+let replace_filename fname module_id => {
+  let last_slash = String.rindex fname '/';
+  let path = String.sub fname 0 last_slash;
+  path ^ "/" ^ module_id ^ ".re"
 };
 
 let cmd fname => {
@@ -32,8 +39,8 @@ let cmd fname => {
     print_endline ("/* Module " ^ module_id ^ " */");
     print_endline bs_code
   } else {
-    print_endline ("/* Module " ^ module_id ^ " */");
-    print_endline bs_code
+    let module_filename = replace_filename fname module_id;
+    write_file module_filename bs_code
   }
 };
 
