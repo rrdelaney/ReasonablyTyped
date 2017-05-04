@@ -32,6 +32,7 @@ For more information, run with `-help`.
 - [x] Basic types like `string`
 - [x] Function types
 - [x] Record types
+- [ ] Literals as types
 - [ ] Union and intersection types
 - [ ] Classes
 - [ ] Generics
