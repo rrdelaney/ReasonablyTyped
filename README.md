@@ -38,6 +38,13 @@ For more information, run with `-help`.
 - [ ] Generics
 - [ ] Built-ins like Promises and React
 
+# Contributing
+
+Right now the areas that need the most help are:
+- Compiling to JS
+- Union types
+- Generics
+
 # Building
 
 ## Native
