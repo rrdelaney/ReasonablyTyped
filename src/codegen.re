@@ -23,10 +23,13 @@ let rec bstype_to_code =
   | Null => "null"
   | Unknown => "??"
   | Any => "_"
-  | Object props => "object"
-  | Number => "number"
+  | Object props =>
+    "Js.t <" ^
+    String.concat "," (List.map (fun (key, type_of) => key ^ ": " ^ bstype_to_code type_of) props) ^ ">"
+  | Number => "float"
   | String => "string"
-  | Boolean => "bool"
+  | Boolean => "Js.boolean"
+  | Union types => String.concat " | " (List.map bstype_to_code types)
   | Function params rt =>
     String.concat " => " (List.map (fun (name, param_type) => bstype_to_code param_type) params) ^
     " => " ^ bstype_to_code rt;
@@ -48,7 +51,7 @@ let rec declaration_to_code module_id =>
   | ModuleDecl id statements =>
     "module " ^
     id ^ " = {\n" ^ String.concat "\n  " (List.map (declaration_to_code id) statements) ^ "\n};"
-  | TypeDecl => "$$type$$"
+  | TypeDecl id type_of => "type " ^ id ^ " = " ^ bstype_to_code type_of ^ ";"
   | Unknown => "??;";
 
 let stack_to_code =

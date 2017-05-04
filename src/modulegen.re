@@ -22,6 +22,8 @@ open Ast.Statement.DeclareVariable;
 
 open Ast.Statement.DeclareFunction;
 
+open Ast.Statement.TypeAlias;
+
 module BsType = {
   type t =
     | Null
@@ -29,6 +31,7 @@ module BsType = {
     | String
     | Function (list (string, t)) t
     | Object (list (string, t))
+    | Union (list t)
     | Unknown
     | Boolean
     | Unit
@@ -58,6 +61,12 @@ and type_to_bstype =
   | Boolean => BsType.Boolean
   | Function f => function_type_to_bstype f
   | Object o => object_type_to_bstype o
+  | Union (_, first) (_, second) rest =>
+    BsType.Union [
+      type_to_bstype first,
+      type_to_bstype second,
+      ...List.map (fun (loc, t) => type_to_bstype t) rest
+    ]
   | _ => BsType.Unknown
 and function_type_to_bstype {params: (formal, rest), returnType: (_, rt)} => {
   let params =
@@ -102,7 +111,7 @@ module BsDecl = {
     | FuncDecl string BsType.t
     | ModuleDecl string (list t)
     | ExportsDecl BsType.t
-    | TypeDecl
+    | TypeDecl string BsType.t
     | Unknown;
 };
 
@@ -122,7 +131,8 @@ let rec statement_to_stack (loc, s) =>
     declaration_to_jsdecl declaration
   | Ast.Statement.DeclareFunction declare_function =>
     declaration_to_jsdecl (Function (loc, declare_function))
-  | Ast.Statement.TypeAlias t => BsDecl.TypeDecl
+  | Ast.Statement.TypeAlias {id, right: (loc, t)} =>
+    BsDecl.TypeDecl (string_of_id id) (type_to_bstype t)
   | Ast.Statement.DeclareModule s => declare_module_to_jsdecl s
   | _ => BsDecl.Unknown
   }
@@ -157,6 +167,7 @@ let rec show_type =
   | BsType.Number => "number"
   | BsType.Boolean => "boolean"
   | BsType.String => "string"
+  | BsType.Union types => String.concat " | " (List.map show_type types)
   | BsType.Object props =>
     "{ " ^
     String.concat ", " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
@@ -167,7 +178,7 @@ let rec show_decl =
   | BsDecl.ExportsDecl of_type => "declare module.exports: " ^ show_type of_type
   | BsDecl.ModuleDecl name decls =>
     "declare module " ^ name ^ " {\n  " ^ String.concat "\n  " (List.map show_decl decls) ^ "\n}"
-  | BsDecl.TypeDecl => "declare type $$"
+  | BsDecl.TypeDecl id of_type => "declare type " ^ id ^ " = " ^ show_type of_type
   | BsDecl.Unknown => "external ??"
   | BsDecl.FuncDecl name of_type => "declare export function " ^ name ^ show_type of_type
   | BsDecl.VarDecl name of_type => "declare export var " ^ name ^ ": " ^ show_type of_type;
