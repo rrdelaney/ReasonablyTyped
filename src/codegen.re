@@ -43,7 +43,7 @@ let rec bstype_to_code =
   | Any => "_"
   | Object props =>
     "Js.t <" ^
-    String.concat "," (List.map (fun (key, type_of) => key ^ ": " ^ bstype_to_code type_of) props) ^ ">"
+    String.concat ", " (List.map (fun (key, type_of) => key ^ ": " ^ bstype_to_code type_of) props) ^ ">"
   | Number => "float"
   | String => "string"
   | Boolean => "Js.boolean"
