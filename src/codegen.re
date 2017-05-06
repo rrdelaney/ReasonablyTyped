@@ -17,6 +17,23 @@ module Utils = {
       (unquote str);
 };
 
+let rec bstype_name =
+  fun
+  | Unit => "unit"
+  | Null => "null"
+  | Any => "any"
+  | Object _ => "object"
+  | Number => "number"
+  | String => "string"
+  | Boolean => "bool"
+  | Function _ => "func"
+  | Unknown => "unknown"
+  | Union types => union_types_to_name types
+and union_types_to_name types => {
+  let type_names = List.map bstype_name types;
+  String.capitalize_ascii (String.concat "_or_" type_names)
+};
+
 let rec bstype_to_code =
   fun
   | Unit => "()"
@@ -29,10 +46,51 @@ let rec bstype_to_code =
   | Number => "float"
   | String => "string"
   | Boolean => "Js.boolean"
-  | Union types => "$$union of " ^ String.concat ", " (List.map bstype_to_code types) ^ "$$"
+  | Union types => union_types_to_name types
   | Function params rt =>
     String.concat " => " (List.map (fun (name, param_type) => bstype_to_code param_type) params) ^
-    " => " ^ bstype_to_code rt;
+    " => " ^ bstype_to_code rt
+and function_typedefs defs =>
+  List.map
+    (
+      fun (id, t) =>
+        switch t {
+        | Union types =>
+          Some (
+            "type " ^
+            bstype_name t ^
+            " = " ^
+            String.concat
+              ""
+              (
+                List.map
+                  (
+                    fun union_type =>
+                      "\n| " ^ bstype_name union_type ^ " " ^ bstype_to_code union_type
+                  )
+                  types
+              ) ^ ";\n"
+          )
+        | _ => None
+        }
+    )
+    defs |>
+  List.filter (
+    fun
+    | Some t => true
+    | _ => false
+  ) |>
+  List.map (
+    fun
+    | Some t => t
+    | None => ""
+  ) |>
+  String.concat "\n"
+and bstype_precode def =>
+  switch def {
+  | Function params rt => function_typedefs params
+  | _ => ""
+  };
 
 let rec declaration_to_code module_id =>
   fun
@@ -41,6 +99,7 @@ let rec declaration_to_code module_id =>
     id ^
     " : " ^ bstype_to_code type_of ^ " = \"\" [@@bs.module \"" ^ Utils.unquote module_id ^ "\"];"
   | FuncDecl id type_of =>
+    bstype_precode type_of ^
     "external " ^
     id ^
     " : " ^ bstype_to_code type_of ^ " = \"\" [@@bs.module \"" ^ Utils.unquote module_id ^ "\"];"
