@@ -28,10 +28,11 @@ let rec bstype_name =
   | Boolean => "bool"
   | Function _ => "func"
   | Unknown => "unknown"
+  | Named s => String.uncapitalize_ascii s
   | Union types => union_types_to_name types
 and union_types_to_name types => {
   let type_names = List.map bstype_name types;
-  String.capitalize_ascii (String.concat "_or_" type_names)
+  String.concat "_or_" type_names
 };
 
 let rec bstype_to_code =
@@ -46,6 +47,7 @@ let rec bstype_to_code =
   | Number => "float"
   | String => "string"
   | Boolean => "Js.boolean"
+  | Named s => String.uncapitalize_ascii s
   | Union types => union_types_to_name types
   | Function params rt =>
     String.concat " => " (List.map (fun (name, param_type) => bstype_to_code param_type) params) ^
@@ -112,7 +114,8 @@ let rec declaration_to_code module_id =>
   | ModuleDecl id statements =>
     "module " ^
     id ^ " = {\n" ^ String.concat "\n  " (List.map (declaration_to_code id) statements) ^ "\n};"
-  | TypeDecl id type_of => "type " ^ id ^ " = " ^ bstype_to_code type_of ^ ";"
+  | TypeDecl id type_of =>
+    "type " ^ String.uncapitalize_ascii id ^ " = " ^ bstype_to_code type_of ^ ";"
   | Unknown => "??;";
 
 let stack_to_code =

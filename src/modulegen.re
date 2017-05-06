@@ -6,6 +6,10 @@ open Ast.Literal;
 
 open Ast.Type;
 
+open Ast.Type.Generic;
+
+open Ast.Type.Generic.Identifier;
+
 open Ast.Type.Function;
 
 open Ast.Type.Function.Param;
@@ -24,6 +28,12 @@ open Ast.Statement.DeclareFunction;
 
 open Ast.Statement.TypeAlias;
 
+exception ModulegenDeclError string;
+
+exception ModulegenTypeError string;
+
+exception ModulegenStatementError string;
+
 module BsType = {
   type t =
     | Null
@@ -35,7 +45,8 @@ module BsType = {
     | Unknown
     | Boolean
     | Unit
-    | Any;
+    | Any
+    | Named string;
 };
 
 let string_of_id (loc: Loc.t, id: string) => id;
@@ -49,7 +60,7 @@ let string_of_key (key: Ast.Expression.Object.Property.key) =>
 let rec type_annotation_to_bstype (annotation: option Ast.Type.annotation) =>
   switch annotation {
   | Some (_, (_, t)) => type_to_bstype t
-  | None => BsType.Unknown
+  | None => raise (ModulegenTypeError "Unknown type when parsing annotation")
   }
 and type_to_bstype =
   fun
@@ -67,7 +78,12 @@ and type_to_bstype =
       type_to_bstype second,
       ...List.map (fun (loc, t) => type_to_bstype t) rest
     ]
-  | _ => BsType.Unknown
+  | Generic {id} =>
+    switch id {
+    | Qualified (_, q) => BsType.Named (string_of_id q.id)
+    | Unqualified q => BsType.Named (string_of_id q)
+    }
+  | _ => raise (ModulegenTypeError "Unknown type when converting to Bucklescript type")
 and function_type_to_bstype {params: (formal, rest), returnType: (_, rt)} => {
   let params =
     if (List.length formal > 0) {
@@ -100,7 +116,7 @@ and object_type_to_bstype {properties} =>
       (
         fun
         | Property (loc, {key, value}) => (string_of_key key, value_to_bstype value)
-        | _ => ("??", BsType.Unknown)
+        | _ => raise (ModulegenTypeError "Unknown type!")
       )
       properties
   );
@@ -121,7 +137,8 @@ let declaration_to_jsdecl =
     BsDecl.VarDecl (string_of_id id) (type_annotation_to_bstype typeAnnotation)
   | Function (loc, {id, typeAnnotation}) =>
     BsDecl.FuncDecl (string_of_id id) (type_annotation_to_bstype (Some typeAnnotation))
-  | _ => BsDecl.Unknown;
+  | _ =>
+    raise (ModulegenDeclError "Unknown declaration when converting a module property declaration");
 
 let rec statement_to_stack (loc, s) =>
   switch s {
@@ -134,13 +151,13 @@ let rec statement_to_stack (loc, s) =>
   | Ast.Statement.TypeAlias {id, right: (loc, t)} =>
     BsDecl.TypeDecl (string_of_id id) (type_to_bstype t)
   | Ast.Statement.DeclareModule s => declare_module_to_jsdecl s
-  | _ => BsDecl.Unknown
+  | _ => raise (ModulegenStatementError "Unknown statement type when parsing libdef")
   }
 and block_to_stack (loc, {body}) => List.map statement_to_stack body
 and declare_module_to_jsdecl {id, body} =>
   switch id {
   | Literal (loc, {raw}) => BsDecl.ModuleDecl raw (block_to_stack body)
-  | _ => BsDecl.Unknown
+  | _ => raise (ModulegenDeclError "Unknown declaration type when converting a module declaration")
   };
 
 let rec show_type =
@@ -171,6 +188,7 @@ let rec show_type =
   | BsType.Object props =>
     "{ " ^
     String.concat ", " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
+  | BsType.Named s => s
   | BsType.Unknown => "??";
 
 let rec show_decl =

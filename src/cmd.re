@@ -25,9 +25,7 @@ let replace_filename fname module_id => {
   path ^ "/" ^ module_id ^ ".re"
 };
 
-let cmd fname => {
-  let module_name = Loc.SourceFile fname;
-  let module_def = load_file fname;
+let run_compile fname module_name module_def => {
   let (module_id, flow_code, bs_code) = Retyped.compile module_name module_def;
   if !debug {
     print_endline ("Module " ^ module_id);
@@ -41,6 +39,16 @@ let cmd fname => {
   } else {
     let module_filename = replace_filename fname module_id;
     write_file module_filename bs_code
+  }
+};
+
+let cmd fname => {
+  let module_name = Loc.SourceFile fname;
+  let module_def = load_file fname;
+  try (run_compile fname module_name module_def) {
+  | Modulegen.ModulegenDeclError e => print_endline e
+  | Modulegen.ModulegenStatementError e => print_endline e
+  | Modulegen.ModulegenTypeError e => print_endline e
   }
 };
 
