@@ -33,7 +33,9 @@ For more information, run with `-help`.
 - [x] Function types
 - [x] Record types
 - [ ] Literals as types
-- [ ] Union and intersection types
+- [x] Union types
+- [ ] Instersection types
+- [x] Named types
 - [ ] Classes
 - [ ] Generics
 - [ ] Built-ins like Promises and React
