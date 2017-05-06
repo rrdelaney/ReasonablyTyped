@@ -179,7 +179,7 @@ let rec show_type =
           )
           params
       ) ^
-    ") => " ^ show_type return
+    "): " ^ show_type return
   | BsType.Null => "null"
   | BsType.Number => "number"
   | BsType.Boolean => "boolean"
