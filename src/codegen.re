@@ -70,7 +70,7 @@ and function_typedefs defs =>
                     fun union_type =>
                       "\n| " ^
                       String.capitalize_ascii (bstype_name union_type) ^
-                      " " ^ bstype_to_code union_type
+                      " (" ^ bstype_to_code union_type ^ ")"
                   )
                   types
               ) ^ ";\n"
