@@ -24,4 +24,9 @@ byte:
 
 js: byte
 	$(JSC) \
+		--pretty \
+		--no-inline \
+		--disable shortvar \
+		--disable share \
+		--disable excwrap \
 		$(JS_MAIN)
