@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.js"></script>
+  <script src="retyped_node.js"></script>
+
+  <style>
+    .mono-input {
+      font-family: "Operator Mono", "Fira Code", "Anonymous Pro", monospace;
+    }
+    
+    #libdef-output {
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="ui two column grid container">
+    <div class="column">
+      <div class="ui form">
+        <div class="field">
+          <label for="libdef-input">Flow Definition</label>
+          <textarea class="mono-input" name="libdef-input" id="libdef-input"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="column">
+      <div class="ui form">
+        <div class="field">
+          <label for="libdef-output">Bucklescript Interface</label>
+          <textarea disabled class="mono-input" name="libdef-output" id="libdef-output"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    $(' #libdef-input ').on('change keyup paste ', function () {
+      const libdef = $(this).val()
+
+      try {
+        const [moduleId, flowCode, bsCode] = compile('test', libdef)
+        $('#libdef-output ').val(`/* Module ${moduleId} */\n\n${bsCode}`)
+      } catch (e) {
+        const errorType = e[1][1].c
+        const errorValue = e[2].c
+        console.error(errorType, errorValue)
+      }
+    })
+  </script>
+</body>
+
+</html>
