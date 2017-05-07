@@ -2,4 +2,3 @@ node_modules/
 _build/
 *.native
 *.byte
-cmd.js

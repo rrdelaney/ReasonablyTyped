@@ -10,7 +10,7 @@ let load_file fname => {
   let s = String.create n;
   really_input ic s 0 n;
   close_in ic;
-  s
+  Bytes.to_string s
 };
 
 let write_file fname contents => {

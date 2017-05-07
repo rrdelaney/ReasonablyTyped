@@ -1,9 +1,9 @@
 OCAMLC=rebuild
 INCLUDE=flow/src/parser
-PKGS=sedlex,reason-parser
+PKGS=sedlex
 MAIN=cmd.native
 JSC=js_of_ocaml
-JS_MAIN=retyped.byte
+JS_MAIN=retyped_node.byte
 
 all: native
 
@@ -18,7 +18,7 @@ byte:
 	$(OCAMLC) \
 		-Is $(INCLUDE) \
 		-use-ocamlfind \
-		-package $(PKGS) \
+		-pkgs $(PKGS) \
 		-package js_of_ocaml \
 		src/$(JS_MAIN)
 
