@@ -11,7 +11,7 @@ native:
 	$(OCAMLC) \
 		-Is $(INCLUDE) \
 		-use-ocamlfind \
-		-package $(PKGS) \
+		-pkgs $(PKGS) \
 		src/$(MAIN)
 
 byte:
