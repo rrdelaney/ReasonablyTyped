@@ -52,6 +52,4 @@ let cmd fname => {
   }
 };
 
-let print = Formatgen.print;
-
 Arg.parse speclist cmd usage_msg;
