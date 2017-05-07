@@ -2,5 +2,3 @@ node_modules/
 _build/
 *.native
 *.byte
-retyped_node.js
-test.js

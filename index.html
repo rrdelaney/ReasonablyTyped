@@ -107,6 +107,12 @@
   </div>
 
   <script type="text/javascript">
+    const libs = {
+      'is-url': ['declare module \'is-url\' {',
+        '  declare module.exports: (url: string) => boolean',
+        '}'].join('\n')
+    }
+
     const defaultLibDef = [
       'declare module \'math-fns\' {',
       '  declare function add(x: number, y: number): number',
@@ -122,10 +128,9 @@
     $('#libdef-output').val(compileText(defaultLibDef))
 
     $('#libdef-input').on('change keyup paste ', function () {
-      const libdef = $(this).val()
-      const output = compileText(libdef)
-
       try {
+        const libdef = $(this).val()
+        const output = compileText(libdef)
         $('#libdef-output ').val(output)
       } catch (e) {
         const errorType = e[1][1].c
