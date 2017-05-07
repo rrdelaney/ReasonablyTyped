@@ -28,5 +28,5 @@ js: byte
 		--no-inline \
 		--disable shortvar \
 		--disable share \
-		--disable excwrap \
+		--enable excwrap \
 		$(JS_MAIN)

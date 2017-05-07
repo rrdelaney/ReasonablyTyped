@@ -43,7 +43,7 @@ let run_compile fname module_name module_def => {
 };
 
 let cmd fname => {
-  let module_name = Loc.SourceFile fname;
+  let module_name = fname;
   let module_def = load_file fname;
   try (run_compile fname module_name module_def) {
   | Modulegen.ModulegenDeclError e => print_endline e
