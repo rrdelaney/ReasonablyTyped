@@ -48,6 +48,11 @@
     #libdef-output {
       opacity: 1;
     }
+    
+    #libdef-output.error {
+      color: indianred;
+      border-color: indianred;
+    }
   </style>
 </head>
 
@@ -152,11 +157,13 @@
       try {
         const libdef = $(this).val()
         const output = compileText(libdef)
+        $('#libdef-output').removeClass('error')
         $('#libdef-output ').val(output)
       } catch (e) {
         const errorType = e[1][1].c
         const errorValue = e[2].c
-        console.error(errorType, errorValue)
+        $('#libdef-output').addClass('error')
+        $('#libdef-output').val(`${errorType}: ${errorValue}`)
       }
     })
   </script>
