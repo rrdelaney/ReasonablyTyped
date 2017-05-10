@@ -21,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/rrdelaney/ReasonablyTyped/issues"
   },
-  "homepage": "https://github.com/rrdelaney/ReasonablyTyped"
+  "homepage": "https://github.com/rrdelaney/ReasonablyTyped",
+  "dependencies": {
+    "yargs": "^8.0.1"
+  }
 }

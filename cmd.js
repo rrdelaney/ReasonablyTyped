@@ -1,8 +1,14 @@
-const { readFileSync } = require('fs')
+#!/usr/bin / env node
+const yargs = require('yargs')
 const retyped = require('./retyped_node')
 
-const fname = 'test.js'
-const fcont = readFileSync(fname).toString()
+const a = yargs
+  .usage('$0 <cmd> [args]')
+  .command(
+    'generate [files...]',
+    'Generate BuckleScript interfaces from a file'
+  )
+  .help()
+  .argv
 
-const output = retyped.compile(fname, fcont)
-console.log(output)
+console.log(a)
