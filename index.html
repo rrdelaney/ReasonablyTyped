@@ -15,12 +15,35 @@
       text-transform: uppercase !important;
     }
     
+    .header code {
+      background-color: white;
+      border: 1px solid white;
+      border-radius: .5rem;
+      color: #505050;
+      font-family: "Operator Mono", "Fira Code", "Anonymous Pro", monospace !important;
+      font-weight: 300;
+      font-size: 12pt;
+      margin-top: 1rem;
+      padding: 1rem;
+      text-transform: lowercase !important;
+    }
+    
+    .header .spacer {
+      display: block;
+      height: 2rem;
+    }
+    
     .header.divider {
       color: #505050 !important;
     }
     
     p {
       font-family: "Open Sans" !important;
+    }
+    
+    p code {
+      font-family: "Operator Mono", "Fira Code", "Anonymous Pro", monospace !important;
+      white-space: pre-wrap;
     }
     
     label {
@@ -98,7 +121,11 @@
           }
         }
       </style>
-      reasonably typed
+      <span>
+        reasonably typed
+        <span class="spacer"></span>
+      <code>npm install -g reasonably-typed</code>
+      </span>
     </h1>
   </div>
   <br />
@@ -108,6 +135,18 @@
     </h1>
     <p>
       Converts Flow library definitions to Bucklescript interfaces
+      <br />
+      <code>
+        retyped
+
+        Commands:
+          compile [files...]  Generate BuckleScript interfaces from a file
+
+        Options:
+          --version     Show version number                                    [boolean]
+          --flow-typed  Generate interfaces from the flow-typed directory
+          --help        Show help                                              [boolean]
+      </code>
     </p>
     <h1 class="ui horizontal divider header">
       <i class="code icon"></i> Demo
