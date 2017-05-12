@@ -1,6 +1,6 @@
 {
   "name": "reasonably-typed",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Converts flow definitions to Bucklescript definitions",
   "main": "cmd.js",
   "bin": {
