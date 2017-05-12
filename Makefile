@@ -9,6 +9,7 @@ all: native
 
 native:
 	$(OCAMLC) \
+		-cflags -bin-annot \
 		-Is $(INCLUDE) \
 		-use-ocamlfind \
 		-pkgs $(PKGS) \
@@ -16,6 +17,7 @@ native:
 
 byte:
 	$(OCAMLC) \
+		-cflags -bin-annot \
 		-Is $(INCLUDE) \
 		-use-ocamlfind \
 		-pkgs $(PKGS) \
@@ -30,3 +32,6 @@ js: byte
 		--disable share \
 		--enable excwrap \
 		$(JS_MAIN)
+		
+clean:
+	rm -rf _build *.native *.byte
