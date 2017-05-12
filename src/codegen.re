@@ -118,11 +118,13 @@ let rec declaration_to_code module_id =>
     "type " ^ String.uncapitalize_ascii id ^ " = " ^ bstype_to_code type_of ^ ";"
   | Unknown => "??;";
 
-let stack_to_code =
-  fun
+let stack_to_code stack =>
+  switch stack {
   | ModuleDecl id statements =>
     Some (
       Utils.to_module_name id,
       String.concat "\n" (List.map (declaration_to_code id) statements)
     )
-  | _ => None;
+  | TypeDecl _ _ => Some ("", declaration_to_code "" stack)
+  | _ => None
+  };

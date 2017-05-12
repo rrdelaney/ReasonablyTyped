@@ -1,5 +1,21 @@
 open Parser_flow;
 
+let combine_stacks =
+  List.fold_left
+    (
+      fun (current_id, all_code) stack =>
+        switch (Codegen.stack_to_code stack) {
+        | Some (stack_id, stack_code) =>
+          if (stack_id !== "") {
+            (stack_id, all_code ^ "\n" ^ stack_code)
+          } else {
+            (current_id, all_code ^ "\n" ^ stack_code)
+          }
+        | None => (current_id, all_code)
+        }
+    )
+    ("Unknown ID", "");
+
 let compile module_name module_def => {
   let (statements, errors) = {
     let (ocaml_ast, errors) =
@@ -8,12 +24,7 @@ let compile module_name module_def => {
     (statements, errors)
   };
   let stacks = List.map Modulegen.statement_to_stack statements;
-  let main_stack = List.hd stacks;
-  let flow_code = Modulegen.show_decl main_stack;
-  let (module_id, bs_code) =
-    switch (Codegen.stack_to_code main_stack) {
-    | Some m => m
-    | None => ("??", "??")
-    };
+  let flow_code = String.concat "\n" (List.map Modulegen.show_decl stacks);
+  let (module_id, bs_code) = combine_stacks stacks;
   (module_id, flow_code, bs_code)
 };
