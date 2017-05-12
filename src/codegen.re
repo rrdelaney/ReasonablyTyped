@@ -117,6 +117,7 @@ let rec declaration_to_code module_id =>
   | TypeDecl id type_of =>
     bstype_precode type_of ^
     "type " ^ String.uncapitalize_ascii id ^ " = " ^ bstype_to_code type_of ^ ";"
+  | ClassDecl id type_of => ""
   | Unknown => "??;";
 
 let stack_to_code stack =>

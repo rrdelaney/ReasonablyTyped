@@ -41,6 +41,7 @@ module BsType = {
     | String
     | Function (list (string, t)) t
     | Object (list (string, t))
+    | Class (list (string, t))
     | Union (list t)
     | Unknown
     | Boolean
@@ -71,7 +72,7 @@ and type_to_bstype =
   | String => BsType.String
   | Boolean => BsType.Boolean
   | Function f => function_type_to_bstype f
-  | Object o => object_type_to_bstype o
+  | Object o => BsType.Object (object_type_to_bstype o)
   | Union (_, first) (_, second) rest =>
     BsType.Union [
       type_to_bstype first,
@@ -111,15 +112,13 @@ and value_to_bstype (value: Ast.Type.Object.Property.value) =>
   | Set (loc, func) => function_type_to_bstype func
   }
 and object_type_to_bstype {properties} =>
-  BsType.Object (
-    List.map
-      (
-        fun
-        | Property (loc, {key, value}) => (string_of_key key, value_to_bstype value)
-        | _ => raise (ModulegenTypeError "Unknown type!")
-      )
-      properties
-  );
+  List.map
+    (
+      fun
+      | Property (loc, {key, value}) => (string_of_key key, value_to_bstype value)
+      | _ => raise (ModulegenTypeError "Unknown type!")
+    )
+    properties;
 
 module BsDecl = {
   type t =
@@ -128,31 +127,42 @@ module BsDecl = {
     | ModuleDecl string (list t)
     | ExportsDecl BsType.t
     | TypeDecl string BsType.t
+    | ClassDecl string BsType.t
     | Unknown;
 };
 
 let declaration_to_jsdecl =
-  fun
-  | Variable (loc, {id, typeAnnotation}) =>
-    BsDecl.VarDecl (string_of_id id) (type_annotation_to_bstype typeAnnotation)
-  | Function (loc, {id, typeAnnotation}) =>
-    BsDecl.FuncDecl (string_of_id id) (type_annotation_to_bstype (Some typeAnnotation))
-  | _ =>
-    raise (ModulegenDeclError "Unknown declaration when converting a module property declaration");
+  Ast.Statement.Interface.(
+    fun
+    | Variable (loc, {id, typeAnnotation}) =>
+      BsDecl.VarDecl (string_of_id id) (type_annotation_to_bstype typeAnnotation)
+    | Function (loc, {id, typeAnnotation}) =>
+      BsDecl.FuncDecl (string_of_id id) (type_annotation_to_bstype (Some typeAnnotation))
+    | Class (loc, {id, body: (_, interface)}) =>
+      BsDecl.ClassDecl (string_of_id id) (BsType.Class (object_type_to_bstype interface))
+    | _ =>
+      raise (
+        ModulegenDeclError "Unknown declaration when converting a module property declaration"
+      )
+  );
 
 let rec statement_to_stack (loc, s) =>
-  switch s {
-  | Ast.Statement.DeclareModuleExports annotation =>
-    BsDecl.ExportsDecl (type_annotation_to_bstype (Some annotation))
-  | Ast.Statement.DeclareExportDeclaration {declaration: Some declaration} =>
-    declaration_to_jsdecl declaration
-  | Ast.Statement.DeclareFunction declare_function =>
-    declaration_to_jsdecl (Function (loc, declare_function))
-  | Ast.Statement.TypeAlias {id, right: (loc, t)} =>
-    BsDecl.TypeDecl (string_of_id id) (type_to_bstype t)
-  | Ast.Statement.DeclareModule s => declare_module_to_jsdecl s
-  | _ => raise (ModulegenStatementError "Unknown statement type when parsing libdef")
-  }
+  Ast.Statement.Interface.(
+    switch s {
+    | Ast.Statement.DeclareModuleExports annotation =>
+      BsDecl.ExportsDecl (type_annotation_to_bstype (Some annotation))
+    | Ast.Statement.DeclareExportDeclaration {declaration: Some declaration} =>
+      declaration_to_jsdecl declaration
+    | Ast.Statement.DeclareFunction declare_function =>
+      declaration_to_jsdecl (Function (loc, declare_function))
+    | Ast.Statement.DeclareClass {id, body: (_, interface)} =>
+      BsDecl.ClassDecl (string_of_id id) (BsType.Class (object_type_to_bstype interface))
+    | Ast.Statement.TypeAlias {id, right: (loc, t)} =>
+      BsDecl.TypeDecl (string_of_id id) (type_to_bstype t)
+    | Ast.Statement.DeclareModule s => declare_module_to_jsdecl s
+    | _ => raise (ModulegenStatementError "Unknown statement type when parsing libdef")
+    }
+  )
 and block_to_stack (loc, {body}) => List.map statement_to_stack body
 and declare_module_to_jsdecl {id, body} =>
   switch id {
@@ -188,6 +198,9 @@ let rec show_type =
   | BsType.Object props =>
     "{ " ^
     String.concat ", " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
+  | BsType.Class props =>
+    "{ " ^
+    String.concat "; " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
   | BsType.Named s => s
   | BsType.Unknown => "??";
 
@@ -199,4 +212,5 @@ let rec show_decl =
   | BsDecl.TypeDecl id of_type => "declare type " ^ id ^ " = " ^ show_type of_type
   | BsDecl.Unknown => "external ??"
   | BsDecl.FuncDecl name of_type => "declare export function " ^ name ^ show_type of_type
-  | BsDecl.VarDecl name of_type => "declare export var " ^ name ^ ": " ^ show_type of_type;
+  | BsDecl.VarDecl name of_type => "declare export var " ^ name ^ ": " ^ show_type of_type
+  | BsDecl.ClassDecl name of_type => "declare class " ^ name ^ " " ^ show_type of_type;
