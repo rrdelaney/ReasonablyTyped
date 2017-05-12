@@ -52,7 +52,7 @@ let rec bstype_to_code =
   | Function params rt =>
     String.concat " => " (List.map (fun (name, param_type) => bstype_to_code param_type) params) ^
     " => " ^ bstype_to_code rt
-and function_typedefs defs =>
+and function_typedefs_precode defs =>
   List.map
     (
       fun (id, t) =>
@@ -76,7 +76,7 @@ and function_typedefs defs =>
 and bstype_precode def =>
   switch def {
   | Union types => string_of_union_types def types
-  | Function params rt => function_typedefs params
+  | Function params rt => function_typedefs_precode params
   | _ => ""
   }
 and string_of_union_types t types =>
