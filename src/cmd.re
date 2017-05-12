@@ -7,7 +7,7 @@ let speclist = [("-debug", Arg.Set debug, "Enables debugging mode")];
 let load_file fname => {
   let ic = open_in fname;
   let n = in_channel_length ic;
-  let s = String.create n;
+  let s = Bytes.create n;
   really_input ic s 0 n;
   close_in ic;
   Bytes.to_string s
