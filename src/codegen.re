@@ -57,24 +57,7 @@ and function_typedefs defs =>
     (
       fun (id, t) =>
         switch t {
-        | Union types =>
-          Some (
-            "type " ^
-            bstype_name t ^
-            " = " ^
-            String.concat
-              ""
-              (
-                List.map
-                  (
-                    fun union_type =>
-                      "\n| " ^
-                      String.capitalize_ascii (bstype_name union_type) ^
-                      " (" ^ bstype_to_code union_type ^ ")"
-                  )
-                  types
-              ) ^ ";\n"
-          )
+        | Union types => Some (string_of_union_types t types)
         | _ => None
         }
     )
@@ -92,9 +75,26 @@ and function_typedefs defs =>
   String.concat "\n"
 and bstype_precode def =>
   switch def {
+  | Union types => string_of_union_types def types
   | Function params rt => function_typedefs params
   | _ => ""
-  };
+  }
+and string_of_union_types t types =>
+  "type " ^
+  bstype_name t ^
+  " = " ^
+  String.concat
+    ""
+    (
+      List.map
+        (
+          fun union_type =>
+            "\n| " ^
+            String.capitalize_ascii (bstype_name union_type) ^
+            " (" ^ bstype_to_code union_type ^ ")"
+        )
+        types
+    ) ^ ";\n";
 
 let rec declaration_to_code module_id =>
   fun
@@ -115,6 +115,7 @@ let rec declaration_to_code module_id =>
     "module " ^
     id ^ " = {\n" ^ String.concat "\n  " (List.map (declaration_to_code id) statements) ^ "\n};"
   | TypeDecl id type_of =>
+    bstype_precode type_of ^
     "type " ^ String.uncapitalize_ascii id ^ " = " ^ bstype_to_code type_of ^ ";"
   | Unknown => "??;";
 
