@@ -39,6 +39,24 @@ See the example directory for usage details.
 
 For more information, run with `--help`.
 
+# Usage as a library
+
+ReasonablyTyped also exports a library for use! See the example below:
+
+```js
+// lib-usage.js
+import * as ReasonablyTyped from 'reasonably-typed'
+
+const libName = 'lib.js'
+const libSrc = fs.readFileSync(libName).toString()
+const bsInterface = ReasonablyTyped.compile(libName, libSrc)
+```
+
+### `compile (fileName: string, fileSource: string): string`
+
+Compiles a given Flow library definition to a Bucklescript interface.
+This function only cares about _transforming_ the source, and doesn't write anything.
+
 # Roadmap
 
 - [x] Basic types like `string`
