@@ -18,6 +18,7 @@ Commands:
 
 Options:
   --version     Show version number                                    [boolean]
+  --flow-typed  Generate interfaces from the flow-typed directory
   --help        Show help
 ```
 
@@ -25,12 +26,18 @@ This will generate a Bucklescript interface file for every library definition gi
 to generate interfaces from flow-typed, run:
 
 ```
-$ retyped compile flow-typed/npm/*.js
+$ retyped compile --flow-typed
+```
+
+For a single file, run:
+
+```
+$ retyped compile my-flow-lib.js
 ```
 
 See the example directory for usage details.
 
-For more information, run with `-help`.
+For more information, run with `--help`.
 
 # Roadmap
 
@@ -48,7 +55,6 @@ For more information, run with `-help`.
 # Contributing
 
 Right now the areas that need the most help are:
-- Compiling to JS
 - Union types
 - Generics
 
