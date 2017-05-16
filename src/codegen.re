@@ -2,6 +2,10 @@ open Modulegen.BsDecl;
 
 open Modulegen.BsType;
 
+exception CodegenTypeError string;
+
+exception CodegenConstructorError string;
+
 module Utils = {
   let unquote str => String.sub str 1 (String.length str - 2);
   let to_module_name str =>
@@ -30,6 +34,7 @@ let rec bstype_name =
   | Unknown => "unknown"
   | Named s => String.uncapitalize_ascii s
   | Union types => union_types_to_name types
+  | Class props => raise (CodegenTypeError "Unable to translate class into type name")
 and union_types_to_name types => {
   let type_names = List.map bstype_name types;
   String.concat "_or_" type_names
@@ -42,8 +47,8 @@ let rec bstype_to_code =
   | Unknown => "??"
   | Any => "_"
   | Object props =>
-    "Js.t <" ^
-    String.concat ", " (List.map (fun (key, type_of) => key ^ ": " ^ bstype_to_code type_of) props) ^ ">"
+    "Js.t < " ^
+    String.concat ", " (List.map (fun (key, type_of) => key ^ ": " ^ bstype_to_code type_of) props) ^ " >"
   | Number => "float"
   | String => "string"
   | Boolean => "Js.boolean"
@@ -52,6 +57,14 @@ let rec bstype_to_code =
   | Function params rt =>
     String.concat " => " (List.map (fun (name, param_type) => bstype_to_code param_type) params) ^
     " => " ^ bstype_to_code rt
+  | Class props =>
+    "Js.t < " ^
+    String.concat
+      ", "
+      (
+        List.filter (fun (key, type_of) => key != "constructor") props |>
+        List.map (fun (key, type_of) => key ^ ": " ^ bstype_to_code type_of ^ " [@bs.meth]")
+      ) ^ " >"
 and function_typedefs_precode defs =>
   List.map
     (
@@ -96,6 +109,14 @@ and string_of_union_types t types =>
         types
     ) ^ ";\n";
 
+let constructor_type =
+  fun
+  | Class props => {
+      let (_, cons_type) = List.find (fun (id, _) => id == "constructor") props;
+      bstype_to_code cons_type
+    }
+  | _ => raise (CodegenConstructorError "Type has no constructor");
+
 let rec declaration_to_code module_id =>
   fun
   | VarDecl id type_of =>
@@ -117,7 +138,17 @@ let rec declaration_to_code module_id =>
   | TypeDecl id type_of =>
     bstype_precode type_of ^
     "type " ^ String.uncapitalize_ascii id ^ " = " ^ bstype_to_code type_of ^ ";"
-  | ClassDecl id type_of => ""
+  | ClassDecl id type_of =>
+    "type " ^
+    String.uncapitalize_ascii id ^
+    " = " ^
+    bstype_to_code type_of ^
+    ";\n" ^
+    "external create_" ^
+    String.uncapitalize_ascii id ^
+    ": " ^
+    constructor_type type_of ^
+    " = \"" ^ id ^ "\" [@@bs.new] [@@bs.module \"" ^ Utils.unquote module_id ^ "\"];"
   | Unknown => "??;";
 
 let stack_to_code stack =>
