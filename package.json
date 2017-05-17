@@ -4,7 +4,7 @@
   "description": "Converts flow definitions to Bucklescript definitions",
   "main": "retyped_node.js",
   "bin": {
-    "retyped": "./cmd.js"
+    "retyped": "./cli.js"
   },
   "repository": {
     "type": "git",

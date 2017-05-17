@@ -1,7 +1,7 @@
 OCAMLC=rebuild
 INCLUDE=flow/src/parser
 PKGS=sedlex
-MAIN=cmd.native
+MAIN=cli.native
 JSC=js_of_ocaml
 JS_MAIN=retyped_node.byte
 
@@ -32,6 +32,6 @@ js: byte
 		--disable share \
 		--enable excwrap \
 		$(JS_MAIN)
-		
+
 clean:
 	rm -rf _build *.native *.byte
