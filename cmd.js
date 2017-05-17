@@ -11,10 +11,12 @@ yargs
   .version(require('./package.json').version)
   .command('compile [files...]', 'Generate BuckleScript interfaces from a file', {}, compileFiles)
   .option('flow-typed', {
-    describe: 'Generate interfaces from the flow-typed directory'
+    describe: 'Generate interfaces from the flow-typed directory',
+    boolean: true
   })
   .option('no-fmt', {
-    describe: 'Don\'t run the resulting code through refmt'
+    describe: 'Don\'t run the resulting code through refmt',
+    boolean: true
   })
   .demandCommand(1, '')
   .help()
