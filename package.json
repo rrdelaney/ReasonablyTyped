@@ -33,7 +33,7 @@
   },
   "ava": {
     "files": [
-      "test.js"
+      "test/*.js"
     ]
   }
 }
