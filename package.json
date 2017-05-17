@@ -24,5 +24,16 @@
   "homepage": "https://github.com/rrdelaney/ReasonablyTyped",
   "dependencies": {
     "yargs": "^8.0.1"
+  },
+  "scripts": {
+    "test": "ava"
+  },
+  "devDependencies": {
+    "ava": "^0.19.1"
+  },
+  "ava": {
+    "files": [
+      "test.js"
+    ]
   }
 }
