@@ -53,10 +53,18 @@ const libSrc = fs.readFileSync(libName).toString()
 const bsInterface = ReasonablyTyped.compile(libName, libSrc)
 ```
 
-### `compile (fileName: string, fileSource: string): string`
+### `compile (fileName: string, fileSource: string) => string`
 
 Compiles a given Flow library definition to a Bucklescript interface.
 This function only cares about _transforming_ the source, and doesn't write anything.
+
+### `refmt (code: string, inFile: 'RE' | 'ML', fileType: 'interface' | 'implementation', outFile: 'RE' | 'ML') => string`
+
+Formats a block of code using `refmt`
+
+### `compileSource (code: string) => string`
+
+Compiles a libdef, formats the result, and handles errors cleanly
 
 # Roadmap
 
