@@ -8,13 +8,14 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.js"></script>
   <script src="retyped_node.js"></script>
+  <script src="refmt_node.js"></script>
 
   <style>
     .header {
       font-family: montserrat !important;
       text-transform: uppercase !important;
     }
-    
+
     .header code {
       background-color: white;
       border: 1px solid white;
@@ -27,51 +28,51 @@
       padding: 1rem;
       text-transform: lowercase !important;
     }
-    
+
     .header .spacer {
       display: block;
       height: 2rem;
     }
-    
+
     .header.divider {
       color: #505050 !important;
     }
-    
+
     p {
       font-family: "Open Sans" !important;
     }
-    
+
     p code {
       font-family: "Operator Mono", "Fira Code", "Anonymous Pro", monospace !important;
       white-space: pre-wrap;
     }
-    
+
     label {
       font-family: montserrat !important;
       text-transform: uppercase !important;
       color: #505050 !important;
     }
-    
+
     .mono-input {
       font-family: "Operator Mono", "Fira Code", "Anonymous Pro", monospace;
     }
-    
+
     .menu.square {
       border-radius: 0;
     }
-    
+
     .menu.inverted.reason {
       background-color: #db4d3f;
     }
-    
+
     .header.hero {
       font-size: 48pt;
     }
-    
+
     #libdef-output {
       opacity: 1;
     }
-    
+
     #libdef-output.error {
       color: indianred;
       border-color: indianred;
@@ -96,7 +97,7 @@
         .github-corner:hover .octo-arm {
           animation: octocat-wave 560ms ease-in-out
         }
-        
+
         @keyframes octocat-wave {
           0%,
           100% {
@@ -111,7 +112,7 @@
             transform: rotate(10deg)
           }
         }
-        
+
         @media (max-width:500px) {
           .github-corner:hover .octo-arm {
             animation: none
@@ -186,7 +187,12 @@
 
     const compileText = str => {
       const [moduleId, flowCode, bsCode] = compile('test', str)
-      return `/* Module ${moduleId} */\n\n${bsCode}`
+      const [fmtType, fmtCode] = refmt(bsCode, 'RE', 'implementation', 'RE')
+      if (fmtCode.includes('SYNTAX ERROR>')) {
+        throw new Error(fmtCode)
+      }
+
+      return `/* Module ${moduleId} */\n\n${fmtCode}`
     }
 
     $('#libdef-input').val(defaultLibDef)
@@ -199,10 +205,12 @@
         $('#libdef-output').removeClass('error')
         $('#libdef-output ').val(output)
       } catch (e) {
-        const errorType = e[1][1].c
-        const errorValue = e[2].c
+        const errorText = e instanceof Error
+          ? 'Unable to generate code :('
+          : 'Error parsing JS code :('
+
         $('#libdef-output').addClass('error')
-        $('#libdef-output').val(`${errorType}: ${errorValue}`)
+        $('#libdef-output').val(errorText)
       }
     })
   </script>

@@ -47,8 +47,8 @@ let rec bstype_to_code =
   | Unknown => "??"
   | Any => "_"
   | Object props =>
-    "Js.t < " ^
-    String.concat ", " (List.map (fun (key, type_of) => key ^ ": " ^ bstype_to_code type_of) props) ^ " >"
+    "Js.t {. " ^
+    String.concat ", " (List.map (fun (key, type_of) => key ^ ": " ^ bstype_to_code type_of) props) ^ " }"
   | Number => "float"
   | String => "string"
   | Boolean => "Js.boolean"
@@ -58,13 +58,13 @@ let rec bstype_to_code =
     String.concat " => " (List.map (fun (name, param_type) => bstype_to_code param_type) params) ^
     " => " ^ bstype_to_code rt
   | Class props =>
-    "Js.t < " ^
+    "Js.t {. " ^
     String.concat
       ", "
       (
         List.filter (fun (key, type_of) => key != "constructor") props |>
         List.map (fun (key, type_of) => key ^ ": " ^ bstype_to_code type_of ^ " [@bs.meth]")
-      ) ^ " >"
+      ) ^ " }"
 and function_typedefs_precode defs =>
   List.map
     (
