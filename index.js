@@ -1,5 +1,8 @@
 // @flow
 
+const Retyped = require('./retyped_node')
+const Refmt = require('./refmt_node')
+
 /*::
 type Compiler = (fileName: string, source: string) => string
 */
@@ -7,7 +10,7 @@ type Compiler = (fileName: string, source: string) => string
 /**
  * Compiles a Flow libdef to a Reason interface
  */
-module.exports.compile /*: Compiler */ = require('./retyped_node').compile
+module.exports.rawCompile /*: Compiler */ = Retyped.compile
 
 /*::
 type Refmt = (code: string, inFile: 'RE' | 'ML', fileType: 'interface' | 'implementation', outFile: 'RE' | 'ML') => string
@@ -16,17 +19,23 @@ type Refmt = (code: string, inFile: 'RE' | 'ML', fileType: 'interface' | 'implem
 /**
  * Runs `refmt` on a codeblock
  */
-module.exports.refmt /*: Refmt */ = require('./refmt_node').refmt
+module.exports.refmt /*: Refmt */ = Refmt.refmt
 
 /**
  * Compiles a Flow libdef to a Reason interface, formatted and error handled
+ *
+ * @param {string} source Flow libdef to compile
+ * @return {string} Reason interface
  */
-module.exports.compileSource = (source /*: string */) => {
+module.exports.compile = (source /*: string */) /*: string */ => {
   let res
 
   try {
-    res = refmt(compile('', source), 'RE', 'implementation', 'RE')
+    const [moduleName, flowCode, bsCode] = Retyped.compile('', source)
+    const [fmtType, fmtCode] = Refmt.refmt(bsCode, 'RE', 'implementation', 'RE')
+    res = fmtCode
   } catch (e) {
+    con
     throw new Error(`${e[1][1].c}: ${e[2].c}`)
   }
 

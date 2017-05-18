@@ -18,7 +18,6 @@ Commands:
 
 Options:
   --version     Show version number                                    [boolean]
-  --flow-typed  Generate interfaces from the flow-typed directory      [boolean]
   --no-fmt      Don't run the resulting code through refmt             [boolean]
   --help        Show help                                              [boolean]
 ```

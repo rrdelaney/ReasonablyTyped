@@ -3,8 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 const yargs = require('yargs')
-const retyped = require('./retyped_node')
-const refmt = require('./refmt_node')
+const ReasonablyTyped = require('./')
 
 yargs
   .usage('retyped')
@@ -14,20 +13,16 @@ yargs
     describe: 'Generate interfaces from the flow-typed directory',
     boolean: true
   })
-  .option('no-fmt', {
-    describe: 'Don\'t run the resulting code through refmt',
-    boolean: true
-  })
   .demandCommand(1, '')
   .help()
   .argv
 
-function compileFiles ({ files: argsFiles, flowTyped, fmt = true }) {
+function compileFiles ({ files: argsFiles, flowTyped }) {
   const flowTypedFiles = flowTyped ? getFlowFiles() : Promise.resolve([])
 
   flowTypedFiles
     .then(flowFiles => [...argsFiles, ...flowFiles])
-    .then(allFiles => allFiles.map(f => compileFile(f, fmt)))
+    .then(allFiles => compileFile)
     .then(compiledFiles => Promise.all(compiledFiles))
     .then(result => {
       console.log(`Compiled ${result.length} file${result.length > 1 ? 's' : ''}`)
@@ -53,20 +48,14 @@ function getFlowFiles () {
   })
 }
 
-function compileFile (filePath, shouldFmt) {
+function compileFile (filePath) {
   return new Promise((resolve, reject) => {
     fs.readFile(filePath, (err, data) => {
       if (err) return reject(err)
 
       const fileName = path.basename(filePath)
-      const [moduleName, _flowCode, unfmtCode] = retyped.compile(fileName, data.toString())
-      const [_fmtType, bsCode] = refmt.refmt(unfmtCode, 'RE', 'implementation', 'RE')
-
-      if (shouldFmt && bsCode.includes('<SYNTAX ERROR>')) {
-        console.error(`Error in ${filePath}:`)
-        console.error(bsCode)
-        return resolve()
-      }
+      const flowCode = data.toString()
+      const bsCode = ReasonablyTyped.compile(flowCode)
 
       const writeDirName = path.dirname(filePath)
       const writeFileName = path.join(writeDirName, moduleName + '.re')
