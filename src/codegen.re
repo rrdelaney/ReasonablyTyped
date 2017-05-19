@@ -19,6 +19,7 @@ module Utils = {
           }
       )
       (unquote str);
+  let uniq items => items; /* TODO: Implement uniq */
 };
 
 let rec bstype_name =
@@ -88,9 +89,11 @@ and function_typedefs_precode defs =>
   String.concat "\n"
 and bstype_precode def =>
   switch def {
-  | Union types => string_of_union_types def types
-  | Function params rt => function_typedefs_precode params
-  | _ => ""
+  | Union types => [string_of_union_types def types]
+  | Function params rt => [function_typedefs_precode params]
+  | Object types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
+  | Class types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
+  | _ => [""]
   }
 and string_of_union_types t types =>
   "type " ^
@@ -117,6 +120,16 @@ let constructor_type =
     }
   | _ => raise (CodegenConstructorError "Type has no constructor");
 
+let decl_to_precode =
+  fun
+  | VarDecl _ type_of => bstype_precode type_of
+  | FuncDecl _ type_of => bstype_precode type_of
+  | TypeDecl id type_of =>
+    bstype_precode type_of |>
+    List.cons ("type " ^ String.uncapitalize_ascii id ^ " = " ^ bstype_to_code type_of ^ ";")
+  | ClassDecl _ type_of => bstype_precode type_of
+  | _ => [""];
+
 let rec declaration_to_code module_id =>
   fun
   | VarDecl id type_of =>
@@ -124,7 +137,6 @@ let rec declaration_to_code module_id =>
     id ^
     " : " ^ bstype_to_code type_of ^ " = \"\" [@@bs.module \"" ^ Utils.unquote module_id ^ "\"];"
   | FuncDecl id type_of =>
-    bstype_precode type_of ^
     "external " ^
     id ^
     " : " ^ bstype_to_code type_of ^ " = \"\" [@@bs.module \"" ^ Utils.unquote module_id ^ "\"];"
@@ -135,9 +147,7 @@ let rec declaration_to_code module_id =>
   | ModuleDecl id statements =>
     "module " ^
     id ^ " = {\n" ^ String.concat "\n  " (List.map (declaration_to_code id) statements) ^ "\n};"
-  | TypeDecl id type_of =>
-    bstype_precode type_of ^
-    "type " ^ String.uncapitalize_ascii id ^ " = " ^ bstype_to_code type_of ^ ";"
+  | TypeDecl id type_of => ""
   | ClassDecl id type_of =>
     "type " ^
     String.uncapitalize_ascii id ^
@@ -151,13 +161,21 @@ let rec declaration_to_code module_id =>
     " = \"" ^ id ^ "\" [@@bs.new] [@@bs.module \"" ^ Utils.unquote module_id ^ "\"];"
   | Unknown => "??;";
 
+let stack_precode stack =>
+  switch stack {
+  | ModuleDecl id statements =>
+    List.map decl_to_precode statements |> List.flatten |> Utils.uniq |> String.concat "\n"
+  | TypeDecl _ type_of => ""
+  | _ => ""
+  };
+
 let stack_to_code stack =>
   switch stack {
   | ModuleDecl id statements =>
     Some (
       Utils.to_module_name id,
-      String.concat "\n" (List.map (declaration_to_code id) statements)
+      stack_precode stack ^ String.concat "\n" (List.map (declaration_to_code id) statements)
     )
-  | TypeDecl _ _ => Some ("", declaration_to_code "" stack)
+  | TypeDecl _ _ => Some ("", stack_precode stack ^ declaration_to_code "" stack)
   | _ => None
   };
