@@ -39,6 +39,14 @@ both is glued together in `src/retyped.re`.
 
 # Testing
 
+To run tests:
+
+```
+$ npm test
+```
+
+Make sure you build the JS files first!
+
 ReasonablyTyped uses AVA for testing. The main test suite can be found in `test`. Currently, the test
 suite looks at all the `.js` files in `test/fixtures`, compiles them, and compares the result to a
 corresponding `.re` file.
