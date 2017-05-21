@@ -19,7 +19,13 @@ module Utils = {
           }
       )
       (unquote str);
-  let uniq items => items; /* TODO: Implement uniq */
+  let rec uniq =
+    fun
+    | [] => []
+    | [h, ...t] => {
+        let no_dups = uniq (List.filter (fun x => x != h) t);
+        [h, ...no_dups]
+      };
 };
 
 let rec bstype_name =
