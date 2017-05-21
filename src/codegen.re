@@ -91,7 +91,7 @@ and function_typedefs_precode defs =>
     fun
     | Some t => t
     | None => ""
-  ) |>
+  ) |> Utils.uniq |>
   String.concat "\n"
 and bstype_precode def =>
   switch def {
