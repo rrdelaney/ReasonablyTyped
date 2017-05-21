@@ -91,12 +91,11 @@ and function_typedefs_precode defs =>
     fun
     | Some t => t
     | None => ""
-  ) |> Utils.uniq |>
-  String.concat "\n"
+  )
 and bstype_precode def =>
   switch def {
   | Union types => [string_of_union_types def types]
-  | Function params rt => [function_typedefs_precode params]
+  | Function params rt => function_typedefs_precode params
   | Object types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
   | Class types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
   | _ => [""]
