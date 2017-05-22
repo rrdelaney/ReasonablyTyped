@@ -1,7 +1,7 @@
 const test = require('ava')
 const path = require('path')
 const { readdirSync, readFileSync } = require('fs')
-const { compile } = require('../')
+const { compile, format } = require('../')
 const fixtures = path.join(__dirname, 'fixtures')
 const fixture = file => path.join(fixtures, file)
 
@@ -17,7 +17,7 @@ const testFiles = readdirSync(fixtures)
 
 
 const compareSources = (t, { js, re }) => {
-  t.is(compile(js), re)
+  t.is(compile(js), format(re))
 }
 
 Object.entries(testFiles).forEach(([moduleName, source]) => {
