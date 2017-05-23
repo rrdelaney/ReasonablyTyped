@@ -27,7 +27,10 @@ const testFiles = readdirSync(fixtures)
 
 
 const compareSources = async (t, { js, re }) => {
-  t.is(compile(await js), format(await re))
+  const result = compile(await js)
+  const expected = format(await re)
+  t.is(result, expected)
+  t.is(result, format(result))
 }
 
 Object.entries(testFiles).forEach(([moduleName, source]) => {
