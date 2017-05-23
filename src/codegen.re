@@ -48,6 +48,12 @@ and union_types_to_name types => {
   String.concat "_or_" type_names
 };
 
+let is_optional (_, type_of) =>
+  switch type_of {
+  | Optional _ => true
+  | _ => false
+  };
+
 let rec bstype_to_code =
   fun
   | Optional t => bstype_to_code t ^ "?"
@@ -65,7 +71,13 @@ let rec bstype_to_code =
   | Union types => union_types_to_name types
   | Function params rt =>
     String.concat " => " (List.map (fun (name, param_type) => bstype_to_code param_type) params) ^
-    " => " ^ bstype_to_code rt
+    " => " ^ (
+      if (List.exists is_optional params) {
+        "() => "
+      } else {
+        "" ^ bstype_to_code rt
+      }
+    )
   | Class props =>
     "Js.t {. " ^
     String.concat
@@ -73,51 +85,70 @@ let rec bstype_to_code =
       (
         List.filter (fun (key, type_of) => key != "constructor") props |>
         List.map (fun (key, type_of) => key ^ ": " ^ bstype_to_code type_of ^ " [@bs.meth]")
-      ) ^ " }"
-and function_typedefs_precode defs =>
-  List.map
-    (
-      fun (id, t) =>
-        switch t {
-        | Union types => Some (string_of_union_types t types)
-        | _ => None
-        }
+      ) ^ " }";
+
+module Precode = {
+  let rec function_typedefs_precode defs =>
+    List.map
+      (
+        fun (id, t) =>
+          switch t {
+          | Union types => Some (string_of_union_types t types)
+          | _ => None
+          }
+      )
+      defs |>
+    List.filter (
+      fun
+      | Some t => true
+      | _ => false
+    ) |>
+    List.map (
+      fun
+      | Some t => t
+      | None => ""
     )
-    defs |>
-  List.filter (
+  and bstype_precode def =>
+    switch def {
+    | Union types => [string_of_union_types def types]
+    | Function params rt => function_typedefs_precode params
+    | Object types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
+    | Class types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
+    | _ => [""]
+    }
+  and string_of_union_types t types =>
+    "type " ^
+    bstype_name t ^
+    " = " ^
+    String.concat
+      ""
+      (
+        List.map
+          (
+            fun union_type =>
+              "\n| " ^
+              String.capitalize_ascii (bstype_name union_type) ^
+              " (" ^ bstype_to_code union_type ^ ")"
+          )
+          types
+      ) ^ ";\n";
+  let decl_to_precode =
     fun
-    | Some t => true
-    | _ => false
-  ) |>
-  List.map (
-    fun
-    | Some t => t
-    | None => ""
-  )
-and bstype_precode def =>
-  switch def {
-  | Union types => [string_of_union_types def types]
-  | Function params rt => function_typedefs_precode params
-  | Object types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
-  | Class types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
-  | _ => [""]
-  }
-and string_of_union_types t types =>
-  "type " ^
-  bstype_name t ^
-  " = " ^
-  String.concat
-    ""
-    (
-      List.map
-        (
-          fun union_type =>
-            "\n| " ^
-            String.capitalize_ascii (bstype_name union_type) ^
-            " (" ^ bstype_to_code union_type ^ ")"
-        )
-        types
-    ) ^ ";\n";
+    | VarDecl _ type_of => bstype_precode type_of
+    | FuncDecl _ type_of => bstype_precode type_of
+    | TypeDecl id type_of =>
+      bstype_precode type_of |>
+      List.cons ("type " ^ String.uncapitalize_ascii id ^ " = " ^ bstype_to_code type_of ^ ";")
+    | ClassDecl _ type_of => bstype_precode type_of
+    | _ => [""];
+  let from_stack stack =>
+    switch stack {
+    | ModuleDecl id statements =>
+      List.map decl_to_precode statements |> List.flatten |> Utils.uniq |> String.concat "\n"
+    | TypeDecl _ type_of => ""
+    | _ => ""
+    };
+};
 
 let constructor_type =
   fun
@@ -126,16 +157,6 @@ let constructor_type =
       bstype_to_code cons_type
     }
   | _ => raise (CodegenConstructorError "Type has no constructor");
-
-let decl_to_precode =
-  fun
-  | VarDecl _ type_of => bstype_precode type_of
-  | FuncDecl _ type_of => bstype_precode type_of
-  | TypeDecl id type_of =>
-    bstype_precode type_of |>
-    List.cons ("type " ^ String.uncapitalize_ascii id ^ " = " ^ bstype_to_code type_of ^ ";")
-  | ClassDecl _ type_of => bstype_precode type_of
-  | _ => [""];
 
 let rec declaration_to_code module_id =>
   fun
@@ -168,21 +189,13 @@ let rec declaration_to_code module_id =>
     " = \"" ^ id ^ "\" [@@bs.new] [@@bs.module \"" ^ Utils.unquote module_id ^ "\"];"
   | Unknown => "??;";
 
-let stack_precode stack =>
-  switch stack {
-  | ModuleDecl id statements =>
-    List.map decl_to_precode statements |> List.flatten |> Utils.uniq |> String.concat "\n"
-  | TypeDecl _ type_of => ""
-  | _ => ""
-  };
-
 let stack_to_code stack =>
   switch stack {
   | ModuleDecl id statements =>
     Some (
       Utils.to_module_name id,
-      stack_precode stack ^ String.concat "\n" (List.map (declaration_to_code id) statements)
+      Precode.from_stack stack ^ String.concat "\n" (List.map (declaration_to_code id) statements)
     )
-  | TypeDecl _ _ => Some ("", stack_precode stack ^ declaration_to_code "" stack)
+  | TypeDecl _ _ => Some ("", Precode.from_stack stack ^ declaration_to_code "" stack)
   | _ => None
   };
