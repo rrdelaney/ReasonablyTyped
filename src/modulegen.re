@@ -39,7 +39,7 @@ module BsType = {
     | Null
     | Number
     | String
-    | Function (list (string, t)) t
+    | Function (list (string, t, bool)) t
     | Object (list (string, t))
     | Class (list (string, t))
     | Union (list t)
@@ -90,17 +90,18 @@ and function_type_to_bstype {params: (formal, rest), returnType: (_, rt)} => {
     if (List.length formal > 0) {
       List.map
         (
-          fun ((_, {typeAnnotation: (_, t), name}): Ast.Type.Function.Param.t) => (
+          fun ((_, {typeAnnotation: (_, t), name, optional}): Ast.Type.Function.Param.t) => (
             switch name {
             | Some id => string_of_id id
             | None => ""
             },
-            type_to_bstype t
+            type_to_bstype t,
+            optional
           )
         )
         formal
     } else {
-      [("", BsType.Unit)]
+      [("", BsType.Unit, false)]
     };
   let return = type_to_bstype rt;
   BsType.Function params return
@@ -181,10 +182,10 @@ let rec show_type =
       (
         List.map
           (
-            fun (name, type_of) =>
+            fun (name, type_of, is_optional) =>
               switch type_of {
               | BsType.Unit => ""
-              | _ => name ^ ": " ^ show_type type_of
+              | _ => name ^ ": " ^ show_type type_of ^ (is_optional ? "?" : "")
               }
           )
           params
