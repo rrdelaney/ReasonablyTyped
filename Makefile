@@ -33,5 +33,7 @@ js: byte
 		--enable excwrap \
 		$(JS_MAIN)
 
+	mv retyped_node.js lib
+
 clean:
 	rm -rf _build *.native *.byte

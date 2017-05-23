@@ -1,7 +1,7 @@
 const test = require('ava')
 const path = require('path')
 const { readdirSync, readFile } = require('fs')
-const { compile, format } = require('../')
+const { compile, format } = require('../lib')
 const fixtures = path.join(__dirname, 'fixtures')
 const fixture = file => path.join(fixtures, file)
 

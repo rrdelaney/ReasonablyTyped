@@ -3,8 +3,9 @@
   "version": "0.5.0",
   "description": "Converts flow definitions to Bucklescript definitions",
   "bin": {
-    "retyped": "./cli.js"
+    "retyped": "./lib/cli.js"
   },
+  "main": "lib/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/rrdelaney/ReasonablyTyped"

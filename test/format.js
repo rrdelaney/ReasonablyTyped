@@ -1,5 +1,5 @@
 const test = require('ava')
-const { format } = require('../')
+const { format } = require('../lib')
 
 test('Formatted code should equal itself', t => {
   const testCode = `

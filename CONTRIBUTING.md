@@ -26,8 +26,8 @@ $ make js
 
 The main compiler is written is Reason, `compile` being defined in `src/retyped.re`. `src/retyped_node.re`
 is compiled with JSOO and exposes `compile` to the JS target. `retyped_node.js` and `refmt_node.js` are
-both interfaced by `index.js`, which exposes the `compile` function as `rawCompile`. `index.js` exposes
-another function for compiling called `compile` (different than the one exported from Reason) that also
+both interfaced by `index.js`. `index.js` exposes
+a function for compiling called `compile` (different than the one exported from Reason) that
 formats the code and handles errors cleanly. `cli.js` is the main entry for the `retyped` CLI tool, which
 calls `index.js`.
 
