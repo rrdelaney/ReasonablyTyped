@@ -26,6 +26,11 @@ module Utils = {
         let no_dups = uniq (List.filter (fun x => x != h) t);
         [h, ...no_dups]
       };
+  let is_optional (_, type_of) =>
+    switch type_of {
+    | Optional _ => true
+    | _ => false
+    };
 };
 
 let rec bstype_name =
@@ -48,12 +53,6 @@ and union_types_to_name types => {
   String.concat "_or_" type_names
 };
 
-let is_optional (_, type_of) =>
-  switch type_of {
-  | Optional _ => true
-  | _ => false
-  };
-
 let rec bstype_to_code =
   fun
   | Optional t => bstype_to_code t ^ "?"
@@ -71,7 +70,7 @@ let rec bstype_to_code =
   | Union types => union_types_to_name types
   | Function params rt =>
     String.concat " => " (List.map (fun (name, param_type) => bstype_to_code param_type) params) ^
-    " => " ^ (List.exists is_optional params ? "() => " : "") ^ bstype_to_code rt
+    " => " ^ (List.exists Utils.is_optional params ? "() => " : "") ^ bstype_to_code rt
   | Class props =>
     "Js.t {. " ^
     String.concat
