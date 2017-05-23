@@ -39,7 +39,7 @@ module BsType = {
     | Null
     | Number
     | String
-    | Function (list (string, t, bool)) t
+    | Function (list (string, t)) t
     | Object (list (string, t))
     | Class (list (string, t))
     | Union (list t)
@@ -47,7 +47,8 @@ module BsType = {
     | Boolean
     | Unit
     | Any
-    | Named string;
+    | Named string
+    | Optional t;
 };
 
 let string_of_id (loc: Loc.t, id: string) => id;
@@ -95,13 +96,16 @@ and function_type_to_bstype {params: (formal, rest), returnType: (_, rt)} => {
             | Some id => string_of_id id
             | None => ""
             },
-            type_to_bstype t,
-            optional
+            if optional {
+              BsType.Optional (type_to_bstype t)
+            } else {
+              type_to_bstype t
+            }
           )
         )
         formal
     } else {
-      [("", BsType.Unit, false)]
+      [("", BsType.Unit)]
     };
   let return = type_to_bstype rt;
   BsType.Function params return
@@ -173,6 +177,7 @@ and declare_module_to_jsdecl {id, body} =>
 
 let rec show_type =
   fun
+  | BsType.Optional t => show_type t ^ "?"
   | BsType.Any => "any"
   | BsType.Unit => "unit"
   | BsType.Function params return =>
@@ -182,10 +187,10 @@ let rec show_type =
       (
         List.map
           (
-            fun (name, type_of, is_optional) =>
+            fun (name, type_of) =>
               switch type_of {
               | BsType.Unit => ""
-              | _ => name ^ ": " ^ show_type type_of ^ (is_optional ? "?" : "")
+              | _ => name ^ ": " ^ show_type type_of
               }
           )
           params

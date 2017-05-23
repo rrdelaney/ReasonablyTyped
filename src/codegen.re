@@ -42,6 +42,7 @@ let rec bstype_name =
   | Named s => String.uncapitalize_ascii s
   | Union types => union_types_to_name types
   | Class props => raise (CodegenTypeError "Unable to translate class into type name")
+  | Optional t => ""
 and union_types_to_name types => {
   let type_names = List.map bstype_name types;
   String.concat "_or_" type_names
@@ -49,6 +50,7 @@ and union_types_to_name types => {
 
 let rec bstype_to_code =
   fun
+  | Optional t => bstype_to_code t ^ "?"
   | Unit => "()"
   | Null => "null"
   | Unknown => "??"
