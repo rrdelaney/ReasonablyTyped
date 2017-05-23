@@ -24,7 +24,7 @@ let compile module_name module_def => {
     (statements, errors)
   };
   let stacks = List.map Modulegen.statement_to_stack statements;
-  let flow_code = String.concat "\n" (List.map Modulegen.show_decl stacks);
+  let flow_code = String.concat "\n" (List.map Modulegen.Printer.show_decl stacks);
   let (module_id, bs_code) = combine_stacks stacks;
   (module_id, flow_code, bs_code)
 };

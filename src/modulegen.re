@@ -175,48 +175,49 @@ and declare_module_to_jsdecl {id, body} =>
   | _ => raise (ModulegenDeclError "Unknown declaration type when converting a module declaration")
   };
 
-let rec show_type =
-  fun
-  | BsType.Optional t => show_type t ^ "?"
-  | BsType.Any => "any"
-  | BsType.Unit => "unit"
-  | BsType.Function params return =>
-    "(" ^
-    String.concat
-      ", "
-      (
-        List.map
-          (
-            fun (name, type_of) =>
-              switch type_of {
-              | BsType.Unit => ""
-              | _ => name ^ ": " ^ show_type type_of
-              }
-          )
-          params
-      ) ^
-    "): " ^ show_type return
-  | BsType.Null => "null"
-  | BsType.Number => "number"
-  | BsType.Boolean => "boolean"
-  | BsType.String => "string"
-  | BsType.Union types => String.concat " | " (List.map show_type types)
-  | BsType.Object props =>
-    "{ " ^
-    String.concat ", " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
-  | BsType.Class props =>
-    "{ " ^
-    String.concat "; " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
-  | BsType.Named s => s
-  | BsType.Unknown => "??";
-
-let rec show_decl =
-  fun
-  | BsDecl.ExportsDecl of_type => "declare module.exports: " ^ show_type of_type
-  | BsDecl.ModuleDecl name decls =>
-    "declare module " ^ name ^ " {\n  " ^ String.concat "\n  " (List.map show_decl decls) ^ "\n}"
-  | BsDecl.TypeDecl id of_type => "declare type " ^ id ^ " = " ^ show_type of_type
-  | BsDecl.Unknown => "external ??"
-  | BsDecl.FuncDecl name of_type => "declare export function " ^ name ^ show_type of_type
-  | BsDecl.VarDecl name of_type => "declare export var " ^ name ^ ": " ^ show_type of_type
-  | BsDecl.ClassDecl name of_type => "declare class " ^ name ^ " " ^ show_type of_type;
+module Printer = {
+  let rec show_type =
+    fun
+    | BsType.Optional t => show_type t ^ "?"
+    | BsType.Any => "any"
+    | BsType.Unit => "unit"
+    | BsType.Function params return =>
+      "(" ^
+      String.concat
+        ", "
+        (
+          List.map
+            (
+              fun (name, type_of) =>
+                switch type_of {
+                | BsType.Unit => ""
+                | _ => name ^ ": " ^ show_type type_of
+                }
+            )
+            params
+        ) ^
+      "): " ^ show_type return
+    | BsType.Null => "null"
+    | BsType.Number => "number"
+    | BsType.Boolean => "boolean"
+    | BsType.String => "string"
+    | BsType.Union types => String.concat " | " (List.map show_type types)
+    | BsType.Object props =>
+      "{ " ^
+      String.concat ", " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
+    | BsType.Class props =>
+      "{ " ^
+      String.concat "; " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
+    | BsType.Named s => s
+    | BsType.Unknown => "??";
+  let rec show_decl =
+    fun
+    | BsDecl.ExportsDecl of_type => "declare module.exports: " ^ show_type of_type
+    | BsDecl.ModuleDecl name decls =>
+      "declare module " ^ name ^ " {\n  " ^ String.concat "\n  " (List.map show_decl decls) ^ "\n}"
+    | BsDecl.TypeDecl id of_type => "declare type " ^ id ^ " = " ^ show_type of_type
+    | BsDecl.Unknown => "external ??"
+    | BsDecl.FuncDecl name of_type => "declare export function " ^ name ^ show_type of_type
+    | BsDecl.VarDecl name of_type => "declare export var " ^ name ^ ": " ^ show_type of_type
+    | BsDecl.ClassDecl name of_type => "declare class " ^ name ^ " " ^ show_type of_type;
+};
