@@ -71,13 +71,7 @@ let rec bstype_to_code =
   | Union types => union_types_to_name types
   | Function params rt =>
     String.concat " => " (List.map (fun (name, param_type) => bstype_to_code param_type) params) ^
-    " => " ^ (
-      if (List.exists is_optional params) {
-        "() => "
-      } else {
-        "" ^ bstype_to_code rt
-      }
-    )
+    " => " ^ (List.exists is_optional params ? "() => " : "") ^ bstype_to_code rt
   | Class props =>
     "Js.t {. " ^
     String.concat

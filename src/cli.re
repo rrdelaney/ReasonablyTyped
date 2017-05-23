@@ -28,7 +28,7 @@ let replace_filename fname module_id => {
 let run_compile fname module_name module_def => {
   let (module_id, flow_code, bs_code) = Retyped.compile module_name module_def;
   if !debug {
-    print_endline ("Module " ^ module_id);
+    print_endline (">>> Module " ^ module_id ^ " <<<");
     print_newline ();
     print_endline "=== Flow Definition ===";
     print_endline flow_code;

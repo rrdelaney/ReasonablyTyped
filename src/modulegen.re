@@ -191,6 +191,7 @@ module Printer = {
               fun (name, type_of) =>
                 switch type_of {
                 | BsType.Unit => ""
+                | BsType.Optional t => name ^ "?: " ^ show_type t
                 | _ => name ^ ": " ^ show_type type_of
                 }
             )
