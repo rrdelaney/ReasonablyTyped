@@ -1,7 +1,6 @@
-import test from 'ava'
-import * as path from 'path'
-import { readdirSync, readFile } from 'fs'
-import { compile, format } from '../lib'
+const path = require('path')
+const { readdirSync, readFile } = require('fs')
+const { compile, format } = require('../../lib')
 
 const fixtures = path.join(__dirname, 'fixtures')
 const fixture = file => path.join(fixtures, file)
@@ -26,13 +25,13 @@ const testFiles = readdirSync(fixtures)
   }))
   .reduce((all, mod) => Object.assign({}, all, mod), {})
 
-const compareSources = async (t, { js, re }) => {
+const compareSources = ({ js, re }) => async () => {
   const result = compile(await js)
   const expected = format(await re)
-  t.is(result, expected)
-  t.is(result, format(result))
+  expect(result).toBe(expected)
+  expect(result).toBe(format(result))
 }
 
 Object.entries(testFiles).forEach(([moduleName, source]) => {
-  test(`Compile ${moduleName}`, compareSources, source)
+  test(`Compile ${moduleName}`, compareSources(source))
 })

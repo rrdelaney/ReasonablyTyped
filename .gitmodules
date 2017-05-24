@@ -5,6 +5,3 @@
 [submodule "reason-tools"]
 	path = reason-tools
 	url = https://github.com/reasonml/reason-tools
-[submodule "test/flow-typed"]
-	path = test/flow-typed
-	url = https://github.com/flowtype/flow-typed

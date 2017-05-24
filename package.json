@@ -26,16 +26,25 @@
     "yargs": "^8.0.1"
   },
   "scripts": {
-    "test": "ava --match='!Library*'",
-    "test:all": "ava"
+    "test": "jest"
   },
   "devDependencies": {
-    "ava": "^0.19.1",
-    "glob": "^7.1.2"
+    "glob": "^7.1.2",
+    "jest": "^20.0.4"
   },
-  "ava": {
-    "files": [
-      "test/*.js"
+  "jest": {
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/flow/",
+      "/reason-tools/",
+      "/fixtures/"
+    ],
+    "modulePathIgnorePatterns": [
+      "/flow/"
+    ],
+    "transformIgnorePatterns": [
+      "/node_modules/",
+      "/lib/"
     ]
   }
 }
