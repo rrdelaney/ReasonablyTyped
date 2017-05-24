@@ -18,7 +18,6 @@ Commands:
 
 Options:
   --version     Show version number                                    [boolean]
-  --no-fmt      Don't run the resulting code through refmt             [boolean]
   --help        Show help                                              [boolean]
 ```
 
@@ -68,6 +67,7 @@ Compiles a libdef, formats the result, and handles errors cleanly
 - [x] Union types
 - [ ] Instersection types
 - [x] Named types
+- [x] Optional parameters
 - [ ] Classes
 - [ ] Generics
 - [ ] Built-ins like Promises and React
