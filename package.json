@@ -26,10 +26,12 @@
     "yargs": "^8.0.1"
   },
   "scripts": {
-    "test": "ava"
+    "test": "ava --match='!Library*'",
+    "test:all": "ava"
   },
   "devDependencies": {
-    "ava": "^0.19.1"
+    "ava": "^0.19.1",
+    "glob": "^7.1.2"
   },
   "ava": {
     "files": [

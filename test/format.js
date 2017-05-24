@@ -1,5 +1,5 @@
-const test = require('ava')
-const { format } = require('../lib')
+import test from 'ava'
+import { format } from '../lib'
 
 test('Formatted code should equal itself', t => {
   const testCode = `

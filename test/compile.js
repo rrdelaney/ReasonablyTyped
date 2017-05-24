@@ -1,7 +1,8 @@
-const test = require('ava')
-const path = require('path')
-const { readdirSync, readFile } = require('fs')
-const { compile, format } = require('../lib')
+import test from 'ava'
+import * as path from 'path'
+import { readdirSync, readFile } from 'fs'
+import { compile, format } from '../lib'
+
 const fixtures = path.join(__dirname, 'fixtures')
 const fixture = file => path.join(fixtures, file)
 
@@ -24,7 +25,6 @@ const testFiles = readdirSync(fixtures)
     }
   }))
   .reduce((all, mod) => Object.assign({}, all, mod), {})
-
 
 const compareSources = async (t, { js, re }) => {
   const result = compile(await js)

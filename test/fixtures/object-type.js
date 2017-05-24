@@ -9,5 +9,5 @@ declare module 'object-type' {
     subscribe: SubscribeOptions
   }
 
-  declare export function test (options: TestOptions): string
+  declare export function test(options: TestOptions): string
 }
