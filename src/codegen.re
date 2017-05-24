@@ -82,32 +82,13 @@ let rec bstype_to_code =
       ) ^ " }";
 
 module Precode = {
-  let rec function_typedefs_precode defs =>
-    List.map
-      (
-        fun (id, t) =>
-          switch t {
-          | Union types => Some (string_of_union_types t types)
-          | _ => None
-          }
-      )
-      defs |>
-    List.filter (
-      fun
-      | Some t => true
-      | _ => false
-    ) |>
-    List.map (
-      fun
-      | Some t => t
-      | None => ""
-    )
-  and bstype_precode def =>
+  let rec bstype_precode def =>
     switch def {
     | Union types => [string_of_union_types def types]
-    | Function params rt => function_typedefs_precode params
+    | Function params rt => List.map (fun (id, t) => bstype_precode t) params |> List.flatten
     | Object types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
     | Class types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
+    | Optional t => bstype_precode t
     | _ => [""]
     }
   and string_of_union_types t types =>
@@ -134,6 +115,7 @@ module Precode = {
       bstype_precode type_of |>
       List.cons ("type " ^ String.uncapitalize_ascii id ^ " = " ^ bstype_to_code type_of ^ ";")
     | ClassDecl _ type_of => bstype_precode type_of
+    | ExportsDecl type_of => bstype_precode type_of
     | _ => [""];
   let from_stack stack =>
     switch stack {
