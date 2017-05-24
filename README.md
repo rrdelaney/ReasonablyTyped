@@ -46,10 +46,10 @@ ReasonablyTyped also exports a library for use! See the example below:
 // lib-usage.js
 import * as ReasonablyTyped from 'reasonably-typed'
 
-const libName = 'lib.js'
-const libSrc = fs.readFileSync(libName).toString()
-const bsInterface = ReasonablyTyped.compile(libName, libSrc)
+const libSrc = fs.readFileSync('lib.js').toString()
+const bsInterface = ReasonablyTyped.compile(libSrc)
 ```
+
 ### `format (code: string) => string`
 
 Formats a block of code using `refmt`
