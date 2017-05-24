@@ -5,7 +5,7 @@ MAIN=cli.native
 JSC=js_of_ocaml
 JS_MAIN=retyped_node.byte
 
-all: native
+all: refmt js
 
 native:
 	$(OCAMLC) \
@@ -34,6 +34,10 @@ js: byte
 		$(JS_MAIN)
 
 	mv retyped_node.js lib
+
+refmt:
+	cd reason-tools && sh shell.sh
+	mv reason-tools/_build/refmt/app.js lib/refmt_node.js
 
 clean:
 	rm -rf _build *.native *.byte

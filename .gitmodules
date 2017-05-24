@@ -2,3 +2,6 @@
 [submodule "flow"]
 	path = flow
 	url = https://github.com/facebook/flow
+[submodule "reason-tools"]
+	path = reason-tools
+	url = https://github.com/reasonml/reason-tools
