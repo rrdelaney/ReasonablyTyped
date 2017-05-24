@@ -37,7 +37,8 @@
       "/node_modules/",
       "/flow/",
       "/reason-tools/",
-      "/fixtures/"
+      "/fixtures/",
+      "/flow-typed/"
     ],
     "modulePathIgnorePatterns": [
       "/flow/"

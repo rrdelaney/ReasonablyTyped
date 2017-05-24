@@ -16,7 +16,7 @@ const files = glob.sync('src/__tests__/flow-typed/definitions/npm/**/!(test)*.js
 files.forEach(f => {
   const libraryName = path.basename(f, '.js')
 
-  test(`Library ${libraryName}`, async () => {
+  xtest(`Library ${libraryName}`, async () => {
     const libDef = await getLibDef(f)
     const bsInterface = compile(libDef)
 
