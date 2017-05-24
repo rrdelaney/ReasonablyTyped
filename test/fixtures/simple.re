@@ -1,1 +1,1 @@
-external add : float => float => float = "" [@@bs.module "simple"];
+external add : x::float => y::float => float = "" [@@bs.module "simple"];

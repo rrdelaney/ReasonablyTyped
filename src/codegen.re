@@ -56,7 +56,7 @@ and union_types_to_name types => {
 let rec bstype_to_code =
   fun
   | Optional t => bstype_to_code t ^ "?"
-  | Unit => "()"
+  | Unit => "unit"
   | Null => "null"
   | Unknown => "??"
   | Any => "_"
@@ -69,8 +69,9 @@ let rec bstype_to_code =
   | Named s => String.uncapitalize_ascii s
   | Union types => union_types_to_name types
   | Function params rt =>
-    String.concat " => " (List.map (fun (name, param_type) => bstype_to_code param_type) params) ^
-    " => " ^ (List.exists Utils.is_optional params ? "() => " : "") ^ bstype_to_code rt
+    String.concat
+      " => " (List.map (fun (name, param_type) => name ^ "::" ^ bstype_to_code param_type) params) ^
+    " => " ^ (List.exists Utils.is_optional params ? "unit => " : "") ^ bstype_to_code rt
   | Class props =>
     "Js.t {. " ^
     String.concat
