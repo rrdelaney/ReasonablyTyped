@@ -3,10 +3,13 @@
 
 <head>
   <title>ReasonablyTyped</title>
-  <link href="https://fonts.googleapis.com/css?family=Montserrat|Open+Sans" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat|Open+Sans">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/components/prism-reason.min.js"></script>
   <script src="lib/retyped_node.js"></script>
   <script src="lib/refmt_node.js"></script>
 
@@ -47,6 +50,10 @@
       white-space: pre-wrap;
     }
 
+    .column > pre {
+      height: 100%
+    }
+
     label {
       font-family: montserrat !important;
       text-transform: uppercase !important;
@@ -76,6 +83,112 @@
     #libdef-output.error {
       color: indianred;
       border-color: indianred;
+    }
+
+    code[class*="language-"],
+    pre[class*="language-"] {
+        color: #393A34;
+        font-family: "Operator Mono", "Fira Code", "Anonymous Pro", monospace;
+        direction: ltr;
+        text-align: left;
+        white-space: pre;
+        word-spacing: normal;
+        word-break: normal;
+        font-size: 0.95em;
+        line-height: 1.2em;
+        tab-size: 4;
+        hyphens: none;
+    }
+
+    pre[class*="language-"]::-moz-selection, pre[class*="language-"] ::-moz-selection,
+    code[class*="language-"]::-moz-selection, code[class*="language-"] ::-moz-selection {
+        background: #b3d4fc;
+    }
+
+    pre[class*="language-"]::selection, pre[class*="language-"] ::selection,
+    code[class*="language-"]::selection, code[class*="language-"] ::selection {
+        background: #b3d4fc;
+    }
+
+    pre[class*="language-"] {
+        padding: 1em;
+        margin: .5em 0;
+        overflow: auto;
+        border: 1px solid #dddddd;
+        background-color: white;
+    }
+
+    :not(pre) > code[class*="language-"],
+    pre[class*="language-"] {
+    }
+
+    :not(pre) > code[class*="language-"] {
+        padding: .2em;
+        padding-top: 1px; padding-bottom: 1px;
+        background: #f8f8f8;
+        border: 1px solid #dddddd;
+    }
+
+    .token.comment,
+    .token.prolog,
+    .token.doctype,
+    .token.cdata {
+        color: #999988; font-style: italic;
+    }
+
+    .token.namespace {
+        opacity: .7;
+    }
+
+    .token.string,
+    .token.attr-value {
+        color: #e3116c;
+    }
+    .token.punctuation,
+    .token.operator {
+        color: #393A34;
+    }
+
+    .token.entity,
+    .token.url,
+    .token.symbol,
+    .token.number,
+    .token.boolean,
+    .token.variable,
+    .token.constant,
+    .token.property,
+    .token.regex,
+    .token.inserted {
+        color: #36acaa;
+    }
+
+    .token.atrule,
+    .token.keyword,
+    .token.attr-name,
+    .language-autohotkey .token.selector {
+        color: #00a4db;
+    }
+
+    .token.function,
+    .token.deleted,
+    .language-autohotkey .token.tag {
+        color: #9a050f;
+    }
+
+    .token.tag,
+    .token.selector,
+    .language-autohotkey .token.keyword {
+        color: #00009f;
+    }
+
+    .token.important,
+    .token.function,
+    .token.bold {
+        font-weight: bold;
+    }
+
+    .token.italic {
+        font-style: italic;
     }
   </style>
 </head>
@@ -149,6 +262,101 @@
       </code>
     </p>
     <h1 class="ui horizontal divider header">
+      <i class="fire icon"></i> Examples
+    </h1>
+    <label for="libdef-input">Variables &amp; Functions</label>
+    <div class="ui two column stackable grid">
+      <div class="column">
+        <pre>
+<code class="language-js">declare module 'numbers' {
+  declare export var x: number
+
+  declare export function add(
+    a: number,
+    b: number
+  ): number
+}</code>
+        </pre>
+      </div>
+      <div class="column">
+        <pre>
+<code class="language-reason">/* Module numbers */
+
+external x : float = "" [@@bs.module "numbers"];
+
+external add : a::float => b::float => float = "" [@@bs.module "numbers"];</code>
+        </pre>
+      </div>
+    </div>
+    <br>
+    <label for="libdef-input">Union Types</label>
+    <div class="ui two column stackable grid">
+      <div class="column">
+        <pre>
+<code class="language-js">declare module 'union-types' {
+  declare type Options = {
+    first: string,
+    last: string
+  }
+
+  declare export function apply(
+    value: number,
+    options: string | Options
+  ): string
+}</code>
+        </pre>
+      </div>
+      <div class="column">
+        <pre>
+<code class="language-reason">/* Module union_types */
+
+type options = Js.t {. first : string, last : string};
+
+type string_or_options =
+  | String string
+  | Options options;
+
+external apply : value::float => options::string_or_options => string =
+  "" [@@bs.module "union-types"];</code>
+        </pre>
+      </div>
+    </div>
+    <br>
+    <label for="libdef-input">Optional Parameters</label>
+    <div class="ui two column stackable grid">
+      <div class="column">
+        <pre>
+<code class="language-js">declare module 'optional-params' {
+  declare type AddOptions = {
+    times: number,
+    format: string | number
+  }
+
+  declare export function add(
+    first: number,
+    second: number,
+    options?: AddOptions
+  ): number
+}</code>
+        </pre>
+      </div>
+      <div class="column">
+        <pre>
+<code class="language-reason">/* Module optional_params */
+
+type addOptions = Js.t {. times : float, format : string_or_number};
+
+type string_or_number =
+  | String string
+  | Number float;
+
+external add : first::float => second::float => options::addOptions?
+  => unit => float = "" [@@bs.module "optional-params"];
+</code>
+        </pre>
+      </div>
+    </div>
+    <h1 class="ui horizontal divider header">
       <i class="code icon"></i> Demo
     </h1>
     <div class="ui two column grid">
@@ -172,47 +380,48 @@
   </div>
 
   <script type="text/javascript">
-    const libs = {
-      'is-url': ['declare module \'is-url\' {',
-        '  declare module.exports: (url: string) => boolean',
-        '}'].join('\n')
-    }
+  const libs = {
+  'is-url': [
+    "declare module 'is-url' {",
+    '  declare module.exports: (url: string) => boolean',
+    '}'
+  ].join('\n')
+}
 
-    const defaultLibDef = [
-      'declare module \'math-fns\' {',
-      '  declare function add(x: number, y: number): number',
-      '  declare function double(x: number | string): number',
-      '}'].join('\n')
+const defaultLibDef = [
+  "declare module 'math-fns' {",
+  '  declare function add(x: number, y: number): number',
+  '  declare function double(x: number | string): number',
+  '}'
+].join('\n')
 
-    const compileText = str => {
-      const [moduleId, flowCode, bsCode] = compile('test', str)
-      const [fmtType, fmtCode] = refmt(bsCode, 'RE', 'implementation', 'RE')
-      if (fmtCode.includes('SYNTAX ERROR>')) {
-        throw new Error(fmtCode)
-      }
+const compileText = str => {
+  const [moduleId, flowCode, bsCode] = compile('test', str)
+  const [fmtType, fmtCode] = refmt(bsCode, 'RE', 'implementation', 'RE')
+  if (fmtCode.includes('SYNTAX ERROR>')) {
+    throw new Error(fmtCode)
+  }
 
-      return `/* Module ${moduleId} */\n\n${fmtCode}`
-    }
+  return `/* Module ${moduleId} */\n\n${fmtCode}`
+}
 
-    $('#libdef-input').val(defaultLibDef)
-    $('#libdef-output').val(compileText(defaultLibDef))
+$('#libdef-input').val(defaultLibDef)
+$('#libdef-output').val(compileText(defaultLibDef))
 
-    $('#libdef-input').on('change keyup paste ', function () {
-      try {
-        const libdef = $(this).val()
-        const output = compileText(libdef)
-        $('#libdef-output').removeClass('error')
-        $('#libdef-output ').val(output)
-      } catch (e) {
-        const errorText = e instanceof Error
-          ? 'Unable to generate code :('
-          : 'Error parsing JS code :('
+$('#libdef-input').on('change keyup paste ', function() {
+  try {
+    const libdef = $(this).val()
+    const output = compileText(libdef)
+    $('#libdef-output').removeClass('error')
+    $('#libdef-output ').val(output)
+  } catch (e) {
+    const errorText = e instanceof Error ? 'Unable to generate code :(' : 'Error parsing JS code :('
 
-        $('#libdef-output').addClass('error')
-        $('#libdef-output').val(errorText)
-      }
-    })
-  </script>
+    $('#libdef-output').addClass('error')
+    $('#libdef-output').val(errorText)
+  }
+})
+</script>
 </body>
 
 </html>
