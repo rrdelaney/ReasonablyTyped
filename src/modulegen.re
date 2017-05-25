@@ -183,7 +183,7 @@ module Printer = {
     | BsType.Optional t => show_type t ^ "?"
     | BsType.Any => "any"
     | BsType.Unit => "unit"
-    | BsType.Array t => show_type t ^ "[]"
+    | BsType.Array t => "[" ^ show_type t ^ "]"
     | BsType.Function params return =>
       "(" ^
       String.concat

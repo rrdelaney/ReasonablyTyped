@@ -395,14 +395,23 @@ const defaultLibDef = [
   '}'
 ].join('\n')
 
-const compileText = str => {
-  const [moduleId, flowCode, bsCode] = compile('test', str)
-  const [fmtType, fmtCode] = refmt(bsCode, 'RE', 'implementation', 'RE')
-  if (fmtCode.includes('SYNTAX ERROR>')) {
-    throw new Error(fmtCode)
-  }
+class SyntaxError extends Error {}
 
-  return `/* Module ${moduleId} */\n\n${fmtCode}`
+const compileText = str => {
+  try {
+    const [moduleId, flowCode, bsCode] = compile('test', str)
+    const [fmtType, fmtCode] = refmt(bsCode, 'RE', 'implementation', 'RE')
+
+    if (fmtCode.includes('SYNTAX ERROR>')) {
+      throw new SyntaxError(fmtCode)
+    }
+
+    return `/* Module ${moduleId} */\n\n${fmtCode}`
+  } catch (e) {
+    const err = e[1] && (e[1].c || (e[1][1] && e[1][1].c))
+    if (err === 'Parse_error.Error') throw new SyntaxError(e)
+    throw new Error(err)
+  }
 }
 
 $('#libdef-input').val(defaultLibDef)
@@ -415,7 +424,10 @@ $('#libdef-input').on('change keyup paste ', function() {
     $('#libdef-output').removeClass('error')
     $('#libdef-output ').val(output)
   } catch (e) {
-    const errorText = e instanceof Error ? 'Unable to generate code :(' : 'Error parsing JS code :('
+    console.error(e)
+    const errorText = e instanceof SyntaxError
+      ? 'Error parsing JS code O_o'
+      : 'Unable to generate code :('
 
     $('#libdef-output').addClass('error')
     $('#libdef-output').val(errorText)
