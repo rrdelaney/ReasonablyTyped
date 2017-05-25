@@ -44,6 +44,7 @@ let rec bstype_name =
   | Boolean => "bool"
   | Function _ => "func"
   | Unknown => "unknown"
+  | Array t => "array"
   | Named s => String.uncapitalize_ascii s
   | Union types => union_types_to_name types
   | Class props => raise (CodegenTypeError "Unable to translate class into type name")
@@ -58,6 +59,7 @@ let rec bstype_to_code =
   | Optional t => bstype_to_code t ^ "?"
   | Unit => "unit"
   | Null => "null"
+  | Array t => "array " ^ bstype_to_code t
   | Unknown => "??"
   | Any => "_"
   | Object props =>
@@ -89,6 +91,7 @@ module Precode = {
     | Object types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
     | Class types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
     | Optional t => bstype_precode t
+    | Array t => bstype_precode t
     | _ => [""]
     }
   and string_of_union_types t types =>
