@@ -266,34 +266,25 @@
     </h1>
     <label for="libdef-input">Variables &amp; Functions</label>
     <div class="ui two column stackable grid">
-      <div class="column">
-        <pre>
-<code class="language-js">declare module 'numbers' {
+      <div class="code column">
+<pre><code class="language-js">declare module 'numbers' {
   declare export var x: number
 
   declare export function add(
     a: number,
     b: number
   ): number
-}</code>
-        </pre>
+}</code></pre>
       </div>
       <div class="column">
-        <pre>
-<code class="language-reason">/* Module numbers */
-
-external x : float = "" [@@bs.module "numbers"];
-
-external add : a::float => b::float => float = "" [@@bs.module "numbers"];</code>
-        </pre>
+        <pre><code class="language-reason"></code></pre>
       </div>
     </div>
     <br>
     <label for="libdef-input">Union Types</label>
     <div class="ui two column stackable grid">
-      <div class="column">
-        <pre>
-<code class="language-js">declare module 'union-types' {
+      <div class="code column">
+<pre><code class="language-js">declare module 'union-types' {
   declare type Options = {
     first: string,
     last: string
@@ -303,30 +294,17 @@ external add : a::float => b::float => float = "" [@@bs.module "numbers"];</code
     value: number,
     options: string | Options
   ): string
-}</code>
-        </pre>
+}</code></pre>
       </div>
       <div class="column">
-        <pre>
-<code class="language-reason">/* Module union_types */
-
-type options = Js.t {. first : string, last : string};
-
-type string_or_options =
-  | String string
-  | Options options;
-
-external apply : value::float => options::string_or_options => string =
-  "" [@@bs.module "union-types"];</code>
-        </pre>
+        <pre><code class="language-reason"></code></pre>
       </div>
     </div>
     <br>
     <label for="libdef-input">Optional Parameters</label>
     <div class="ui two column stackable grid">
-      <div class="column">
-        <pre>
-<code class="language-js">declare module 'optional-params' {
+      <div class="code column">
+<pre><code class="language-js">declare module 'optional-params' {
   declare type AddOptions = {
     times: number,
     format: string | number
@@ -337,22 +315,11 @@ external apply : value::float => options::string_or_options => string =
     second: number,
     options?: AddOptions
   ): number
-}</code>
-        </pre>
+}</code></pre>
       </div>
       <div class="column">
         <pre>
-<code class="language-reason">/* Module optional_params */
-
-type addOptions = Js.t {. times : float, format : string_or_number};
-
-type string_or_number =
-  | String string
-  | Number float;
-
-external add : first::float => second::float => options::addOptions?
-  => unit => float = "" [@@bs.module "optional-params"];
-</code>
+<code class="language-reason"></code>
         </pre>
       </div>
     </div>
@@ -414,6 +381,13 @@ const compileText = str => {
   }
 }
 
+$('.code.column').each(function() {
+  const $this = $(this)
+  const libdef = compileText($this.text())
+  const outputBlock = $this.siblings().first().find('code')
+  outputBlock.text(libdef)
+})
+
 $('#libdef-input').val(defaultLibDef)
 $('#libdef-output').val(compileText(defaultLibDef))
 
@@ -424,7 +398,6 @@ $('#libdef-input').on('change keyup paste ', function() {
     $('#libdef-output').removeClass('error')
     $('#libdef-output ').val(output)
   } catch (e) {
-    console.error(e)
     const errorText = e instanceof SyntaxError
       ? 'Error parsing JS code O_o'
       : 'Unable to generate code :('
