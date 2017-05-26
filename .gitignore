@@ -2,3 +2,4 @@ node_modules/
 _build/
 *.native
 *.byte
+_test.js

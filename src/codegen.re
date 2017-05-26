@@ -133,11 +133,16 @@ module Precode = {
     };
 };
 
-let constructor_type =
+let constructor_type class_name =>
   fun
   | Class props => {
-      let (_, cons_type) = List.find (fun (id, _) => id == "constructor") props;
-      bstype_to_code cons_type
+      let constructors = List.find_all (fun (id, _) => id == "constructor") props;
+      if (List.length constructors == 0) {
+        bstype_to_code (Function [("_", Unit)] (Named class_name))
+      } else {
+        let (_, cons_type) = List.hd constructors;
+        bstype_to_code cons_type
+      }
     }
   | _ => raise (CodegenConstructorError "Type has no constructor");
 
@@ -159,17 +164,19 @@ let rec declaration_to_code module_id =>
     "module " ^
     id ^ " = {\n" ^ String.concat "\n  " (List.map (declaration_to_code id) statements) ^ "\n};"
   | TypeDecl id type_of => ""
-  | ClassDecl id type_of =>
-    "type " ^
-    String.uncapitalize_ascii id ^
-    " = " ^
-    bstype_to_code type_of ^
-    ";\n" ^
-    "external create_" ^
-    String.uncapitalize_ascii id ^
-    ": " ^
-    constructor_type type_of ^
-    " = \"" ^ id ^ "\" [@@bs.new] [@@bs.module \"" ^ Utils.unquote module_id ^ "\"];"
+  | ClassDecl id type_of => {
+      let class_name = String.uncapitalize_ascii id;
+      "type " ^
+      class_name ^
+      " = " ^
+      bstype_to_code type_of ^
+      ";\n" ^
+      "external create_" ^
+      class_name ^
+      ": " ^
+      constructor_type class_name type_of ^
+      " = \"" ^ id ^ "\" [@@bs.new] [@@bs.module \"" ^ Utils.unquote module_id ^ "\"];"
+    }
   | Unknown => "??;";
 
 let stack_to_code stack =>
