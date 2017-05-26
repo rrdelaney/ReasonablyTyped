@@ -35,6 +35,7 @@ module Utils = {
 
 let rec bstype_name =
   fun
+  | Regex => "regex"
   | Unit => "unit"
   | Null => "null"
   | Any => "any"
@@ -57,6 +58,7 @@ and union_types_to_name types => {
 
 let rec bstype_to_code =
   fun
+  | Regex => "Js.Re.t"
   | Optional t => bstype_to_code t ^ "?"
   | Unit => "unit"
   | Null => "null"

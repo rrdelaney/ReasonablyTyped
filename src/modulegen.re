@@ -38,6 +38,7 @@ module BsType = {
   type t =
     | Null
     | Number
+    | Regex
     | String
     | Function (list (string, t)) t
     | Object (list (string, t))
@@ -87,7 +88,11 @@ and type_to_bstype =
   | Generic {id} =>
     switch id {
     | Qualified (_, q) => BsType.Named (string_of_id q.id)
-    | Unqualified q => BsType.Named (string_of_id q)
+    | Unqualified q =>
+      switch q {
+      | (_, "RegExp") => BsType.Regex
+      | _ => BsType.Named (string_of_id q)
+      }
     }
   | _ => raise (ModulegenTypeError "Unknown type when converting to Bucklescript type")
 and function_type_to_bstype {params: (formal, rest), returnType: (_, rt)} => {
@@ -182,6 +187,7 @@ and declare_module_to_jsdecl {id, body} =>
 module Printer = {
   let rec show_type =
     fun
+    | BsType.Regex => "RegExp"
     | BsType.Optional t => show_type t ^ "?"
     | BsType.Any => "any"
     | BsType.Unit => "unit"
