@@ -46,6 +46,7 @@ module BsType = {
     | Array t
     | Unknown
     | Boolean
+    | Tuple (list t)
     | Unit
     | Any
     | Named string
@@ -76,6 +77,7 @@ and type_to_bstype =
   | Function f => function_type_to_bstype f
   | Object o => BsType.Object (object_type_to_bstype o)
   | Array (_, t) => BsType.Array (type_to_bstype t)
+  | Tuple types => BsType.Tuple (List.map (fun (_, t) => type_to_bstype t) types)
   | Union (_, first) (_, second) rest =>
     BsType.Union [
       type_to_bstype first,
@@ -183,7 +185,8 @@ module Printer = {
     | BsType.Optional t => show_type t ^ "?"
     | BsType.Any => "any"
     | BsType.Unit => "unit"
-    | BsType.Array t => "[" ^ show_type t ^ "]"
+    | BsType.Tuple types => "[" ^ (List.map show_type types |> String.concat ", ") ^ "]"
+    | BsType.Array t => show_type t ^ "[]"
     | BsType.Function params return =>
       "(" ^
       String.concat
