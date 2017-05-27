@@ -40,4 +40,4 @@ refmt:
 	mv reason-tools/_build/refmt/app.js lib/refmt_node.js
 
 clean:
-	rm -rf _build *.native *.byte
+	rm -rf _build *.native *.byte lib/*_node.js
