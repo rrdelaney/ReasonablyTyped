@@ -80,16 +80,18 @@ and type_to_bstype =
   | String => BsType.String
   | Boolean => BsType.Boolean
   | Function f => function_type_to_bstype f
-  | Object o => {
-      if (List.length o.properties == 0) { BsType.Object [] } else {
-       let first_prop = List.hd o.properties;
+  | Object o =>
+    if (List.length o.properties == 0) {
+      BsType.Object []
+    } else {
+      let first_prop = List.hd o.properties;
       switch first_prop {
       | Indexer (_, {value}) =>
         let (_, value_type) = value;
         BsType.Dict (type_to_bstype value_type)
       | _ => BsType.Object (object_type_to_bstype o)
       }
-    }}
+    }
   | Array (_, t) => BsType.Array (type_to_bstype t)
   | Tuple types => BsType.Tuple (List.map (fun (_, t) => type_to_bstype t) types)
   | Union (_, first) (_, second) rest =>
@@ -143,7 +145,11 @@ and object_type_to_bstype {properties} =>
     (
       fun
       | Property (loc, {key, value}) => (string_of_key key, value_to_bstype value)
-      | _ => raise (ModulegenTypeError "Unknown object property type!")
+      | CallProperty _ =>
+        raise (ModulegenTypeError "CallProperty is not supported on Object types")
+      | Indexer _ => raise (ModulegenTypeError "Indexer is not supported on Object types")
+      | SpreadProperty _ =>
+        raise (ModulegenTypeError "SpreadProperty is not supported on Object types")
     )
     properties;
 
@@ -187,6 +193,8 @@ let rec statement_to_stack (loc, s) =>
     | Ast.Statement.TypeAlias {id, right: (loc, t)} =>
       BsDecl.TypeDecl (string_of_id id) (type_to_bstype t)
     | Ast.Statement.DeclareModule s => declare_module_to_jsdecl s
+    | Ast.Statement.Debugger =>
+      raise (ModulegenStatementError "Debugger statments are not supported")
     | _ => raise (ModulegenStatementError "Unknown statement type when parsing libdef")
     }
   )
