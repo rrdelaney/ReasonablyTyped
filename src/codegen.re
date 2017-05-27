@@ -41,6 +41,7 @@ let rec bstype_name =
   | Any => "any"
   | Object _ => "object"
   | Number => "number"
+  | Dict t => "dict_" ^ bstype_name t
   | String => "string"
   | Boolean => "bool"
   | Function _ => "func"
@@ -59,6 +60,7 @@ and union_types_to_name types => {
 let rec bstype_to_code =
   fun
   | Regex => "Js.Re.t"
+  | Dict t => "Js.Dict.t (" ^ bstype_to_code t ^ ")"
   | Optional t => bstype_to_code t ^ "?"
   | Unit => "unit"
   | Null => "null"
@@ -84,7 +86,17 @@ let rec bstype_to_code =
       ", "
       (
         List.filter (fun (key, type_of) => key != "constructor") props |>
-        List.map (fun (key, type_of) => key ^ ": " ^ bstype_to_code type_of ^ " [@bs.meth]")
+        List.map (
+          fun (key, type_of) =>
+            key ^
+            ": " ^
+            bstype_to_code type_of ^ (
+              switch type_of {
+              | Function _ => " [@bs.meth]"
+              | _ => ""
+              }
+            )
+        )
       ) ^ " }";
 
 module Precode = {
@@ -96,6 +108,7 @@ module Precode = {
     | Class types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
     | Optional t => bstype_precode t
     | Array t => bstype_precode t
+    | Dict t => bstype_precode t
     | _ => [""]
     }
   and string_of_union_types t types =>

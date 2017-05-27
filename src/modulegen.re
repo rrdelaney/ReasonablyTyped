@@ -18,6 +18,8 @@ open Ast.Type.Object;
 
 open Ast.Type.Object.Property;
 
+open Ast.Type.Object.Indexer;
+
 open Ast.Expression.Object.Property;
 
 open Ast.Statement.DeclareExportDeclaration;
@@ -45,6 +47,7 @@ module BsType = {
     | Class (list (string, t))
     | Union (list t)
     | Array t
+    | Dict t
     | Unknown
     | Boolean
     | Tuple (list t)
@@ -77,7 +80,16 @@ and type_to_bstype =
   | String => BsType.String
   | Boolean => BsType.Boolean
   | Function f => function_type_to_bstype f
-  | Object o => BsType.Object (object_type_to_bstype o)
+  | Object o => {
+      if (List.length o.properties == 0) { BsType.Object [] } else {
+       let first_prop = List.hd o.properties;
+      switch first_prop {
+      | Indexer (_, {value}) =>
+        let (_, value_type) = value;
+        BsType.Dict (type_to_bstype value_type)
+      | _ => BsType.Object (object_type_to_bstype o)
+      }
+    }}
   | Array (_, t) => BsType.Array (type_to_bstype t)
   | Tuple types => BsType.Tuple (List.map (fun (_, t) => type_to_bstype t) types)
   | Union (_, first) (_, second) rest =>
@@ -131,7 +143,7 @@ and object_type_to_bstype {properties} =>
     (
       fun
       | Property (loc, {key, value}) => (string_of_key key, value_to_bstype value)
-      | _ => raise (ModulegenTypeError "Unknown type!")
+      | _ => raise (ModulegenTypeError "Unknown object property type!")
     )
     properties;
 
@@ -192,6 +204,7 @@ module Printer = {
     | BsType.Optional t => show_type t ^ "?"
     | BsType.Any => "any"
     | BsType.Unit => "unit"
+    | BsType.Dict t => "{ [key: string]: " ^ show_type t ^ " }"
     | BsType.Tuple types => "[" ^ (List.map show_type types |> String.concat ", ") ^ "]"
     | BsType.Array t => show_type t ^ "[]"
     | BsType.Function params return =>
