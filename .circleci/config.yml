@@ -1,0 +1,23 @@
+version: 2
+jobs:
+  build:
+    working_directory: /retyped
+    docker:
+      - image: circleci/node
+    steps:
+      - checkout
+      - run:
+          name: 'Install OPAM'
+          command: 'sudo apt-get install opam && opam init'
+      - run:
+          name: 'Install OCaml dependencies'
+          command: 'opam install reason js_of_ocaml sedlex'
+      - run:
+          name: 'Build JS files'
+          command: 'make'
+      - run:
+          name: 'Install JS dependencies'
+          command: 'npm install'
+      - run:
+          name: 'Run tests'
+          command: 'npm test'
