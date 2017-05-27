@@ -8,10 +8,16 @@ jobs:
       - checkout
       - run:
           name: 'Install OPAM'
-          command: 'sudo apt-get install opam && opam init'
+          command: 'sudo apt-get install opam'
+      - run:
+          name: 'Setup OPAM'
+          command: 'opam init -y && opam update && opam switch 4.02.3  && eval $(opam config env)'
       - run:
           name: 'Install OCaml dependencies'
-          command: 'opam install reason js_of_ocaml sedlex'
+          command: 'opam install -y ocamlfind js_of_ocaml sedlex reason'
+      - run:
+          name: 'Clean build artifacts'
+          command: 'make clean'
       - run:
           name: 'Build JS files'
           command: 'make'
