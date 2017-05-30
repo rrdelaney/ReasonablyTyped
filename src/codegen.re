@@ -162,9 +162,11 @@ let constructor_type class_name =>
 let rec declaration_to_code module_id =>
   fun
   | VarDecl id type_of =>
-    "external " ^
-    id ^
-    " : " ^ bstype_to_code type_of ^ " = \"\" [@@bs.module \"" ^ Utils.unquote module_id ^ "\"];"
+    <Render.VariableDeclaration
+      name=id
+      module_id=(Utils.unquote module_id)
+      type_of=(bstype_to_code type_of)
+    />
   | FuncDecl id type_of =>
     "external " ^
     id ^
