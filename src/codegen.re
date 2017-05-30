@@ -168,13 +168,21 @@ let rec declaration_to_code module_id =>
       type_of=(bstype_to_code type_of)
     />
   | FuncDecl id type_of =>
-    "external " ^
-    id ^
-    " : " ^ bstype_to_code type_of ^ " = \"\" [@@bs.module \"" ^ Utils.unquote module_id ^ "\"];"
+    <Render.VariableDeclaration
+      name=id
+      module_id=(Utils.unquote module_id)
+      type_of=(bstype_to_code type_of)
+    />
   | ExportsDecl type_of =>
-    "external " ^
-    Utils.to_module_name module_id ^
-    " : " ^ bstype_to_code type_of ^ " = \"" ^ Utils.unquote module_id ^ "\" [@@bs.module];"
+    /*"external " ^
+      Utils.to_module_name module_id ^
+      " : " ^ bstype_to_code type_of ^ " = \"" ^ Utils.unquote module_id ^ "\" [@@bs.module];"*/
+    <Render.VariableDeclaration
+      name=""
+      type_of=(bstype_to_code type_of)
+      module_id=(Utils.unquote module_id)
+      is_exports=true
+    />
   | ModuleDecl id statements =>
     "module " ^
     id ^ " = {\n" ^ String.concat "\n  " (List.map (declaration_to_code id) statements) ^ "\n};"
