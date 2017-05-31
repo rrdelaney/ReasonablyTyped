@@ -174,9 +174,6 @@ let rec declaration_to_code module_id =>
       type_of=(bstype_to_code type_of)
     />
   | ExportsDecl type_of =>
-    /*"external " ^
-      Utils.to_module_name module_id ^
-      " : " ^ bstype_to_code type_of ^ " = \"" ^ Utils.unquote module_id ^ "\" [@@bs.module];"*/
     <Render.VariableDeclaration
       name=""
       type_of=(bstype_to_code type_of)
@@ -184,8 +181,7 @@ let rec declaration_to_code module_id =>
       is_exports=true
     />
   | ModuleDecl id statements =>
-    "module " ^
-    id ^ " = {\n" ^ String.concat "\n  " (List.map (declaration_to_code id) statements) ^ "\n};"
+    <Render.ModuleDeclaration name=id statements=(List.map (declaration_to_code id) statements) />
   | TypeDecl id type_of => ""
   | ClassDecl id type_of => {
       let class_name = String.uncapitalize_ascii id;
