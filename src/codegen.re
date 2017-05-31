@@ -185,16 +185,15 @@ let rec declaration_to_code module_id =>
   | TypeDecl id type_of => ""
   | ClassDecl id type_of => {
       let class_name = String.uncapitalize_ascii id;
-      "type " ^
-      class_name ^
-      " = " ^
-      bstype_to_code type_of ^
-      ";\n" ^
-      "external create_" ^
-      class_name ^
-      ": " ^
-      constructor_type class_name type_of ^
-      " = \"" ^ id ^ "\" [@@bs.new] [@@bs.module \"" ^ Utils.unquote module_id ^ "\"];"
+      let ctor_type = constructor_type class_name type_of;
+      let class_type = bstype_to_code type_of;
+      <Render.ClassDeclaration
+        name=class_name
+        exported_as=id
+        module_id=(Utils.unquote module_id)
+        class_type
+        ctor_type
+      />
     }
   | Unknown => "??;";
 

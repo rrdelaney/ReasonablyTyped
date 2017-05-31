@@ -336,6 +336,27 @@
         </pre>
       </div>
     </div>
+    <br>
+    <label for="libdef-input">Classes</label>
+    <div class="ui two column stackable grid">
+      <div class="code column">
+<pre><code class="language-js">declare module 'classes' {
+  declare type State = {
+    id: number,
+    storeName: string
+  };
+
+  declare export class Store {
+    constructor(initialState: State): Store;
+    state: State;
+    update(nextState: State): void;
+  }
+}</code></pre>
+      </div>
+      <div class="column">
+        <pre><code class="language-reason"></code></pre>
+      </div>
+    </div>
     <h1 class="ui horizontal divider header">
       <i class="code icon"></i> Demo
     </h1>
