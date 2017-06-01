@@ -30,6 +30,7 @@ const compareSources = ({ js, re }) => async () => {
   const expected = format(await re)
   expect(result).toBe(expected)
   expect(result).toBe(format(result))
+  expect(result).toMatchSnapshot()
 }
 
 Object.entries(testFiles).forEach(([moduleName, source]) => {

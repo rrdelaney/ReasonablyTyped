@@ -1,0 +1,61 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Compile duplicate-type.js 1`] = `
+"type number_or_string =
+  | Number float
+  | String string;
+
+external add : x::number_or_string => float = \\"\\" [@@bs.module \\"duplicate-type\\"];
+
+external sub : x::number_or_string => float = \\"\\" [@@bs.module \\"duplicate-type\\"];
+"
+`;
+
+exports[`Compile duplicate-type-param.js 1`] = `
+"type number_or_string =
+  | Number float
+  | String string;
+
+external add : x::number_or_string => y::number_or_string => float =
+  \\"\\" [@@bs.module \\"duplicate-type-param\\"];
+"
+`;
+
+exports[`Compile object-type.js 1`] = `
+"type subscribeOptions = Js.t {. start : float, stop : float};
+
+type testOptions = Js.t {. method : string, subscribe : subscribeOptions};
+
+external test : options::testOptions => string = \\"\\" [@@bs.module \\"object-type\\"];
+"
+`;
+
+exports[`Compile simple.js 1`] = `
+"external add : x::float => y::float => float = \\"\\" [@@bs.module \\"simple\\"];
+"
+`;
+
+exports[`Compile simple-class.js 1`] = `
+"type test = Js.t {. action : a::float => string [@bs.meth]};
+
+external create_test : t::string => test =
+  \\"Test\\" [@@bs.new] [@@bs.module \\"simple-class\\"];
+"
+`;
+
+exports[`Compile type-decl.js 1`] = `
+"type stringOptions = Js.t {. value : string};
+
+external test : s::string => options::stringOptions => string =
+  \\"\\" [@@bs.module \\"type-decl\\"];
+"
+`;
+
+exports[`Compile union-type.js 1`] = `
+"type number_or_string =
+  | Number float
+  | String string;
+
+external double : x::number_or_string => float = \\"\\" [@@bs.module \\"union-type\\"];
+"
+`;
