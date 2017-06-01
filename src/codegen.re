@@ -66,7 +66,7 @@ let rec bstype_to_code =
   | Array t => "array " ^ bstype_to_code t
   | Tuple types => <Render.TupleType types=(List.map bstype_to_code types) />
   | Unknown => "??"
-  | Any => "_"
+  | Any => "'a"
   | Object props =>
     <Render.ObjectType
       statements=(List.map (fun (key, type_of) => (key, bstype_to_code type_of)) props)
@@ -165,7 +165,7 @@ let rec declaration_to_code module_id =>
   fun
   | VarDecl id type_of =>
     <Render.VariableDeclaration
-      name=(Utils.normalize_name id)
+      name=(Utils.to_module_name id)
       module_id=(Utils.unquote module_id)
       type_of=(bstype_to_code type_of)
     />
@@ -177,7 +177,7 @@ let rec declaration_to_code module_id =>
     />
   | ExportsDecl type_of =>
     <Render.VariableDeclaration
-      name=(Utils.normalize_name module_id)
+      name=(Utils.to_module_name module_id)
       type_of=(bstype_to_code type_of)
       module_id=(Utils.unquote module_id)
       is_exports=true
