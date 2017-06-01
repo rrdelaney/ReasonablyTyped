@@ -25,6 +25,10 @@ module ClassDeclaration = {
     ctor_type ^ " = \"" ^ exported_as ^ "\" [@@bs.new] [@@bs.module \"" ^ module_id ^ "\"];";
 };
 
+module TypeDeclaration = {
+  let createElement ::name ::type_of ::children () => "type " ^ name ^ " = " ^ type_of ^ ";";
+};
+
 module ObjectType = {
   let createElement ::statements ::children () =>
     "Js.t {. " ^
@@ -39,4 +43,26 @@ module FunctionType = {
 
 module TupleType = {
   let createElement ::types ::children () => "(" ^ String.concat ", " types ^ ")";
+};
+
+module UnionType = {
+  let createElement ::name ::types ::children () =>
+    "type " ^
+    name ^
+    " = " ^
+    (
+      List.map (fun (type_name, type_of) => "\n| " ^ type_name ^ " (" ^ type_of ^ ")") types |>
+      String.concat ""
+    ) ^ ";\n";
+};
+
+module ClassType = {
+  let createElement ::types ::children () =>
+    "Js.t {. " ^ (
+      List.filter (fun (key, type_of, _) => key != "constructor") types |>
+      List.map (
+        fun (key, type_of, is_meth) => key ^ ": " ^ type_of ^ (is_meth ? "[@bs.meth]" : "")
+      ) |>
+      String.concat ", "
+    ) ^ "}";
 };

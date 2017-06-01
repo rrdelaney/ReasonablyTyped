@@ -83,6 +83,14 @@ let rec bstype_to_code =
       return_type=(bstype_to_code rt)
     />
   | Class props =>
+    /* let class_types = List.map (fun (key, type_of) => {
+      let is_meth = switch type_of {
+        | Function _ => true
+        | _ => false
+      };
+    (key, bstype_to_code type_of, is_meth);
+    }) props;
+  } */
     "Js.t {. " ^
     String.concat
       ", "
@@ -113,29 +121,25 @@ module Precode = {
     | Dict t => bstype_precode t
     | _ => [""]
     }
-  and string_of_union_types t types =>
-    "type " ^
-    bstype_name t ^
-    " = " ^
-    String.concat
-      ""
-      (
-        List.map
-          (
-            fun union_type =>
-              "\n| " ^
-              String.capitalize_ascii (bstype_name union_type) ^
-              " (" ^ bstype_to_code union_type ^ ")"
-          )
-          types
-      ) ^ ";\n";
+  and string_of_union_types t types => {
+    let union_name = bstype_name t;
+    let union_types =
+      List.map
+        (fun type_of => (String.capitalize_ascii (bstype_name type_of), bstype_to_code type_of))
+        types;
+    <Render.UnionType name=union_name types=union_types />
+  };
   let decl_to_precode =
     fun
     | VarDecl _ type_of => bstype_precode type_of
     | FuncDecl _ type_of => bstype_precode type_of
     | TypeDecl id type_of =>
       bstype_precode type_of |>
-      List.cons ("type " ^ String.uncapitalize_ascii id ^ " = " ^ bstype_to_code type_of ^ ";")
+      List.cons
+        <Render.TypeDeclaration
+          name=(String.uncapitalize_ascii id)
+          type_of=(bstype_to_code type_of)
+        />
     | ClassDecl _ type_of => bstype_precode type_of
     | ExportsDecl type_of => bstype_precode type_of
     | _ => [""];
