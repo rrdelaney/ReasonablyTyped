@@ -8,17 +8,16 @@ exception CodegenConstructorError string;
 
 module Utils = {
   let unquote str => String.sub str 1 (String.length str - 2);
-  let to_module_name str =>
-    String.map
-      (
-        fun ch =>
-          if (ch == '-') {
-            '_'
-          } else {
-            ch
-          }
-      )
-      (unquote str);
+  let normalize_name =
+    String.map (
+      fun ch =>
+        if (ch == '-') {
+          '_'
+        } else {
+          ch
+        }
+    );
+  let to_module_name str => normalize_name (unquote str);
   let rec uniq =
     fun
     | [] => []
@@ -166,19 +165,19 @@ let rec declaration_to_code module_id =>
   fun
   | VarDecl id type_of =>
     <Render.VariableDeclaration
-      name=(Utils.to_module_name id)
+      name=(Utils.normalize_name id)
       module_id=(Utils.unquote module_id)
       type_of=(bstype_to_code type_of)
     />
   | FuncDecl id type_of =>
     <Render.VariableDeclaration
-      name=(Utils.to_module_name id)
+      name=(Utils.normalize_name id)
       module_id=(Utils.unquote module_id)
       type_of=(bstype_to_code type_of)
     />
   | ExportsDecl type_of =>
     <Render.VariableDeclaration
-      name=(Utils.to_module_name module_id)
+      name=(Utils.normalize_name module_id)
       type_of=(bstype_to_code type_of)
       module_id=(Utils.unquote module_id)
       is_exports=true
