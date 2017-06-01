@@ -65,21 +65,24 @@ let rec bstype_to_code =
   | Unit => "unit"
   | Null => "null"
   | Array t => "array " ^ bstype_to_code t
-  | Tuple types => "(" ^ (List.map bstype_to_code types |> String.concat ", ") ^ ")"
+  | Tuple types => <Render.TupleType types=(List.map bstype_to_code types) />
   | Unknown => "??"
   | Any => "_"
   | Object props =>
-    "Js.t {. " ^
-    String.concat ", " (List.map (fun (key, type_of) => key ^ ": " ^ bstype_to_code type_of) props) ^ " }"
+    <Render.ObjectType
+      statements=(List.map (fun (key, type_of) => (key, bstype_to_code type_of)) props)
+    />
   | Number => "float"
   | String => "string"
   | Boolean => "Js.boolean"
   | Named s => String.uncapitalize_ascii s
   | Union types => union_types_to_name types
   | Function params rt =>
-    String.concat
-      " => " (List.map (fun (name, param_type) => name ^ "::" ^ bstype_to_code param_type) params) ^
-    " => " ^ (List.exists Utils.is_optional params ? "unit => " : "") ^ bstype_to_code rt
+    <Render.FunctionType
+      params=(List.map (fun (name, param) => (name, bstype_to_code param)) params)
+      has_optional=(List.exists Utils.is_optional params)
+      return_type=(bstype_to_code rt)
+    />
   | Class props =>
     "Js.t {. " ^
     String.concat
