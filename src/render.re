@@ -37,7 +37,19 @@ module ObjectType = {
 
 module FunctionType = {
   let createElement ::params ::has_optional ::return_type ::children () =>
-    (List.map (fun (name, param_type) => name ^ "::" ^ param_type) params |> String.concat " => ") ^
+    (
+      List.map
+        (
+          fun (name, param_type) =>
+            if (name != "") {
+              name ^ "::" ^ param_type
+            } else {
+              param_type
+            }
+        )
+        params |>
+      String.concat " => "
+    ) ^
     " => " ^ (has_optional ? "unit => " : "") ^ return_type;
 };
 
