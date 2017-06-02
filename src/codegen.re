@@ -82,32 +82,22 @@ let rec bstype_to_code =
       has_optional=(List.exists Utils.is_optional params)
       return_type=(bstype_to_code rt)
     />
-  | Class props =>
-    /* let class_types = List.map (fun (key, type_of) => {
-      let is_meth = switch type_of {
-        | Function _ => true
-        | _ => false
-      };
-    (key, bstype_to_code type_of, is_meth);
-    }) props;
-  } */
-    "Js.t {. " ^
-    String.concat
-      ", "
-      (
-        List.filter (fun (key, type_of) => key != "constructor") props |>
-        List.map (
-          fun (key, type_of) =>
-            key ^
-            ": " ^
-            bstype_to_code type_of ^ (
-              switch type_of {
-              | Function _ => " [@bs.meth]"
-              | _ => ""
-              }
-            )
-        )
-      ) ^ " }";
+  | Class props => {
+      let class_types =
+        List.map
+          (
+            fun (key, type_of) => {
+              let is_meth =
+                switch type_of {
+                | Function _ => true
+                | _ => false
+                };
+              (key, bstype_to_code type_of, is_meth)
+            }
+          )
+          props;
+      <Render.ClassType types=class_types />
+    };
 
 module Precode = {
   let rec bstype_precode def =>

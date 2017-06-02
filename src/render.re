@@ -58,7 +58,8 @@ module UnionType = {
 
 module ClassType = {
   let createElement ::types ::children () =>
-    "Js.t {. " ^ (
+    "Js.t {. " ^
+    (
       List.filter (fun (key, type_of, _) => key != "constructor") types |>
       List.map (
         fun (key, type_of, is_meth) => key ^ ": " ^ type_of ^ (is_meth ? "[@bs.meth]" : "")
