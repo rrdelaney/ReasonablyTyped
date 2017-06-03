@@ -11,3 +11,4 @@ _config.yml
 *.byte
 index.html
 Makefile
+_test.js
