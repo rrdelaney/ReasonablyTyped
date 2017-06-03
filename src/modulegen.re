@@ -30,11 +30,21 @@ open Ast.Statement.DeclareFunction;
 
 open Ast.Statement.TypeAlias;
 
+open Loc;
+
 exception ModulegenDeclError string;
 
 exception ModulegenTypeError string;
 
 exception ModulegenStatementError string;
+
+let loc_to_msg ({start, _end}: Loc.t) =>
+  " at " ^
+  string_of_int start.line ^
+  ":" ^
+  string_of_int start.column ^ " to " ^ string_of_int _end.line ^ ":" ^ string_of_int _end.column;
+
+let not_supported interface loc => interface ^ "is not currently supported" ^ loc_to_msg loc;
 
 module BsType = {
   type t =
@@ -43,7 +53,9 @@ module BsType = {
     | Regex
     | String
     | Function (list (string, t)) t
+    | AnyFunction
     | Object (list (string, t))
+    | AnyObject
     | Class (list (string, t))
     | Union (list t)
     | Array t
@@ -67,10 +79,10 @@ let string_of_key (key: Ast.Expression.Object.Property.key) =>
 
 let rec type_annotation_to_bstype (annotation: option Ast.Type.annotation) =>
   switch annotation {
-  | Some (_, (_, t)) => type_to_bstype t
+  | Some (loc, (_, t)) => type_to_bstype loc t
   | None => raise (ModulegenTypeError "Unknown type when parsing annotation")
   }
-and type_to_bstype =
+and type_to_bstype (loc: Loc.t) =>
   fun
   | Void => BsType.Unit
   | Mixed => BsType.Any
@@ -88,17 +100,17 @@ and type_to_bstype =
       switch first_prop {
       | Indexer (_, {value}) =>
         let (_, value_type) = value;
-        BsType.Dict (type_to_bstype value_type)
+        BsType.Dict (type_to_bstype loc value_type)
       | _ => BsType.Object (object_type_to_bstype o)
       }
     }
-  | Array (_, t) => BsType.Array (type_to_bstype t)
-  | Tuple types => BsType.Tuple (List.map (fun (_, t) => type_to_bstype t) types)
-  | Union (_, first) (_, second) rest =>
+  | Array (loc, t) => BsType.Array (type_to_bstype loc t)
+  | Tuple types => BsType.Tuple (List.map (fun (loc, t) => type_to_bstype loc t) types)
+  | Union (loc_a, first) (loc_b, second) rest =>
     BsType.Union [
-      type_to_bstype first,
-      type_to_bstype second,
-      ...List.map (fun (loc, t) => type_to_bstype t) rest
+      type_to_bstype loc_a first,
+      type_to_bstype loc_b second,
+      ...List.map (fun (_, t) => type_to_bstype loc t) rest
     ]
   | Generic {id} =>
     switch id {
@@ -106,24 +118,34 @@ and type_to_bstype =
     | Unqualified q =>
       switch q {
       | (_, "RegExp") => BsType.Regex
+      | (_, "Object") => BsType.AnyObject
+      | (_, "Function") => BsType.AnyFunction
+      | (loc, "Class") => raise (ModulegenTypeError (not_supported "Class types" loc))
       | _ => BsType.Named (string_of_id q)
       }
     }
-  | _ => raise (ModulegenTypeError "Unknown type when converting to Bucklescript type")
-and function_type_to_bstype {params: (formal, rest), returnType: (_, rt)} => {
+  | StringLiteral _ => raise (ModulegenTypeError (not_supported "StringLiteral" loc))
+  | NumberLiteral _ => raise (ModulegenTypeError (not_supported "NumberLiteral" loc))
+  | BooleanLiteral _ => raise (ModulegenTypeError (not_supported "BooleanLiteral" loc))
+  | Typeof _ => raise (ModulegenTypeError (not_supported "Typeof" loc))
+  | _ =>
+    raise (
+      ModulegenTypeError ("Unknown type when converting to Bucklescript type" ^ loc_to_msg loc)
+    )
+and function_type_to_bstype {params: (formal, rest), returnType: (loc, rt)} => {
   let params =
     if (List.length formal > 0) {
       List.map
         (
-          fun ((_, {typeAnnotation: (_, t), name, optional}): Ast.Type.Function.Param.t) => (
+          fun ((_, {typeAnnotation: (loc, t), name, optional}): Ast.Type.Function.Param.t) => (
             switch name {
             | Some id => string_of_id id
             | None => ""
             },
             if optional {
-              BsType.Optional (type_to_bstype t)
+              BsType.Optional (type_to_bstype loc t)
             } else {
-              type_to_bstype t
+              type_to_bstype loc t
             }
           )
         )
@@ -131,12 +153,12 @@ and function_type_to_bstype {params: (formal, rest), returnType: (_, rt)} => {
     } else {
       [("", BsType.Unit)]
     };
-  let return = type_to_bstype rt;
+  let return = type_to_bstype loc rt;
   BsType.Function params return
 }
 and value_to_bstype (value: Ast.Type.Object.Property.value) =>
   switch value {
-  | Init (loc, t) => type_to_bstype t
+  | Init (loc, t) => type_to_bstype loc t
   | Get (loc, func) => function_type_to_bstype func
   | Set (loc, func) => function_type_to_bstype func
   }
@@ -145,11 +167,12 @@ and object_type_to_bstype {properties} =>
     (
       fun
       | Property (loc, {key, value}) => (string_of_key key, value_to_bstype value)
-      | CallProperty _ =>
-        raise (ModulegenTypeError "CallProperty is not supported on Object types")
-      | Indexer _ => raise (ModulegenTypeError "Indexer is not supported on Object types")
-      | SpreadProperty _ =>
-        raise (ModulegenTypeError "SpreadProperty is not supported on Object types")
+      | CallProperty (loc, _) =>
+        raise (ModulegenTypeError (not_supported "CallProperty on Object types" loc))
+      | Indexer (loc, _) =>
+        raise (ModulegenTypeError (not_supported "Indexer on Object types" loc))
+      | SpreadProperty (loc, _) =>
+        raise (ModulegenTypeError (not_supported "SpreadProperty on Object types" loc))
     )
     properties;
 
@@ -164,7 +187,7 @@ module BsDecl = {
     | Unknown;
 };
 
-let declaration_to_jsdecl =
+let declaration_to_jsdecl loc =>
   Ast.Statement.Interface.(
     fun
     | Variable (loc, {id, typeAnnotation}) =>
@@ -175,7 +198,9 @@ let declaration_to_jsdecl =
       BsDecl.ClassDecl (string_of_id id) (BsType.Class (object_type_to_bstype interface))
     | _ =>
       raise (
-        ModulegenDeclError "Unknown declaration when converting a module property declaration"
+        ModulegenDeclError (
+          "Unknown declaration when converting a module property declaration" ^ loc_to_msg loc
+        )
       )
   );
 
@@ -185,24 +210,36 @@ let rec statement_to_stack (loc, s) =>
     | Ast.Statement.DeclareModuleExports annotation =>
       BsDecl.ExportsDecl (type_annotation_to_bstype (Some annotation))
     | Ast.Statement.DeclareExportDeclaration {declaration: Some declaration} =>
-      declaration_to_jsdecl declaration
+      declaration_to_jsdecl loc declaration
     | Ast.Statement.DeclareFunction declare_function =>
-      declaration_to_jsdecl (Function (loc, declare_function))
+      declaration_to_jsdecl loc (Function (loc, declare_function))
     | Ast.Statement.DeclareClass {id, body: (_, interface)} =>
       BsDecl.ClassDecl (string_of_id id) (BsType.Class (object_type_to_bstype interface))
     | Ast.Statement.TypeAlias {id, right: (loc, t)} =>
-      BsDecl.TypeDecl (string_of_id id) (type_to_bstype t)
-    | Ast.Statement.DeclareModule s => declare_module_to_jsdecl s
+      BsDecl.TypeDecl (string_of_id id) (type_to_bstype loc t)
+    | Ast.Statement.DeclareModule s => declare_module_to_jsdecl loc s
+    | Ast.Statement.DeclareVariable {id, typeAnnotation} =>
+      BsDecl.VarDecl (string_of_id id) (type_annotation_to_bstype typeAnnotation)
     | Ast.Statement.Debugger =>
-      raise (ModulegenStatementError "Debugger statments are not supported")
-    | _ => raise (ModulegenStatementError "Unknown statement type when parsing libdef")
+      raise (ModulegenStatementError (not_supported "Debugger statments" loc))
+    | Ast.Statement.InterfaceDeclaration _ =>
+      raise (ModulegenStatementError (not_supported "Interface declarations" loc))
+    | _ =>
+      raise (
+        ModulegenStatementError ("Unknown statement type when parsing libdef" ^ loc_to_msg loc)
+      )
     }
   )
 and block_to_stack (loc, {body}) => List.map statement_to_stack body
-and declare_module_to_jsdecl {id, body} =>
+and declare_module_to_jsdecl loc {id, body} =>
   switch id {
   | Literal (loc, {raw}) => BsDecl.ModuleDecl raw (block_to_stack body)
-  | _ => raise (ModulegenDeclError "Unknown declaration type when converting a module declaration")
+  | _ =>
+    raise (
+      ModulegenDeclError (
+        "Unknown declaration type when converting a module declaration" ^ loc_to_msg loc
+      )
+    )
   };
 
 module Printer = {
@@ -211,6 +248,8 @@ module Printer = {
     | BsType.Regex => "RegExp"
     | BsType.Optional t => show_type t ^ "?"
     | BsType.Any => "any"
+    | BsType.AnyObject => "Object"
+    | BsType.AnyFunction => "Function"
     | BsType.Unit => "unit"
     | BsType.Dict t => "{ [key: string]: " ^ show_type t ^ " }"
     | BsType.Tuple types => "[" ^ (List.map show_type types |> String.concat ", ") ^ "]"

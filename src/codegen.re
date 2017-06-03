@@ -32,13 +32,20 @@ module Utils = {
     };
 };
 
+module Uid = {
+  let get () => string_of_int 1;
+  let uniq prefix => prefix ^ "_" ^ get ();
+};
+
 let rec bstype_name =
   fun
   | Regex => "regex"
   | Unit => "unit"
   | Null => "null"
-  | Any => "any"
+  | Any => Uid.uniq "any"
   | Object _ => "object"
+  | AnyObject => "object"
+  | AnyFunction => "function"
   | Number => "number"
   | Dict t => "dict_" ^ bstype_name t
   | String => "string"
@@ -66,7 +73,9 @@ let rec bstype_to_code =
   | Array t => "array " ^ bstype_to_code t
   | Tuple types => <Render.TupleType types=(List.map bstype_to_code types) />
   | Unknown => "??"
-  | Any => "'a"
+  | Any => "'any"
+  | AnyObject => "'any"
+  | AnyFunction => "'any"
   | Object props =>
     <Render.ObjectType
       statements=(List.map (fun (key, type_of) => (key, bstype_to_code type_of)) props)

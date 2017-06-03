@@ -11,7 +11,7 @@ jobs:
           command: 'sudo apt-get install opam'
       - run:
           name: 'Setup OPAM'
-          command: 'opam init -y && opam update && opam switch 4.02.3'
+          command: 'opam init -y && opam update'
       - run:
           name: 'Install OCaml dependencies'
           command: 'eval $(opam config env) && opam install -y ocamlfind js_of_ocaml sedlex reason'
@@ -21,6 +21,8 @@ jobs:
       - run:
           name: 'Build JS files'
           command: 'eval $(opam config env) && make'
+          environment:
+            TERM: xterm
       - run:
           name: 'Install JS dependencies'
           command: 'npm install'
