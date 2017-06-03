@@ -18,7 +18,7 @@ files.forEach(f => {
 
   test(`Library ${libraryName}`, async () => {
     const libDef = await getLibDef(f)
-    const bsInterface = compile(libDef)
+    const bsInterface = compile(libDef, libraryName)
 
     expect(bsInterface).toBeTruthy()
   })

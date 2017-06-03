@@ -38,13 +38,20 @@ exception ModulegenTypeError string;
 
 exception ModulegenStatementError string;
 
-let loc_to_msg ({start, _end}: Loc.t) =>
-  " at " ^
+let loc_to_msg ({source, start, _end}: Loc.t) =>
+  (
+    switch source {
+    | Some fname => " [in " ^ Loc.string_of_filename fname ^ " "
+    | None => " ["
+    }
+  ) ^
+  "from " ^
   string_of_int start.line ^
   ":" ^
-  string_of_int start.column ^ " to " ^ string_of_int _end.line ^ ":" ^ string_of_int _end.column;
+  string_of_int start.column ^
+  " to " ^ string_of_int _end.line ^ ":" ^ string_of_int _end.column ^ "]";
 
-let not_supported interface loc => interface ^ "is not currently supported" ^ loc_to_msg loc;
+let not_supported interface loc => interface ^ " is not currently supported" ^ loc_to_msg loc;
 
 module BsType = {
   type t =

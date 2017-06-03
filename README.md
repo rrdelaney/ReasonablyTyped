@@ -54,7 +54,7 @@ const bsInterface = ReasonablyTyped.compile(libSrc)
 
 Formats a block of code using `refmt`
 
-### `compile (code: string) => string`
+### `compile (code: string, filename?: string) => string`
 
 Compiles a libdef, formats the result, and handles errors cleanly
 
