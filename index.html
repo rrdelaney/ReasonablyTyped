@@ -409,7 +409,7 @@ const compileText = str => {
 
     return `/* Module ${moduleId} */\n\n${fmtCode}`
   } catch (e) {
-    const err = e[1] && (e[1].c || (e[1][1] && e[1][1].c))
+    const err = (e[1] && (e[1].c || (e[1][1] && e[1][1].c))) + (e[2] ? ' ' + e[2].c : '')
     if (err === 'Parse_error.Error') throw new SyntaxError(e)
     throw new Error(err)
   }

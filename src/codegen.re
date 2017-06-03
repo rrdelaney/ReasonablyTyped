@@ -159,7 +159,7 @@ let rec declaration_to_code module_id =>
   fun
   | VarDecl id type_of =>
     <Render.VariableDeclaration
-      name=(Utils.to_module_name id)
+      name=(Utils.normalize_name id)
       module_id=(Utils.unquote module_id)
       type_of=(bstype_to_code type_of)
     />

@@ -21,6 +21,13 @@ external add : x::number_or_string => y::number_or_string => float =
 "
 `;
 
+exports[`Compile numbers.js 1`] = `
+"external xfg : float = \\"\\" [@@bs.module \\"numbers\\"];
+
+external add : a::float => b::float => float = \\"\\" [@@bs.module \\"numbers\\"];
+"
+`;
+
 exports[`Compile object-type.js 1`] = `
 "type subscribeOptions = Js.t {. start : float, stop : float};
 
