@@ -21,6 +21,14 @@ external add : x::number_or_string => y::number_or_string => float =
 "
 `;
 
+exports[`Compile interface.js 1`] = `
+"type options = Js.t {. op : string};
+
+external apply : x::float => y::float => options::options? => unit => float =
+  \\"\\" [@@bs.module \\"interface\\"];
+"
+`;
+
 exports[`Compile numbers.js 1`] = `
 "external xfg : float = \\"\\" [@@bs.module \\"numbers\\"];
 
@@ -34,6 +42,11 @@ exports[`Compile object-type.js 1`] = `
 type testOptions = Js.t {. method : string, subscribe : subscribeOptions};
 
 external test : options::testOptions => string = \\"\\" [@@bs.module \\"object-type\\"];
+"
+`;
+
+exports[`Compile optional-param.js 1`] = `
+"external add : x::float => y::float? => unit => float = \\"\\" [@@bs.module \\"optional\\"];
 "
 `;
 

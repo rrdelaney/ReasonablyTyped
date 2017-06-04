@@ -140,6 +140,7 @@ module Precode = {
           type_of=(bstype_to_code type_of)
         />
     | ClassDecl _ type_of => bstype_precode type_of
+    | InterfaceDecl _ type_of => bstype_precode type_of
     | ExportsDecl type_of => bstype_precode type_of
     | _ => [""];
   let from_stack stack =>
@@ -200,6 +201,8 @@ let rec declaration_to_code module_id =>
         ctor_type
       />
     }
+  | InterfaceDecl id type_of =>
+    <Render.TypeDeclaration name=(String.uncapitalize_ascii id) type_of=(bstype_to_code type_of) />
   | Unknown => "??;";
 
 let stack_to_code stack =>

@@ -1,5 +1,3 @@
-open Ast.Statement.DeclareModule;
-
 open Ast.Statement.Block;
 
 open Ast.Literal;
@@ -191,6 +189,7 @@ module BsDecl = {
     | ExportsDecl BsType.t
     | TypeDecl string BsType.t
     | ClassDecl string BsType.t
+    | InterfaceDecl string BsType.t
     | Unknown;
 };
 
@@ -229,8 +228,7 @@ let rec statement_to_stack (loc, s) =>
       BsDecl.VarDecl (string_of_id id) (type_annotation_to_bstype typeAnnotation)
     | Ast.Statement.Debugger =>
       raise (ModulegenStatementError (not_supported "Debugger statments" loc))
-    | Ast.Statement.InterfaceDeclaration _ =>
-      raise (ModulegenStatementError (not_supported "Interface declarations" loc))
+    | Ast.Statement.InterfaceDeclaration s => declare_interface_to_jsdecl loc s
     | _ =>
       raise (
         ModulegenStatementError ("Unknown statement type when parsing libdef" ^ loc_to_msg loc)
@@ -238,7 +236,9 @@ let rec statement_to_stack (loc, s) =>
     }
   )
 and block_to_stack (loc, {body}) => List.map statement_to_stack body
-and declare_module_to_jsdecl loc {id, body} =>
+and declare_module_to_jsdecl loc s => {
+  open Ast.Statement.DeclareModule;
+  let {id, body} = s;
   switch id {
   | Literal (loc, {raw}) => BsDecl.ModuleDecl raw (block_to_stack body)
   | _ =>
@@ -247,7 +247,22 @@ and declare_module_to_jsdecl loc {id, body} =>
         "Unknown declaration type when converting a module declaration" ^ loc_to_msg loc
       )
     )
+  }
+}
+and declare_interface_to_jsdecl loc s => {
+  open Ast.Statement.Interface;
+  open Ast.Type;
+  let {id, body, typeParameters, extends} = s;
+  switch (typeParameters, extends) {
+  | (Some _tp, _extends) => raise (ModulegenStatementError (not_supported "Generic Intefaces" loc))
+  | (_tp, [(loc, _extends), ...t]) =>
+    raise (ModulegenStatementError (not_supported "Inheriting in interfaces" loc))
+  | _ => ()
   };
+  let (body_loc, obj_type) = body;
+  let body_type = Object obj_type;
+  BsDecl.InterfaceDecl (string_of_id id) (type_to_bstype body_loc body_type)
+};
 
 module Printer = {
   let rec show_type =
@@ -300,5 +315,6 @@ module Printer = {
     | BsDecl.Unknown => "external ??"
     | BsDecl.FuncDecl name of_type => "declare export function " ^ name ^ show_type of_type
     | BsDecl.VarDecl name of_type => "declare export var " ^ name ^ ": " ^ show_type of_type
-    | BsDecl.ClassDecl name of_type => "declare class " ^ name ^ " " ^ show_type of_type;
+    | BsDecl.ClassDecl name of_type => "declare class " ^ name ^ " " ^ show_type of_type
+    | BsDecl.InterfaceDecl name of_type => "declare interface " ^ name ^ " " ^ show_type of_type;
 };
