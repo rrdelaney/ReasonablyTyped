@@ -8,10 +8,6 @@ open Ast.Type.Generic;
 
 open Ast.Type.Generic.Identifier;
 
-open Ast.Type.Function;
-
-open Ast.Type.Function.Param;
-
 open Ast.Type.Object;
 
 open Ast.Type.Object.Property;
@@ -96,7 +92,7 @@ and type_to_bstype (loc: Loc.t) =>
   | Number => BsType.Number
   | String => BsType.String
   | Boolean => BsType.Boolean
-  | Function f => function_type_to_bstype f
+  | Function f => function_type_to_bstype loc f
   | Object o =>
     if (List.length o.properties == 0) {
       BsType.Object []
@@ -137,7 +133,14 @@ and type_to_bstype (loc: Loc.t) =>
     raise (
       ModulegenTypeError ("Unknown type when converting to Bucklescript type" ^ loc_to_msg loc)
     )
-and function_type_to_bstype {params: (formal, rest), returnType: (loc, rt)} => {
+and function_type_to_bstype loc f => {
+  open Ast.Type.Function;
+  open Ast.Type.Function.Param;
+  let {params: (formal, rest), returnType: (rt_loc, rt), typeParameters} = f;
+  switch typeParameters {
+  | Some _ => raise (ModulegenTypeError (not_supported "Type parameters" loc))
+  | None => ()
+  };
   let params =
     if (List.length formal > 0) {
       List.map
@@ -158,14 +161,14 @@ and function_type_to_bstype {params: (formal, rest), returnType: (loc, rt)} => {
     } else {
       [("", BsType.Unit)]
     };
-  let return = type_to_bstype loc rt;
+  let return = type_to_bstype rt_loc rt;
   BsType.Function params return
 }
 and value_to_bstype (value: Ast.Type.Object.Property.value) =>
   switch value {
   | Init (loc, t) => type_to_bstype loc t
-  | Get (loc, func) => function_type_to_bstype func
-  | Set (loc, func) => function_type_to_bstype func
+  | Get (loc, func) => function_type_to_bstype loc func
+  | Set (loc, func) => function_type_to_bstype loc func
   }
 and object_type_to_bstype {properties} =>
   List.map
