@@ -195,8 +195,8 @@ let rec declaration_to_code module_id =>
         name::class_name
         exported_as::id
         module_id::(Utils.unquote module_id)
-        class_type::class_type
-        ctor_type::ctor_type
+        ::class_type
+        ::ctor_type
         ()
     }
   | InterfaceDecl id type_of =>
