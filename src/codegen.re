@@ -71,26 +71,25 @@ let rec bstype_to_code =
   | Unit => "unit"
   | Null => "null"
   | Array t => "array " ^ bstype_to_code t
-  | Tuple types => <Render.TupleType types=(List.map bstype_to_code types) />
+  | Tuple types => Render.tupleType types::(List.map bstype_to_code types) ()
   | Unknown => "??"
   | Any => "'any"
   | AnyObject => "'any"
   | AnyFunction => "'any"
   | Object props =>
-    <Render.ObjectType
-      statements=(List.map (fun (key, type_of) => (key, bstype_to_code type_of)) props)
-    />
+    Render.objectType
+      statements::(List.map (fun (key, type_of) => (key, bstype_to_code type_of)) props) ()
   | Number => "float"
   | String => "string"
   | Boolean => "Js.boolean"
   | Named s => String.uncapitalize_ascii s
   | Union types => union_types_to_name types
   | Function params rt =>
-    <Render.FunctionType
-      params=(List.map (fun (name, param) => (name, bstype_to_code param)) params)
-      has_optional=(List.exists Utils.is_optional params)
-      return_type=(bstype_to_code rt)
-    />
+    Render.functionType
+      params::(List.map (fun (name, param) => (name, bstype_to_code param)) params)
+      has_optional::(List.exists Utils.is_optional params)
+      return_type::(bstype_to_code rt)
+      ()
   | Class props => {
       let class_types =
         List.map
@@ -105,7 +104,7 @@ let rec bstype_to_code =
             }
           )
           props;
-      <Render.ClassType types=class_types />
+      Render.classType types::class_types ()
     };
 
 module Precode = {
@@ -126,7 +125,7 @@ module Precode = {
       List.map
         (fun type_of => (String.capitalize_ascii (bstype_name type_of), bstype_to_code type_of))
         types;
-    <Render.UnionType name=union_name types=union_types />
+    Render.unionType name::union_name types::union_types ()
   };
   let decl_to_precode =
     fun
@@ -134,11 +133,10 @@ module Precode = {
     | FuncDecl _ type_of => bstype_precode type_of
     | TypeDecl id type_of =>
       bstype_precode type_of |>
-      List.cons
-        <Render.TypeDeclaration
-          name=(String.uncapitalize_ascii id)
-          type_of=(bstype_to_code type_of)
-        />
+      List.cons (
+        Render.typeDeclaration
+          name::(String.uncapitalize_ascii id) type_of::(bstype_to_code type_of) ()
+      )
     | ClassDecl _ type_of => bstype_precode type_of
     | InterfaceDecl _ type_of => bstype_precode type_of
     | ExportsDecl type_of => bstype_precode type_of
@@ -168,41 +166,42 @@ let constructor_type class_name =>
 let rec declaration_to_code module_id =>
   fun
   | VarDecl id type_of =>
-    <Render.VariableDeclaration
-      name=(Utils.normalize_name id)
-      module_id=(Utils.unquote module_id)
-      type_of=(bstype_to_code type_of)
-    />
+    Render.variableDeclaration
+      name::(Utils.normalize_name id)
+      module_id::(Utils.unquote module_id)
+      type_of::(bstype_to_code type_of)
+      ()
   | FuncDecl id type_of =>
-    <Render.VariableDeclaration
-      name=(Utils.normalize_name id)
-      module_id=(Utils.unquote module_id)
-      type_of=(bstype_to_code type_of)
-    />
+    Render.variableDeclaration
+      name::(Utils.normalize_name id)
+      module_id::(Utils.unquote module_id)
+      type_of::(bstype_to_code type_of)
+      ()
   | ExportsDecl type_of =>
-    <Render.VariableDeclaration
-      name=(Utils.to_module_name module_id)
-      type_of=(bstype_to_code type_of)
-      module_id=(Utils.unquote module_id)
-      is_exports=true
-    />
+    Render.variableDeclaration
+      name::(Utils.to_module_name module_id)
+      type_of::(bstype_to_code type_of)
+      module_id::(Utils.unquote module_id)
+      is_exports::true
+      ()
   | ModuleDecl id statements =>
-    <Render.ModuleDeclaration name=id statements=(List.map (declaration_to_code id) statements) />
+    Render.moduleDeclaration name::id statements::(List.map (declaration_to_code id) statements) ()
   | TypeDecl id type_of => ""
   | ClassDecl id type_of => {
       let class_name = String.uncapitalize_ascii id;
       let ctor_type = constructor_type class_name type_of;
       let class_type = bstype_to_code type_of;
-      <Render.ClassDeclaration
-        name=class_name
-        exported_as=id
-        module_id=(Utils.unquote module_id)
-        class_type
-        ctor_type
-      />
+      Render.classDeclaration
+        name::class_name
+        exported_as::id
+        module_id::(Utils.unquote module_id)
+        class_type::class_type
+        ctor_type::ctor_type
+        ()
     }
   | InterfaceDecl id type_of =>
-    <Render.TypeDeclaration name=(String.uncapitalize_ascii id) type_of=(bstype_to_code type_of) />
+    Render.typeDeclaration
+      name::(String.uncapitalize_ascii id) type_of::(bstype_to_code type_of) ()
   | Unknown => "??;";
 
 let stack_to_code stack =>
