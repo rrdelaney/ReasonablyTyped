@@ -58,9 +58,31 @@ let rec bstype_name =
   | Union types => union_types_to_name types
   | Class props => raise (CodegenTypeError "Unable to translate class into type name")
   | Optional t => ""
+  | StringLiteral _ =>
+    raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
 and union_types_to_name types => {
-  let type_names = List.map bstype_name types;
-  String.concat "_or_" type_names
+  let is_string_union =
+    List.for_all
+      (
+        fun
+        | StringLiteral _ => true
+        | _ => false
+      )
+      types;
+  if is_string_union {
+    let type_names =
+      List.map
+        (
+          fun
+          | StringLiteral s => s
+          | _ => raise (CodegenTypeError "Expected a StringLiteral when converting to union type")
+        )
+        types;
+    Render.unionTypeStrings types::type_names ()
+  } else {
+    let type_names = List.map bstype_name types;
+    String.concat "_or_" type_names
+  }
 };
 
 let rec bstype_to_code =
@@ -84,6 +106,8 @@ let rec bstype_to_code =
   | Boolean => "Js.boolean"
   | Named s => String.uncapitalize_ascii s
   | Union types => union_types_to_name types
+  | StringLiteral _ =>
+    raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
   | Function params rt =>
     Render.functionType
       params::(List.map (fun (name, param) => (name, bstype_to_code param)) params)
@@ -120,12 +144,24 @@ module Precode = {
     | _ => [""]
     }
   and string_of_union_types t types => {
-    let union_name = bstype_name t;
-    let union_types =
-      List.map
-        (fun type_of => (String.capitalize_ascii (bstype_name type_of), bstype_to_code type_of))
+    let is_string_union =
+      List.for_all
+        (
+          fun
+          | StringLiteral _ => true
+          | _ => false
+        )
         types;
-    Render.unionType name::union_name types::union_types ()
+    if is_string_union {
+      ""
+    } else {
+      let union_name = bstype_name t;
+      let union_types =
+        List.map
+          (fun type_of => (String.capitalize_ascii (bstype_name type_of), bstype_to_code type_of))
+          types;
+      Render.unionType name::union_name types::union_types ()
+    }
   };
   let decl_to_precode =
     fun

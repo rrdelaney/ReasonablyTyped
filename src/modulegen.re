@@ -2,6 +2,8 @@ open Ast.Statement.Block;
 
 open Ast.Literal;
 
+open Ast.Type.StringLiteral;
+
 open Ast.Type;
 
 open Ast.Type.Generic;
@@ -67,7 +69,8 @@ module BsType = {
     | Unit
     | Any
     | Named string
-    | Optional t;
+    | Optional t
+    | StringLiteral string;
 };
 
 let string_of_id (loc: Loc.t, id: string) => id;
@@ -125,7 +128,7 @@ and type_to_bstype (loc: Loc.t) =>
       | _ => BsType.Named (string_of_id q)
       }
     }
-  | StringLiteral _ => raise (ModulegenTypeError (not_supported "StringLiteral" loc))
+  | StringLiteral {value} => BsType.StringLiteral value
   | NumberLiteral _ => raise (ModulegenTypeError (not_supported "NumberLiteral" loc))
   | BooleanLiteral _ => raise (ModulegenTypeError (not_supported "BooleanLiteral" loc))
   | Typeof _ => raise (ModulegenTypeError (not_supported "Typeof" loc))
@@ -308,6 +311,7 @@ module Printer = {
       "{ " ^
       String.concat "; " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
     | BsType.Named s => s
+    | BsType.StringLiteral t => "\"" ^ t ^ "\""
     | BsType.Unknown => "??";
   let rec show_decl =
     fun

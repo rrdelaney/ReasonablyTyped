@@ -42,6 +42,10 @@ let functionType ::params ::has_optional ::return_type () =>
 
 let tupleType ::types () => "(" ^ String.concat ", " types ^ ")";
 
+let unionTypeStrings ::types () =>
+  "([" ^
+  (List.map (fun type_name => "`" ^ type_name) types |> String.concat " | ") ^ "] [@bs.string])";
+
 let unionType ::name ::types () =>
   "type " ^
   name ^
