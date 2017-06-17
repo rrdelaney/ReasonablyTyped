@@ -8,15 +8,21 @@ exception CodegenConstructorError string;
 
 module Utils = {
   let unquote str => String.sub str 1 (String.length str - 2);
-  let normalize_name =
+  let normalize_chars =
     String.map (
       fun ch =>
-        if (ch == '-') {
+        if (ch == '-' || ch == '$') {
           '_'
         } else {
           ch
         }
     );
+  let normalize_keywords =
+    fun
+    | "type" => "_type"
+    | "end" => "_end"
+    | str => str;
+  let normalize_name name => normalize_chars name |> normalize_keywords;
   let to_module_name str => normalize_name (unquote str);
   let rec uniq =
     fun
@@ -51,10 +57,9 @@ let rec bstype_name =
   | String => "string"
   | Boolean => "bool"
   | Function _ => "func"
-  | Unknown => "unknown"
   | Array t => "array_" ^ bstype_name t
   | Tuple types => "tuple_of_" ^ (List.map bstype_name types |> String.concat "_")
-  | Named s => String.uncapitalize_ascii s
+  | Named s => String.uncapitalize_ascii s |> Utils.normalize_name
   | Union types => union_types_to_name types
   | Class props => raise (CodegenTypeError "Unable to translate class into type name")
   | Optional t => ""
@@ -94,17 +99,19 @@ let rec bstype_to_code =
   | Null => "null"
   | Array t => "array " ^ bstype_to_code t
   | Tuple types => Render.tupleType types::(List.map bstype_to_code types) ()
-  | Unknown => "??"
   | Any => "'any"
   | AnyObject => "'any"
   | AnyFunction => "'any"
   | Object props =>
     Render.objectType
-      statements::(List.map (fun (key, type_of) => (key, bstype_to_code type_of)) props) ()
+      statements::(
+        List.map (fun (key, type_of) => (Utils.normalize_name key, bstype_to_code type_of)) props
+      )
+      ()
   | Number => "float"
   | String => "string"
   | Boolean => "Js.boolean"
-  | Named s => String.uncapitalize_ascii s
+  | Named s => String.uncapitalize_ascii s |> Utils.normalize_name
   | Union types => union_types_to_name types
   | StringLiteral _ =>
     raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
@@ -167,12 +174,13 @@ module Precode = {
     fun
     | VarDecl _ type_of => bstype_precode type_of
     | FuncDecl _ type_of => bstype_precode type_of
-    | TypeDecl id type_of =>
-      bstype_precode type_of |>
-      List.cons (
-        Render.typeDeclaration
-          name::(String.uncapitalize_ascii id) type_of::(bstype_to_code type_of) ()
-      )
+    | TypeDecl id type_of => {
+        let precode = bstype_precode type_of;
+        let type_decl =
+          Render.typeDeclaration
+            name::(String.uncapitalize_ascii id) type_of::(bstype_to_code type_of) ();
+        List.append precode [type_decl]
+      }
     | ClassDecl _ type_of => bstype_precode type_of
     | InterfaceDecl _ type_of => bstype_precode type_of
     | ExportsDecl type_of => bstype_precode type_of
@@ -237,8 +245,7 @@ let rec declaration_to_code module_id =>
     }
   | InterfaceDecl id type_of =>
     Render.typeDeclaration
-      name::(String.uncapitalize_ascii id) type_of::(bstype_to_code type_of) ()
-  | Unknown => "??;";
+      name::(String.uncapitalize_ascii id) type_of::(bstype_to_code type_of) ();
 
 let stack_to_code stack =>
   switch stack {

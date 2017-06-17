@@ -49,6 +49,8 @@ let loc_to_msg ({source, start, _end}: Loc.t) =>
 
 let not_supported interface loc => interface ^ " is not currently supported" ^ loc_to_msg loc;
 
+let sanity_check problem loc => problem ^ " should not happen" ^ loc_to_msg loc;
+
 module BsType = {
   type t =
     | Null
@@ -63,7 +65,6 @@ module BsType = {
     | Union (list t)
     | Array t
     | Dict t
-    | Unknown
     | Boolean
     | Tuple (list t)
     | Unit
@@ -78,7 +79,13 @@ let string_of_id (loc: Loc.t, id: string) => id;
 let string_of_key (key: Ast.Expression.Object.Property.key) =>
   switch key {
   | Identifier id => string_of_id id
-  | _ => "??"
+  | Literal (loc, {value}) =>
+    switch value {
+    | String s => s
+    | _ => raise (ModulegenTypeError (sanity_check "Non-string as object property" loc))
+    }
+  | Computed (loc, _) =>
+    raise (ModulegenTypeError (not_supported "Computed object properties" loc))
   };
 
 let rec type_annotation_to_bstype (annotation: option Ast.Type.annotation) =>
@@ -195,8 +202,7 @@ module BsDecl = {
     | ExportsDecl BsType.t
     | TypeDecl string BsType.t
     | ClassDecl string BsType.t
-    | InterfaceDecl string BsType.t
-    | Unknown;
+    | InterfaceDecl string BsType.t;
 };
 
 let declaration_to_jsdecl loc =>
@@ -271,6 +277,12 @@ and declare_interface_to_jsdecl loc s => {
 };
 
 module Printer = {
+  let format_obj_key key =>
+    if (String.contains key '-') {
+      "'" ^ key ^ "'"
+    } else {
+      key
+    };
   let rec show_type =
     fun
     | BsType.Regex => "RegExp"
@@ -306,20 +318,19 @@ module Printer = {
     | BsType.Union types => String.concat " | " (List.map show_type types)
     | BsType.Object props =>
       "{ " ^
-      String.concat ", " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
+      String.concat
+        ", " (List.map (fun (key, prop) => format_obj_key key ^ ": " ^ show_type prop) props) ^ " }"
     | BsType.Class props =>
       "{ " ^
       String.concat "; " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
     | BsType.Named s => s
-    | BsType.StringLiteral t => "\"" ^ t ^ "\""
-    | BsType.Unknown => "??";
+    | BsType.StringLiteral t => "\"" ^ t ^ "\"";
   let rec show_decl =
     fun
     | BsDecl.ExportsDecl of_type => "declare module.exports: " ^ show_type of_type
     | BsDecl.ModuleDecl name decls =>
       "declare module " ^ name ^ " {\n  " ^ String.concat "\n  " (List.map show_decl decls) ^ "\n}"
     | BsDecl.TypeDecl id of_type => "declare type " ^ id ^ " = " ^ show_type of_type
-    | BsDecl.Unknown => "external ??"
     | BsDecl.FuncDecl name of_type => "declare export function " ^ name ^ show_type of_type
     | BsDecl.VarDecl name of_type => "declare export var " ^ name ^ ": " ^ show_type of_type
     | BsDecl.ClassDecl name of_type => "declare class " ^ name ^ " " ^ show_type of_type
