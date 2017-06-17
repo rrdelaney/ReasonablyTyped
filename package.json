@@ -28,7 +28,8 @@
   "scripts": {
     "test": "jest compile format",
     "test:flow-typed": "jest flow-typed --noStackTrace",
-    "test:all": "jest"
+    "test:all": "jest",
+    "test:collect": "jest flow-typed --noStackTrace --json --outputFile=test-results.json"
   },
   "devDependencies": {
     "glob": "^7.1.2",

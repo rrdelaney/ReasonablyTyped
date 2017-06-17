@@ -85,6 +85,37 @@
       border-color: indianred;
     }
 
+    #is-it-ready {
+      text-align: center;
+      font-size: 72pt;
+    }
+
+    #is-it-ready-table {
+      display: flex;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      padding: 1rem 10vw;
+    }
+
+    #is-it-ready-message {
+      text-align: center;
+    }
+
+    .test-box {
+      height: 1rem;
+      width: 1rem;
+      margin: 2px;
+    }
+
+    .failing.test-box {
+      background-color: indianred;
+    }
+
+    .passing.test-box {
+      background-color: darkseagreen;
+    }
+    </style>
+    <style>
     code[class*="language-"],
     pre[class*="language-"] {
         color: #393A34;
@@ -379,6 +410,12 @@
       </div>
     </div>
   </div>
+  <h1 class="ui horizontal divider header">
+    <i class="rocket icon"></i> Is it ready?
+  </h1>
+  <h1 class="ui header" id="is-it-ready"></h1>
+  <h3 class="ui header" id="is-it-ready-message"></h3>
+  <div id="is-it-ready-table"></div>
 
   <script type="text/javascript">
   const libs = {
@@ -439,6 +476,34 @@ $('#libdef-input').on('change keyup paste ', function() {
     $('#libdef-output').addClass('error')
     $('#libdef-output').val(errorText)
   }
+})
+
+$.getJSON('/test-results.json', data => {
+  const results = data.testResults[0].assertionResults
+  const passedTests = data.numPassedTests
+  const allTests = data.numTotalTests
+  const allPassing = allTests === passedTests
+
+  if (allPassing) {
+    $('#is-it-ready').text('Yes')
+    $('#is-it-ready-message').text('Woohoo!')
+  } else {
+    $('#is-it-ready').text('No')
+    $('#is-it-ready-message').text(`But it passes ${passedTests} / ${allTests} tests`)
+  }
+
+  $('#is-it-ready-table').append(results.map(result => {
+    const title = result.title.replace('Library ', '')
+    const isFailing = result.status === 'failed'
+    const message = result.failureMessages[0]
+
+    const classes = [isFailing ? 'failing' : 'passing', 'test-box'].join(' ')
+    const tooltip = isFailing ? message.replace(/"/g, '&quot;').split('at compile')[0] : ''
+
+    return $(`<div class="${classes}" data-title="${title}" data-content="${tooltip}"></div>`)
+  }))
+
+  $('.test-box').popup()
 })
 </script>
 </body>
