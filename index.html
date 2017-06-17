@@ -478,7 +478,7 @@ $('#libdef-input').on('change keyup paste ', function() {
   }
 })
 
-$.getJSON('/test-results.json', data => {
+$.getJSON('test-results.json', data => {
   const results = data.testResults[0].assertionResults
   const passedTests = data.numPassedTests
   const allTests = data.numTotalTests
