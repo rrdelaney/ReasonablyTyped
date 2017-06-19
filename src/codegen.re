@@ -189,7 +189,7 @@ module Precode = {
     switch stack {
     | ModuleDecl id statements =>
       List.map decl_to_precode statements |> List.flatten |> Utils.uniq |> String.concat "\n"
-    | TypeDecl _ type_of => ""
+    | TypeDecl _ _ => decl_to_precode stack |> String.concat "\n"
     | _ => ""
     };
 };
