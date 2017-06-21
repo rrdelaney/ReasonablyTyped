@@ -12,3 +12,6 @@ _config.yml
 index.html
 Makefile
 _test.js
+test-results.json
+reason-tools
+.circleci
