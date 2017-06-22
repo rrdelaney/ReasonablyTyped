@@ -64,7 +64,7 @@ Compiles a libdef, formats the result, and handles errors cleanly
 - [x] Function types
 - [x] Record types
 - [ ] Literals as types
-- [x] Union types (Basic support, still needs a lot of work)
+- [x] Union types
 - [ ] Instersection types
 - [x] Named types
 - [x] Optional parameters
