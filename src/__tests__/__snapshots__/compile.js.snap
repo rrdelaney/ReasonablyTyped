@@ -1,9 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Compile duplicate-type.js 1`] = `
-"type number_or_string =
+"type union_of_number_or_string =
   | Number float
   | String string;
+
+type number_or_string;
+
+external number_or_string : union_of_number_or_string => number_or_string =
+  \\"Array.prototype.shift.call\\" [@@bs.val];
 
 external add : x::number_or_string => float = \\"\\" [@@bs.module \\"duplicate-type\\"];
 
@@ -12,9 +17,14 @@ external sub : x::number_or_string => float = \\"\\" [@@bs.module \\"duplicate-t
 `;
 
 exports[`Compile duplicate-type-param.js 1`] = `
-"type number_or_string =
+"type union_of_number_or_string =
   | Number float
   | String string;
+
+type number_or_string;
+
+external number_or_string : union_of_number_or_string => number_or_string =
+  \\"Array.prototype.shift.call\\" [@@bs.val];
 
 external add : x::number_or_string => y::number_or_string => float =
   \\"\\" [@@bs.module \\"duplicate-type-param\\"];
@@ -72,9 +82,14 @@ external test : s::string => options::stringOptions => string =
 `;
 
 exports[`Compile union-type.js 1`] = `
-"type number_or_string =
+"type union_of_number_or_string =
   | Number float
   | String string;
+
+type number_or_string;
+
+external number_or_string : union_of_number_or_string => number_or_string =
+  \\"Array.prototype.shift.call\\" [@@bs.val];
 
 external double : x::number_or_string => float = \\"\\" [@@bs.module \\"union-type\\"];
 "

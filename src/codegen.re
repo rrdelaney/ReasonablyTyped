@@ -141,7 +141,9 @@ let rec bstype_to_code =
 module Precode = {
   let rec bstype_precode def =>
     switch def {
-    | Union types => [string_of_union_types def types]
+    | Union types =>
+      let types_precode = List.map bstype_precode types |> List.flatten;
+      types_precode @ [string_of_union_types def types]
     | Function params rt => List.map (fun (id, t) => bstype_precode t) params |> List.flatten
     | Object types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
     | Class types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
