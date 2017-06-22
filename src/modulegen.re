@@ -135,7 +135,7 @@ and type_to_bstype (loc: Loc.t) =>
       | _ => BsType.Named (string_of_id q)
       }
     }
-  | StringLiteral {value} => BsType.StringLiteral value
+  | StringLiteral {value} => raise (ModulegenTypeError (not_supported "StringLiteral" loc)) /* BsType.StringLiteral value */
   | NumberLiteral _ => raise (ModulegenTypeError (not_supported "NumberLiteral" loc))
   | BooleanLiteral _ => raise (ModulegenTypeError (not_supported "BooleanLiteral" loc))
   | Typeof _ => raise (ModulegenTypeError (not_supported "Typeof" loc))

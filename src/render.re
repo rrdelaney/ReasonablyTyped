@@ -47,13 +47,17 @@ let unionTypeStrings ::types () =>
   (List.map (fun type_name => "`" ^ type_name) types |> String.concat " | ") ^ "] [@bs.string])";
 
 let unionType ::name ::types () =>
-  "type " ^
+  "type union_of_" ^
   name ^
   " = " ^
   (
     List.map (fun (type_name, type_of) => "\n| " ^ type_name ^ " (" ^ type_of ^ ")") types |>
     String.concat ""
-  ) ^ ";\n";
+  ) ^
+  ";\n\ntype " ^
+  name ^
+  ";\n\nexternal " ^
+  name ^ " : union_of_" ^ name ^ " => " ^ name ^ " = \"Array.prototype.shift.call\" [@@bs.val];\n";
 
 let classType ::types () =>
   "Js.t {. " ^
