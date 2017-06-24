@@ -13,14 +13,27 @@ is distributed on NPM and is interfaced by `yargs`.
 To build for native:
 
 ```
-$ make
+$ make native
 ```
 
-To build JS:
+The native target is great for testing because it compiles super fast! However, it does not run `refmt`
+on the results so be wary of syntax errors. To run the native binary, use:
+
+```
+$ ./cli.native -debug _test.js
+```
+
+This will print the stdout what ReasonablyTyped saw as the Flow definition and print
+the result of compiling.
+
+To build the JS target, run:
 
 ```
 $ make js
 ```
+
+The JS target runs `refmt` against all output, and is what is distributed through npm. Make
+sure you test with this target before shipping a release!
 
 # How is the code structured?
 
@@ -47,6 +60,15 @@ $ npm test
 
 Make sure you build the JS files first!
 
-ReasonablyTyped uses AVA for testing. The main test suite can be found in `test`. Currently, the test
+ReasonablyTyped uses Jest for testing. The main test suite can be found in `test`. Currently, the test
 suite looks at all the `.js` files in `test/fixtures`, compiles them, and compares the result to a
-corresponding `.re` file.
+corresponding `.re` file, as well as several snapshot tests.
+
+There is also a test suite against all FlowTyped definitions. Run this with:
+
+```
+$ npm run test:flow-typed
+```
+
+A lot of these tests will fail, but that's OK because the project is still in development.
+When that test turns green we'll be ready for production :smiley:
