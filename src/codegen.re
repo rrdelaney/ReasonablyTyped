@@ -230,7 +230,8 @@ let rec declaration_to_code module_id =>
     switch type_of {
     | Typeof (Named t) =>
       if (Utils.is_capital t) {
-        Render.alias name::(Utils.to_module_name module_id) value::("create_" ^ bstype_to_code (Named t)) ()
+        Render.alias
+          name::(Utils.to_module_name module_id) value::("create_" ^ bstype_to_code (Named t)) ()
       } else {
         raise (CodegenTypeError "Typeof can only operate on class aliases")
       }
