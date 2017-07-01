@@ -66,3 +66,5 @@ let classType ::types () =>
     List.map (fun (key, type_of, is_meth) => key ^ ": " ^ type_of ^ (is_meth ? "[@bs.meth]" : "")) |>
     String.concat ", "
   ) ^ "}";
+
+let alias ::name ::value () => "let " ^ name ^ " = " ^ value ^ ";\n";

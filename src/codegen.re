@@ -36,6 +36,7 @@ module Utils = {
     | Optional _ => true
     | _ => false
     };
+  let is_capital s => (String.capitalize_ascii s).[0] == s.[0];
 };
 
 module Uid = {
@@ -57,6 +58,7 @@ let rec bstype_name =
   | String => "string"
   | Boolean => "bool"
   | Function _ => "func"
+  | Typeof t => "typeof_" ^ bstype_name t
   | Array t => "array_" ^ bstype_name t
   | Tuple types => "tuple_of_" ^ (List.map bstype_name types |> String.concat "_")
   | Named s => String.uncapitalize_ascii s |> Utils.normalize_name
@@ -113,6 +115,7 @@ let rec bstype_to_code =
   | Boolean => "Js.boolean"
   | Named s => String.uncapitalize_ascii s |> Utils.normalize_name
   | Union types => union_types_to_name types
+  | Typeof t => raise (CodegenTypeError "Typeof can only operate on variable declarations")
   | StringLiteral _ =>
     raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
   | Function params rt =>
@@ -224,12 +227,21 @@ let rec declaration_to_code module_id =>
       type_of::(bstype_to_code type_of)
       ()
   | ExportsDecl type_of =>
-    Render.variableDeclaration
-      name::(Utils.to_module_name module_id)
-      type_of::(bstype_to_code type_of)
-      module_id::(Utils.unquote module_id)
-      is_exports::true
-      ()
+    switch type_of {
+    | Typeof (Named t) =>
+      if (Utils.is_capital t) {
+        Render.alias name::(Utils.to_module_name module_id) value::("create_" ^ bstype_to_code (Named t)) ()
+      } else {
+        raise (CodegenTypeError "Typeof can only operate on class aliases")
+      }
+    | _ =>
+      Render.variableDeclaration
+        name::(Utils.to_module_name module_id)
+        type_of::(bstype_to_code type_of)
+        module_id::(Utils.unquote module_id)
+        is_exports::true
+        ()
+    }
   | ModuleDecl id statements =>
     Render.moduleDeclaration name::id statements::(List.map (declaration_to_code id) statements) ()
   | TypeDecl id type_of => ""

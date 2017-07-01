@@ -28,15 +28,9 @@ open Ast.Statement.TypeAlias;
 
 open Loc;
 
-type context = {
-  loc: Loc.t,
-  is_params: bool
-};
+type context = {loc: Loc.t, is_params: bool};
 
-let intctx = {
-  loc: Loc.none,
-  is_params: false
-};
+let intctx = {loc: Loc.none, is_params: false};
 
 exception ModulegenDeclError string;
 
@@ -57,9 +51,11 @@ let loc_to_msg ({source, start, _end}: Loc.t) =>
   string_of_int start.column ^
   " to " ^ string_of_int _end.line ^ ":" ^ string_of_int _end.column ^ "]";
 
-let not_supported interface (context: context) => interface ^ " is not currently supported" ^ loc_to_msg context.loc;
+let not_supported interface (context: context) =>
+  interface ^ " is not currently supported" ^ loc_to_msg context.loc;
 
-let sanity_check problem (context: context) => problem ^ " should not happen" ^ loc_to_msg context.loc;
+let sanity_check problem (context: context) =>
+  problem ^ " should not happen" ^ loc_to_msg context.loc;
 
 module BsType = {
   type t =
@@ -79,6 +75,7 @@ module BsType = {
     | Tuple (list t)
     | Unit
     | Any
+    | Typeof t
     | Named string
     | Optional t
     | StringLiteral string;
@@ -92,7 +89,8 @@ let string_of_key (key: Ast.Expression.Object.Property.key) =>
   | Literal (loc, {value}) =>
     switch value {
     | String s => s
-    | _ => raise (ModulegenTypeError (sanity_check "Non-string as object property" {...intctx, loc}))
+    | _ =>
+      raise (ModulegenTypeError (sanity_check "Non-string as object property" {...intctx, loc}))
     }
   | Computed (loc, _) =>
     raise (ModulegenTypeError (not_supported "Computed object properties" {...intctx, loc}))
@@ -148,7 +146,7 @@ and type_to_bstype (ctx: context) =>
   | StringLiteral {value} => raise (ModulegenTypeError (not_supported "StringLiteral" ctx)) /* BsType.StringLiteral value */
   | NumberLiteral _ => raise (ModulegenTypeError (not_supported "NumberLiteral" ctx))
   | BooleanLiteral _ => raise (ModulegenTypeError (not_supported "BooleanLiteral" ctx))
-  | Typeof _ => raise (ModulegenTypeError (not_supported "Typeof" ctx))
+  | Typeof (loc, t) => BsType.Typeof (type_to_bstype {...ctx, loc} t)
   | _ =>
     raise (
       ModulegenTypeError ("Unknown type when converting to Bucklescript type" ^ loc_to_msg ctx.loc)
@@ -195,12 +193,25 @@ and object_type_to_bstype {properties} =>
     (
       fun
       | Property (loc, {key, value}) => (string_of_key key, value_to_bstype value)
-      | CallProperty (loc, _) =>
-        raise (ModulegenTypeError (not_supported "CallProperty on Object types" {...intctx, loc}))
+      | CallProperty (_loc, props) => {
+          open Ast.Type;
+          open Ast.Type.Object.CallProperty;
+          let {value: (loc, value), static} = props;
+          if static {
+            raise (
+              ModulegenTypeError (
+                not_supported "static CallProperty on Object types" {...intctx, loc}
+              )
+            )
+          };
+          ("$$callProperty", type_to_bstype {...intctx, loc} (Function value))
+        }
       | Indexer (loc, _) =>
         raise (ModulegenTypeError (not_supported "Indexer on Object types" {...intctx, loc}))
       | SpreadProperty (loc, _) =>
-        raise (ModulegenTypeError (not_supported "SpreadProperty on Object types" {...intctx, loc}))
+        raise (
+          ModulegenTypeError (not_supported "SpreadProperty on Object types" {...intctx, loc})
+        )
     )
     properties;
 
@@ -247,7 +258,11 @@ let rec statement_to_stack (loc, s) =>
       BsDecl.TypeDecl (string_of_id id) (type_to_bstype {...intctx, loc} t)
     | Ast.Statement.DeclareModule s => declare_module_to_jsdecl loc s
     | Ast.Statement.DeclareVariable {id, typeAnnotation} =>
-      BsDecl.VarDecl (string_of_id id) (type_annotation_to_bstype typeAnnotation)
+      if (string_of_id id == "exports") {
+        BsDecl.ExportsDecl (type_annotation_to_bstype typeAnnotation)
+      } else {
+        BsDecl.VarDecl (string_of_id id) (type_annotation_to_bstype typeAnnotation)
+      }
     | Ast.Statement.Debugger =>
       raise (ModulegenStatementError (not_supported "Debugger statments" {...intctx, loc}))
     | Ast.Statement.InterfaceDeclaration s => declare_interface_to_jsdecl loc s
@@ -276,7 +291,8 @@ and declare_interface_to_jsdecl loc s => {
   open Ast.Type;
   let {id, body, typeParameters, extends} = s;
   switch (typeParameters, extends) {
-  | (Some _tp, _extends) => raise (ModulegenStatementError (not_supported "Generic Intefaces" {...intctx, loc}))
+  | (Some _tp, _extends) =>
+    raise (ModulegenStatementError (not_supported "Generic Intefaces" {...intctx, loc}))
   | (_tp, [(loc, _extends), ...t]) =>
     raise (ModulegenStatementError (not_supported "Inheriting in interfaces" {...intctx, loc}))
   | _ => ()
@@ -304,6 +320,7 @@ module Printer = {
     | BsType.Dict t => "{ [key: string]: " ^ show_type t ^ " }"
     | BsType.Tuple types => "[" ^ (List.map show_type types |> String.concat ", ") ^ "]"
     | BsType.Array t => show_type t ^ "[]"
+    | BsType.Typeof t => "typeof " ^ show_type t
     | BsType.Function params return =>
       "(" ^
       String.concat
