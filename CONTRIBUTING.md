@@ -44,11 +44,23 @@ a function for compiling called `compile` (different than the one exported from 
 formats the code and handles errors cleanly. `cli.js` is the main entry for the `retyped` CLI tool, which
 calls `index.js`.
 
-The compiler is split into two parts, the module-definition generator and the code generator. The
-module-definition generator is found in `src/modulegen.re` and the code generator is found in
+The compiler is split into three parts, the module-definition generator, the code generator, and the
+renderer. The module-definition generator is found in `src/modulegen.re` and the code generator is found in
 `src/codegen.re`. The module-definition generator extracts an AST-like object from a Flow AST. This
 is then passed to the code generator, which spits out Reason code as a string. The functionality from
-both is glued together in `src/retyped.re`.
+both is glued together in `src/retyped.re`. Code snippets themselves are generated from `src/render.re`.
+
+```
+*-------------*     *------------------*     *----------------*
+| Flow parser | --> | Module Generator | --> | Code Generator |
+*-------------*     *------------------*     *----------------*
+                                                     /\
+                                                     ||
+                                                     \/
+                                                *----------*
+                                                | Renderer |
+                                                *----------*
+```
 
 # Testing
 
