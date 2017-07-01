@@ -21,6 +21,7 @@ module Utils = {
     fun
     | "type" => "_type"
     | "end" => "_end"
+    | "__callProperty" => raise (CodegenTypeError "Cannot apply call property")
     | str => str;
   let normalize_name name => normalize_chars name |> normalize_keywords;
   let to_module_name str => normalize_name (unquote str);

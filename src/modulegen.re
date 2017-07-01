@@ -304,7 +304,9 @@ and declare_interface_to_jsdecl loc s => {
 
 module Printer = {
   let format_obj_key key =>
-    if (String.contains key '-') {
+    if (key == "$$callProperty") {
+      "()"
+    } else if (String.contains key '-') {
       "'" ^ key ^ "'"
     } else {
       key
