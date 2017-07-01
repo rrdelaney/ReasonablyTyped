@@ -21,6 +21,7 @@ module Utils = {
     fun
     | "type" => "_type"
     | "end" => "_end"
+    | "to" => "_to"
     | str => str;
   let normalize_name name => normalize_chars name |> normalize_keywords;
   let to_module_name str => normalize_name (unquote str);
