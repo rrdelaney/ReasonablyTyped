@@ -21,7 +21,6 @@ module Utils = {
     fun
     | "type" => "_type"
     | "end" => "_end"
-    | "__callProperty" => raise (CodegenTypeError "Cannot apply call property")
     | str => str;
   let normalize_name name => normalize_chars name |> normalize_keywords;
   let to_module_name str => normalize_name (unquote str);
@@ -176,9 +175,28 @@ module Precode = {
       Render.unionType name::union_name types::union_types ()
     }
   };
-  let decl_to_precode =
+  let call_property_precode module_id var_name statements =>
+    List.filter (fun (key, type_of) => key == "$$callProperty") statements |>
+    List.map (
+      fun (key, type_of) =>
+        bstype_precode type_of @ [
+          Render.variableDeclaration
+            name::((var_name == "" ? Utils.to_module_name module_id : var_name) ^ "_apply")
+            module_id::(Utils.to_module_name module_id)
+            type_of::(bstype_to_code type_of)
+            code::var_name
+            ()
+        ]
+    ) |> List.flatten;
+  let decl_to_precode module_id =>
     fun
-    | VarDecl _ type_of => bstype_precode type_of
+    | VarDecl id type_of =>
+      bstype_precode type_of @ (
+        switch type_of {
+        | Object types => call_property_precode module_id id types
+        | _ => []
+        }
+      )
     | FuncDecl _ type_of => bstype_precode type_of
     | TypeDecl id type_of => {
         let precode = bstype_precode type_of;
@@ -189,13 +207,19 @@ module Precode = {
       }
     | ClassDecl _ type_of => bstype_precode type_of
     | InterfaceDecl _ type_of => bstype_precode type_of
-    | ExportsDecl type_of => bstype_precode type_of
+    | ExportsDecl type_of =>
+      bstype_precode type_of @ (
+        switch type_of {
+        | Object types => call_property_precode module_id "" types
+        | _ => []
+        }
+      )
     | _ => [""];
   let from_stack stack =>
     switch stack {
     | ModuleDecl id statements =>
-      List.map decl_to_precode statements |> List.flatten |> Utils.uniq |> String.concat "\n"
-    | TypeDecl _ _ => decl_to_precode stack |> String.concat "\n"
+      List.map (decl_to_precode id) statements |> List.flatten |> Utils.uniq |> String.concat "\n"
+    | TypeDecl _ _ => decl_to_precode "" stack |> String.concat "\n"
     | _ => ""
     };
 };

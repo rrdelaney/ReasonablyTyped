@@ -304,9 +304,7 @@ and declare_interface_to_jsdecl loc s => {
 
 module Printer = {
   let format_obj_key key =>
-    if (key == "$$callProperty") {
-      "()"
-    } else if (String.contains key '-') {
+    if (String.contains key '-') {
       "'" ^ key ^ "'"
     } else {
       key
@@ -318,7 +316,7 @@ module Printer = {
     | BsType.Any => "any"
     | BsType.AnyObject => "Object"
     | BsType.AnyFunction => "Function"
-    | BsType.Unit => "unit"
+    | BsType.Unit => "void"
     | BsType.Dict t => "{ [key: string]: " ^ show_type t ^ " }"
     | BsType.Tuple types => "[" ^ (List.map show_type types |> String.concat ", ") ^ "]"
     | BsType.Array t => show_type t ^ "[]"
@@ -348,7 +346,19 @@ module Printer = {
     | BsType.Object props =>
       "{ " ^
       String.concat
-        ", " (List.map (fun (key, prop) => format_obj_key key ^ ": " ^ show_type prop) props) ^ " }"
+        ", "
+        (
+          List.map
+            (
+              fun (key, prop) =>
+                if (key == "$$callProperty") {
+                  show_type prop
+                } else {
+                  format_obj_key key ^ ": " ^ show_type prop
+                }
+            )
+            props
+        ) ^ " }"
     | BsType.Class props =>
       "{ " ^
       String.concat "; " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"

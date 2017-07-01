@@ -1,8 +1,9 @@
-let variableDeclaration ::name ::module_id ::type_of ::is_exports=false () =>
+let variableDeclaration ::name ::module_id ::type_of ::is_exports=false ::code="" () =>
   if is_exports {
-    "external " ^ name ^ " : " ^ type_of ^ " = \"" ^ module_id ^ "\" [@@bs.module];"
+    "external " ^ name ^ " : " ^ type_of ^ " = \"" ^ module_id ^ "\" [@@bs.module];\n"
   } else {
-    "external " ^ name ^ " : " ^ type_of ^ " = \"\" [@@bs.module \"" ^ module_id ^ "\"];"
+    "external " ^
+    name ^ " : " ^ type_of ^ " = \"" ^ code ^ "\" [@@bs.module \"" ^ module_id ^ "\"];\n"
   };
 
 let moduleDeclaration ::name ::statements () =>
@@ -22,7 +23,11 @@ let typeDeclaration ::name ::type_of () => "type " ^ name ^ " = " ^ type_of ^ ";
 
 let objectType ::statements () =>
   "Js.t {. " ^
-  (List.map (fun (key, type_of) => key ^ ": " ^ type_of) statements |> String.concat ", ") ^ " }";
+  (
+    List.filter (fun (key, type_of) => key != "__callProperty") statements |>
+    List.map (fun (key, type_of) => key ^ ": " ^ type_of) |>
+    String.concat ", "
+  ) ^ " }";
 
 let functionType ::params ::has_optional ::return_type () =>
   (
