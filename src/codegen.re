@@ -37,7 +37,6 @@ module Utils = {
     | Optional _ => true
     | _ => false
     };
-  let is_capital s => (String.capitalize_ascii s).[0] == s.[0];
 };
 
 module Uid = {
@@ -238,7 +237,48 @@ let constructor_type class_name =>
     }
   | _ => raise (CodegenConstructorError "Type has no constructor");
 
-let rec declaration_to_code module_id =>
+module TypeofTable = {
+  type t =
+    | Class
+    | None
+    | NotFound;
+  let get key table =>
+    try (List.assoc key table) {
+    | Not_found => NotFound
+    };
+  let create statements =>
+    List.map
+      (
+        fun
+        | VarDecl id type_of => (id, None)
+        | ClassDecl id type_of => (id, Class)
+        | _ => ("", None)
+      )
+      statements |>
+    List.filter (fun (key, _) => key != "");
+  let show table => {
+    print_endline "Types:";
+    List.iter
+      (
+        fun (id, typeof) =>
+          print_endline (
+            "| " ^
+            id ^
+            " => " ^ (
+              switch typeof {
+              | Class => "Class"
+              | None => "None"
+              | NotFound => "NotFound"
+              }
+            )
+          )
+      )
+      table;
+    print_newline ()
+  };
+};
+
+let rec declaration_to_code module_id types =>
   fun
   | VarDecl id type_of =>
     Render.variableDeclaration
@@ -255,12 +295,15 @@ let rec declaration_to_code module_id =>
   | ExportsDecl type_of =>
     switch type_of {
     | Typeof (Named t) =>
-      if (Utils.is_capital t) {
-        Render.alias
-          name::(Utils.to_module_name module_id) value::("create_" ^ bstype_to_code (Named t)) ()
-      } else {
-        raise (CodegenTypeError "Typeof can only operate on class aliases")
-      }
+      TypeofTable.(
+        switch (TypeofTable.get t types) {
+        | Class =>
+          Render.alias
+            name::(Utils.to_module_name module_id) value::("create_" ^ bstype_to_code (Named t)) ()
+        | None => raise (CodegenTypeError "typeof can only operate on classes")
+        | NotFound => raise (CodegenTypeError ("Unknown identifier: " ^ t))
+        }
+      )
     | _ =>
       Render.variableDeclaration
         name::(Utils.to_module_name module_id)
@@ -270,7 +313,8 @@ let rec declaration_to_code module_id =>
         ()
     }
   | ModuleDecl id statements =>
-    Render.moduleDeclaration name::id statements::(List.map (declaration_to_code id) statements) ()
+    Render.moduleDeclaration
+      name::id statements::(List.map (declaration_to_code id types) statements) ()
   | TypeDecl id type_of => ""
   | ClassDecl id type_of => {
       let class_name = String.uncapitalize_ascii id;
@@ -291,10 +335,13 @@ let rec declaration_to_code module_id =>
 let stack_to_code stack =>
   switch stack {
   | ModuleDecl id statements =>
+    let typeof_table = TypeofTable.create statements;
+    /* TypeofTable.show typeof_table; */
     Some (
       Utils.to_module_name id,
-      Precode.from_stack stack ^ String.concat "\n" (List.map (declaration_to_code id) statements)
+      Precode.from_stack stack ^
+      String.concat "\n" (List.map (declaration_to_code id typeof_table) statements)
     )
-  | TypeDecl _ _ => Some ("", Precode.from_stack stack ^ declaration_to_code "" stack)
+  | TypeDecl _ _ => Some ("", Precode.from_stack stack ^ declaration_to_code "" [] stack)
   | _ => None
   };
