@@ -131,16 +131,38 @@ and type_to_bstype (ctx: context) =>
       type_to_bstype {...ctx, loc: loc_b} second,
       ...List.map (fun (_, t) => type_to_bstype ctx t) rest
     ]
-  | Generic {id} =>
-    switch id {
-    | Qualified (_, q) => BsType.Named (string_of_id q.id)
-    | Unqualified q =>
-      switch q {
-      | (_, "RegExp") => BsType.Regex
-      | (_, "Object") => BsType.AnyObject
-      | (_, "Function") => BsType.AnyFunction
-      | (loc, "Class") => raise (ModulegenTypeError (not_supported "Class types" {...ctx, loc}))
-      | _ => BsType.Named (string_of_id q)
+  | Generic {id, typeParameters} => {
+      let t =
+        switch id {
+        | Qualified (_, q) => BsType.Named (string_of_id q.id)
+        | Unqualified q =>
+          switch q {
+          | (_, "RegExp") => BsType.Regex
+          | (_, "Object") => BsType.AnyObject
+          | (loc, "Array") =>
+            open Ast.Type.ParameterInstantiation;
+            let params =
+              switch typeParameters {
+              | Some (_, {params: []}) =>
+                raise (ModulegenTypeError (not_supported "Array with no types" {...ctx, loc}))
+              | Some (_, {params}) => params
+              | None =>
+                raise (
+                  ModulegenTypeError (not_supported "Array with more than one type" {...ctx, loc})
+                )
+              };
+            let (loc, inner_type) = List.hd params;
+            BsType.Array (type_to_bstype {...ctx, loc} inner_type)
+          | (_, "Function") => BsType.AnyFunction
+          | (loc, "Class") =>
+            raise (ModulegenTypeError (not_supported "Class types" {...ctx, loc}))
+          | _ => BsType.Named (string_of_id q)
+          }
+        };
+      switch (t, typeParameters) {
+      | (BsType.Array _, _) => t
+      | (_, Some _) => raise (ModulegenTypeError (not_supported "Type parameters" ctx))
+      | (_, None) => t
       }
     }
   | StringLiteral {value} => raise (ModulegenTypeError (not_supported "StringLiteral" ctx)) /* BsType.StringLiteral value */
