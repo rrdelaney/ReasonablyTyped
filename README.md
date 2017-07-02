@@ -1,4 +1,4 @@
-<h1 align="center"><a href="https://rrdelaney.github.io/ReasonablyTyped/">ReasonablyTyped</a></h1>
+<h1 align="center"><img src="https://github.com/rrdelaney/ReasonablyTyped/raw/master/logo.png"></h1>
 
 <pre align="center">
   $ npm install --global reasonably-typed
