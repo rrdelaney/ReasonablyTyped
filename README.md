@@ -45,7 +45,21 @@ external create_store : initialState::state => store =
   "Store" [@@bs.new] [@@bs.module "classes"];
 ```
 
-<hr>
+<p><details>
+<summary><b>Usage</b></summary>
+
+```
+retyped
+
+Commands:
+  compile [files...]  Generate BuckleScript interfaces from a file
+
+Options:
+  --version     Show version number                                    [boolean]
+  --help        Show help                                              [boolean]
+      
+```
+</details></p>
 
 <p><details>
 <summary><b>Usage as a library</b></summary>
