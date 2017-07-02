@@ -46,6 +46,10 @@ external create_store : initialState::state => store =
 ```
 
 <p><details>
+<summary><b><a href="https://rrdelaney.github.io/ReasonablyTyped">Examples</a></b></summary>
+</details></p>
+
+<p><details>
 <summary><b>Usage</b></summary>
 
 ```
