@@ -8,36 +8,47 @@
 
 <hr>
 
-```
-retyped
+### Take your Flow definition
 
-Commands:
-  compile [files...]  Generate BuckleScript interfaces from a file
+```js
+// class.js
+declare module 'classes' {
+  declare type State = {
+    id: number,
+    storeName: string
+  };
 
-Options:
-  --version     Show version number                                    [boolean]
-  --help        Show help                                              [boolean]
-```
-
-This will generate a Bucklescript interface file for every library definition given. For example,
-to generate interfaces from flow-typed, run:
-
-```
-$ retyped compile --flow-typed
-```
-
-For a single file, run:
-
-```
-$ retyped compile my-flow-lib.js
+  declare export class Store {
+    constructor(initialState: State): Store;
+    state: State;
+    update(nextState: State): void;
+  }
+}
 ```
 
-See the example directory for usage details.
+### Run `retyped`
 
-For more information, run with `--help`.
+<pre align="center">
+$ retyped compile class.js
+</pre>
 
-# Usage as a library
+### Get Reason
 
+```reason
+/* Module classes */
+
+type state = Js.t {. id : float, storeName : string};
+
+type store = Js.t {. state : state, update : nextState::state => unit [@bs.meth]};
+
+external create_store : initialState::state => store =
+  "Store" [@@bs.new] [@@bs.module "classes"];
+```
+
+<hr>
+
+<p><details>
+<summary><b>Usage as a library</b></summary>
 ReasonablyTyped also exports a library for use! See the example below:
 
 ```js
@@ -47,17 +58,18 @@ import * as ReasonablyTyped from 'reasonably-typed'
 const libSrc = fs.readFileSync('lib.js').toString()
 const bsInterface = ReasonablyTyped.compile(libSrc)
 ```
-
-### `format (code: string) => string`
+  
+**`format (code: string) => string`**
 
 Formats a block of code using `refmt`
 
-### `compile (code: string, filename?: string) => string`
+**`compile (code: string, filename?: string) => string`**
 
 Compiles a libdef, formats the result, and handles errors cleanly
+</details></p>
 
-# Roadmap
-
+<p><details>
+<summary><b>Roadmap</b></summary>
 - [x] Basic types like `string`
 - [x] Function types
 - [x] Record types
@@ -69,3 +81,4 @@ Compiles a libdef, formats the result, and handles errors cleanly
 - [x] Classes
 - [ ] Generics
 - [ ] Built-ins like Promises and React
+</details></p>
