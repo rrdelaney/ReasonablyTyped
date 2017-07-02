@@ -1,14 +1,12 @@
-# ReasonablyTyped
+<h1 align="center">ReasonablyTyped</h1>
 
-> Converts Flow library definitions to Bucklescript interfaces
+<pre align="center">
+  $ npm install --global reasonably-typed
+</pre>
 
-# Installation
+<h4 align="center"><i>Converts Flow library definitions to Bucklescript interfaces</i></h4>
 
-```
-$ npm install --global reasonably-typed
-```
-
-# Usage
+<hr>
 
 ```
 retyped
