@@ -8,7 +8,7 @@
 
 <hr>
 
-### Take your Flow definition
+<h3 align="center">Take your Flow definition</h3>
 
 ```js
 // class.js
@@ -26,13 +26,13 @@ declare module 'classes' {
 }
 ```
 
-### Run `retyped`
+<h3 align="center">Run retyped</h3>
 
 <pre align="center">
 $ retyped compile class.js
 </pre>
 
-### Get Reason
+<h3 align="center">Get Reason</h3>
 
 ```reason
 /* Module classes */
