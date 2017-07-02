@@ -3,3 +3,5 @@ _build/
 *.native
 *.byte
 _test.js
+_test.d.ts
+_test.re
