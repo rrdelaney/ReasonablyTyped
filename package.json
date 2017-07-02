@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/rrdelaney/ReasonablyTyped",
   "dependencies": {
+    "flowgen": "^1.2.0",
     "yargs": "^8.0.1"
   },
   "scripts": {
