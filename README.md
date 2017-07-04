@@ -4,11 +4,11 @@
   $ npm install --global reasonably-typed
 </pre>
 
-<h4 align="center"><i>Converts Flow library definitions to Bucklescript interfaces</i></h4>
+<h4 align="center"><i>Converts TypeScript and Flow definitions to Reason interfaces</i></h4>
 
 <hr>
 
-<h3 align="center">Take your Flow definition</h3>
+<h3 align="center">Take your Flow or TypeScript definition</h3>
 
 ```js
 // class.js
@@ -50,7 +50,27 @@ external create_store : initialState::state => store =
 </details></p>
 
 <p><details>
-<summary><b>Usage</b></summary>
+<summary><b>TypeScript</b></summary>
+
+TypeScript has a similar workflow. Compile your TypeScript file with:
+
+```
+$ retyped compile my-definition.d.ts
+```
+</details></p>
+
+<p><details>
+<summary><b>FlowTyped</b></summary>
+
+ReasonablyTyped can automatically compile all FlowTyped definitions in your repo. Run
+
+```
+$ retyped compile --flow-typed
+```
+</details></p>
+
+<p><details>
+<summary><b>Command-line Usage</b></summary>
 
 ```
 retyped
