@@ -1,4 +1,4 @@
-<h1 align="center"><img src="https://github.com/rrdelaney/ReasonablyTyped/raw/master/logo.png"></h1>
+<h1 align="center"><img src="https://github.com/rrdelaney/ReasonablyTyped/raw/master/docs/logo.png"></h1>
 
 <pre align="center">
   $ npm install --global reasonably-typed
@@ -81,7 +81,7 @@ Commands:
 Options:
   --version     Show version number                                    [boolean]
   --help        Show help                                              [boolean]
-      
+
 ```
 </details></p>
 
@@ -96,7 +96,7 @@ import * as ReasonablyTyped from 'reasonably-typed'
 const libSrc = fs.readFileSync('lib.js').toString()
 const bsInterface = ReasonablyTyped.compile(libSrc)
 ```
-  
+
 **`format (code: string) => string`**
 
 Formats a block of code using `refmt`
