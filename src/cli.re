@@ -26,7 +26,8 @@ let replace_filename fname module_id => {
 };
 
 let run_compile fname module_name module_def => {
-  let (module_id, flow_code, bs_code) = Retyped.compile module_name module_def;
+  let (module_id, flow_code, bs_code) =
+    Retyped.Compiler.compile module_name module_def;
   if !debug {
     print_endline (">>> Module " ^ module_id ^ " <<<");
     print_newline ();
@@ -46,9 +47,9 @@ let cmd fname => {
   let module_name = fname;
   let module_def = load_file fname;
   try (run_compile fname module_name module_def) {
-  | Modulegen.ModulegenDeclError e => print_endline e
-  | Modulegen.ModulegenStatementError e => print_endline e
-  | Modulegen.ModulegenTypeError e => print_endline e
+  | Retyped.Modulegen.ModulegenDeclError e => print_endline e
+  | Retyped.Modulegen.ModulegenStatementError e => print_endline e
+  | Retyped.Modulegen.ModulegenTypeError e => print_endline e
   }
 };
 

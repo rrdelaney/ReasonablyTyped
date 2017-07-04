@@ -2,6 +2,8 @@ node_modules/
 _build/
 *.native
 *.byte
+*.install
 _test.js
 _test.d.ts
 _test.re
+.merlin

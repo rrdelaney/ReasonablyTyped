@@ -1,10 +1,4 @@
 
-[submodule "flow"]
-	path = flow
-	url = https://github.com/facebook/flow
-[submodule "reason-tools"]
-	path = reason-tools
-	url = https://github.com/reasonml/reason-tools
 [submodule "src/__tests__/flow-typed"]
 	path = src/__tests__/flow-typed
 	url = https://github.com/flowtype/flow-typed

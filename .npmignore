@@ -9,6 +9,7 @@ _config.yml
 .merlin
 *.native
 *.byte
+*.install
 index.html
 Makefile
 _test.js
@@ -17,3 +18,4 @@ _test.re
 test-results.json
 reason-tools
 .circleci
+logo.png
