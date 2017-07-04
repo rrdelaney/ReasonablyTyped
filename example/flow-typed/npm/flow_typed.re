@@ -1,1 +1,0 @@
-external flow_typed : _ = "flow-typed" [@@bs.module];

@@ -1,1 +1,0 @@
-external is_absolute_url : string => Js.boolean = "is-absolute-url" [@@bs.module];

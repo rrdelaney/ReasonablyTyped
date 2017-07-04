@@ -1,7 +1,0 @@
-{
-  "name": "retyped-example",
-  "sources": [
-    "flow-typed/npm",
-    "src"
-  ]
-}
