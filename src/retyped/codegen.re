@@ -6,50 +6,12 @@ exception CodegenTypeError string;
 
 exception CodegenConstructorError string;
 
-module Utils = {
-  let unquote str => String.sub str 1 (String.length str - 2);
-  let normalize_chars =
-    String.map (
-      fun ch =>
-        if (ch == '-' || ch == '$') {
-          '_'
-        } else {
-          ch
-        }
-    );
-  let normalize_keywords =
-    fun
-    | "type" => "_type"
-    | "end" => "_end"
-    | "to" => "_to"
-    | str => str;
-  let normalize_name name => normalize_chars name |> normalize_keywords;
-  let to_module_name str => normalize_name (unquote str);
-  let rec uniq =
-    fun
-    | [] => []
-    | [h, ...t] => {
-        let no_dups = uniq (List.filter (fun x => x != h) t);
-        [h, ...no_dups]
-      };
-  let is_optional (_, type_of) =>
-    switch type_of {
-    | Optional _ => true
-    | _ => false
-    };
-};
-
-module Uid = {
-  let get () => string_of_int 1;
-  let uniq prefix => prefix ^ "_" ^ get ();
-};
-
 let rec bstype_name =
   fun
   | Regex => "regex"
   | Unit => "unit"
   | Null => "null"
-  | Any => Uid.uniq "any"
+  | Any => Genutils.Uid.uniq "any"
   | Object _ => "object"
   | AnyObject => "object"
   | AnyFunction => "function"
@@ -61,7 +23,7 @@ let rec bstype_name =
   | Typeof t => "typeof_" ^ bstype_name t
   | Array t => "array_" ^ bstype_name t
   | Tuple types => "tuple_of_" ^ (List.map bstype_name types |> String.concat "_")
-  | Named s => String.uncapitalize_ascii s |> Utils.normalize_name
+  | Named s => String.uncapitalize_ascii s |> Genutils.normalize_name
   | Union types => union_types_to_name types
   | Class props => raise (CodegenTypeError "Unable to translate class into type name")
   | Optional t => ""
@@ -107,13 +69,14 @@ let rec bstype_to_code =
   | Object props =>
     Render.objectType
       statements::(
-        List.map (fun (key, type_of) => (Utils.normalize_name key, bstype_to_code type_of)) props
+        List.map
+          (fun (key, type_of) => (Genutils.normalize_name key, bstype_to_code type_of)) props
       )
       ()
   | Number => "float"
   | String => "string"
   | Boolean => "Js.boolean"
-  | Named s => String.uncapitalize_ascii s |> Utils.normalize_name
+  | Named s => String.uncapitalize_ascii s |> Genutils.normalize_name
   | Union types => union_types_to_name types
   | Typeof t => raise (CodegenTypeError "Typeof can only operate on variable declarations")
   | StringLiteral _ =>
@@ -121,7 +84,7 @@ let rec bstype_to_code =
   | Function params rt =>
     Render.functionType
       params::(List.map (fun (name, param) => (name, bstype_to_code param)) params)
-      has_optional::(List.exists Utils.is_optional params)
+      has_optional::(List.exists Genutils.is_optional params)
       return_type::(bstype_to_code rt)
       ()
   | Class props => {
@@ -181,8 +144,8 @@ module Precode = {
       fun (key, type_of) =>
         bstype_precode type_of @ [
           Render.variableDeclaration
-            name::((var_name == "" ? Utils.to_module_name module_id : var_name) ^ "_apply")
-            module_id::(Utils.to_module_name module_id)
+            name::((var_name == "" ? Genutils.to_module_name module_id : var_name) ^ "_apply")
+            module_id::(Genutils.to_module_name module_id)
             type_of::(bstype_to_code type_of)
             code::var_name
             ()
@@ -218,7 +181,8 @@ module Precode = {
   let from_stack stack =>
     switch stack {
     | ModuleDecl id statements =>
-      List.map (decl_to_precode id) statements |> List.flatten |> Utils.uniq |> String.concat "\n"
+      List.map (decl_to_precode id) statements |> List.flatten |> Genutils.uniq |>
+      String.concat "\n"
     | TypeDecl _ _ => decl_to_precode "" stack |> String.concat "\n"
     | _ => ""
     };
@@ -237,78 +201,39 @@ let constructor_type class_name =>
     }
   | _ => raise (CodegenConstructorError "Type has no constructor");
 
-module TypeofTable = {
-  type t =
-    | Class
-    | None
-    | NotFound;
-  let get key table =>
-    try (List.assoc key table) {
-    | Not_found => NotFound
-    };
-  let create statements =>
-    List.map
-      (
-        fun
-        | VarDecl id type_of => (id, None)
-        | ClassDecl id type_of => (id, Class)
-        | _ => ("", None)
-      )
-      statements |>
-    List.filter (fun (key, _) => key != "");
-  let show table => {
-    print_endline "Types:";
-    List.iter
-      (
-        fun (id, typeof) =>
-          print_endline (
-            "| " ^
-            id ^
-            " => " ^ (
-              switch typeof {
-              | Class => "Class"
-              | None => "None"
-              | NotFound => "NotFound"
-              }
-            )
-          )
-      )
-      table;
-    print_newline ()
-  };
-};
-
 let rec declaration_to_code module_id types =>
   fun
   | VarDecl id type_of =>
     Render.variableDeclaration
-      name::(Utils.normalize_name id)
-      module_id::(Utils.unquote module_id)
+      name::(Genutils.normalize_name id)
+      module_id::(Genutils.unquote module_id)
       type_of::(bstype_to_code type_of)
       ()
   | FuncDecl id type_of =>
     Render.variableDeclaration
-      name::(Utils.normalize_name id)
-      module_id::(Utils.unquote module_id)
+      name::(Genutils.normalize_name id)
+      module_id::(Genutils.unquote module_id)
       type_of::(bstype_to_code type_of)
       ()
   | ExportsDecl type_of =>
     switch type_of {
     | Typeof (Named t) =>
-      TypeofTable.(
-        switch (TypeofTable.get t types) {
+      Typetable.(
+        switch (Typetable.get t types) {
         | Class =>
           Render.alias
-            name::(Utils.to_module_name module_id) value::("create_" ^ bstype_to_code (Named t)) ()
+            name::(Genutils.to_module_name module_id)
+            value::("create_" ^ bstype_to_code (Named t))
+            ()
         | None => raise (CodegenTypeError "typeof can only operate on classes")
         | NotFound => raise (CodegenTypeError ("Unknown identifier: " ^ t))
         }
       )
     | _ =>
       Render.variableDeclaration
-        name::(Utils.to_module_name module_id)
+        name::(Genutils.to_module_name module_id)
         type_of::(bstype_to_code type_of)
-        module_id::(Utils.unquote module_id)
+        module_id::(Genutils.unquote module_id)
         is_exports::true
         ()
     }
@@ -323,7 +248,7 @@ let rec declaration_to_code module_id types =>
       Render.classDeclaration
         name::class_name
         exported_as::id
-        module_id::(Utils.unquote module_id)
+        module_id::(Genutils.unquote module_id)
         ::class_type
         ::ctor_type
         ()
@@ -335,10 +260,10 @@ let rec declaration_to_code module_id types =>
 let stack_to_code stack =>
   switch stack {
   | ModuleDecl id statements =>
-    let typeof_table = TypeofTable.create statements;
-    /* TypeofTable.show typeof_table; */
+    let typeof_table = Typetable.create statements;
+    /* Typetable.show typeof_table; */
     Some (
-      Utils.to_module_name id,
+      Genutils.to_module_name id,
       Precode.from_stack stack ^
       String.concat "\n" (List.map (declaration_to_code id typeof_table) statements)
     )
