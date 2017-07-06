@@ -39,6 +39,7 @@ let show table => {
             | Class => "Class"
             | None => "None"
             | NotFound => "NotFound"
+            | Variable s => "typeof " ^ s
             }
           )
         )

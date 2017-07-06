@@ -227,6 +227,7 @@ let rec declaration_to_code module_id types =>
             ()
         | None => raise (CodegenTypeError "typeof can only operate on classes")
         | NotFound => raise (CodegenTypeError ("Unknown identifier: " ^ t))
+        | Variable s => raise (CodegenTypeError ("Cannot use typeof with variable: " ^ s))
         }
       )
     | _ =>
@@ -261,7 +262,7 @@ let program_to_code program =>
   switch program {
   | ModuleDecl id statements =>
     let typeof_table = Typetable.create statements;
-    Typetable.show typeof_table;
+    /*Typetable.show typeof_table;*/
     Some (
       Genutils.to_module_name id,
       Precode.from_program program ^
