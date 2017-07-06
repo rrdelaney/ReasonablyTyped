@@ -20,7 +20,7 @@ The native target is great for testing because it compiles super fast! However, 
 on the results so be wary of syntax errors. To run the native binary, use:
 
 ```
-$ ./cli.native -debug _test.js
+$ ./_build/default/src/cli.exe -debug _test.js
 ```
 
 This will print the stdout what ReasonablyTyped saw as the Flow definition and print
@@ -37,12 +37,13 @@ sure you test with this target before shipping a release!
 
 # How is the code structured?
 
-The main compiler is written is Reason, `compile` being defined in `src/retyped.re`. `src/retyped_node.re`
-is compiled with JSOO and exposes `compile` to the JS target. `retyped_node.js` and `refmt_node.js` are
-both interfaced by `index.js`. `index.js` exposes
-a function for compiling called `compile` (different than the one exported from Reason) that
-formats the code and handles errors cleanly. `cli.js` is the main entry for the `retyped` CLI tool, which
-calls `index.js`.
+The main compiler is written in Reason, in the package `src/retyped`. This exports a compiler
+and a compile function that is used by the two entry points: `src/cli.re` and `src/retyped_node.re`.
+`src/cli.re` is the entry point for the native binary, and `src/retyped_node.re` is the JS entry
+point when compiling with JSOO.
+
+`lib/` holds all JS code. `lib/index.js` is the entry point to the JS library, and wraps the
+Reason-based code. `lib/cli.js` is the entry point for the JS-based CLI tool.
 
 The compiler is split into three parts, the module-definition generator, the code generator, and the
 renderer. The module-definition generator is found in `src/modulegen.re` and the code generator is found in
