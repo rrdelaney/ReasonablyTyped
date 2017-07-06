@@ -268,7 +268,7 @@ let declaration_to_jsdecl loc =>
       )
   );
 
-let rec statement_to_stack (loc, s) =>
+let rec statement_to_program (loc, s) =>
   Ast.Statement.Interface.(
     switch s {
     | Ast.Statement.DeclareModuleExports annotation =>
@@ -297,12 +297,12 @@ let rec statement_to_stack (loc, s) =>
       )
     }
   )
-and block_to_stack (loc, {body}) => List.map statement_to_stack body
+and block_to_program (loc, {body}) => List.map statement_to_program body
 and declare_module_to_jsdecl loc s => {
   open Ast.Statement.DeclareModule;
   let {id, body} = s;
   switch id {
-  | Literal (loc, {raw}) => BsDecl.ModuleDecl raw (block_to_stack body)
+  | Literal (loc, {raw}) => BsDecl.ModuleDecl raw (block_to_program body)
   | _ =>
     raise (
       ModulegenDeclError (

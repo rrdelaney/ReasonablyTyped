@@ -178,12 +178,12 @@ module Precode = {
         }
       )
     | _ => [""];
-  let from_stack stack =>
-    switch stack {
+  let from_program program =>
+    switch program {
     | ModuleDecl id statements =>
       List.map (decl_to_precode id) statements |> List.flatten |> Genutils.uniq |>
       String.concat "\n"
-    | TypeDecl _ _ => decl_to_precode "" stack |> String.concat "\n"
+    | TypeDecl _ _ => decl_to_precode "" program |> String.concat "\n"
     | _ => ""
     };
 };
@@ -257,16 +257,16 @@ let rec declaration_to_code module_id types =>
     Render.typeDeclaration
       name::(String.uncapitalize_ascii id) type_of::(bstype_to_code type_of) ();
 
-let stack_to_code stack =>
-  switch stack {
+let program_to_code program =>
+  switch program {
   | ModuleDecl id statements =>
     let typeof_table = Typetable.create statements;
     /* Typetable.show typeof_table; */
     Some (
       Genutils.to_module_name id,
-      Precode.from_stack stack ^
+      Precode.from_program program ^
       String.concat "\n" (List.map (declaration_to_code id typeof_table) statements)
     )
-  | TypeDecl _ _ => Some ("", Precode.from_stack stack ^ declaration_to_code "" [] stack)
+  | TypeDecl _ _ => Some ("", Precode.from_program program ^ declaration_to_code "" [] program)
   | _ => None
   };
