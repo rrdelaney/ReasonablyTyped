@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Compile duplicate-type.js 1`] = `
+exports[`Compile duplicate-type.re 1`] = `
 "type union_of_number_or_string =
   | Number float
   | String string;
@@ -16,7 +16,7 @@ external sub : x::number_or_string => float = \\"\\" [@@bs.module \\"duplicate-t
 "
 `;
 
-exports[`Compile duplicate-type-param.js 1`] = `
+exports[`Compile duplicate-type-param.re 1`] = `
 "type union_of_number_or_string =
   | Number float
   | String string;
@@ -31,7 +31,7 @@ external add : x::number_or_string => y::number_or_string => float =
 "
 `;
 
-exports[`Compile interface.js 1`] = `
+exports[`Compile interface.re 1`] = `
 "type options = Js.t {. op : string};
 
 external apply : x::float => y::float => options::options? => unit => float =
@@ -39,14 +39,21 @@ external apply : x::float => y::float => options::options? => unit => float =
 "
 `;
 
-exports[`Compile numbers.js 1`] = `
+exports[`Compile numbers.re 1`] = `
 "external xfg : float = \\"\\" [@@bs.module \\"numbers\\"];
 
 external add : a::float => b::float => float = \\"\\" [@@bs.module \\"numbers\\"];
 "
 `;
 
-exports[`Compile object-type.js 1`] = `
+exports[`Compile numbers.re 2`] = `
+"external xfg : float = \\"\\" [@@bs.module \\"numbers\\"];
+
+external add : a::float => b::float => float = \\"\\" [@@bs.module \\"numbers\\"];
+"
+`;
+
+exports[`Compile object-type.re 1`] = `
 "type subscribeOptions = Js.t {. start : float, stop : float};
 
 type testOptions = Js.t {. method : string, subscribe : subscribeOptions};
@@ -55,17 +62,17 @@ external test : options::testOptions => string = \\"\\" [@@bs.module \\"object-t
 "
 `;
 
-exports[`Compile optional-param.js 1`] = `
+exports[`Compile optional-param.re 1`] = `
 "external add : x::float => y::float? => unit => float = \\"\\" [@@bs.module \\"optional\\"];
 "
 `;
 
-exports[`Compile simple.js 1`] = `
+exports[`Compile simple.re 1`] = `
 "external add : x::float => y::float => float = \\"\\" [@@bs.module \\"simple\\"];
 "
 `;
 
-exports[`Compile simple-class.js 1`] = `
+exports[`Compile simple-class.re 1`] = `
 "type test = Js.t {. action : a::float => string [@bs.meth]};
 
 external create_test : t::string => test =
@@ -73,7 +80,7 @@ external create_test : t::string => test =
 "
 `;
 
-exports[`Compile type-decl.js 1`] = `
+exports[`Compile type-decl.re 1`] = `
 "type stringOptions = Js.t {. value : string};
 
 external test : s::string => options::stringOptions => string =
@@ -81,7 +88,7 @@ external test : s::string => options::stringOptions => string =
 "
 `;
 
-exports[`Compile union-type.js 1`] = `
+exports[`Compile union-type.re 1`] = `
 "type union_of_number_or_string =
   | Number float
   | String string;

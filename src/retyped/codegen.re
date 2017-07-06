@@ -261,7 +261,7 @@ let program_to_code program =>
   switch program {
   | ModuleDecl id statements =>
     let typeof_table = Typetable.create statements;
-    /* Typetable.show typeof_table; */
+    Typetable.show typeof_table;
     Some (
       Genutils.to_module_name id,
       Precode.from_program program ^

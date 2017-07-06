@@ -6,18 +6,24 @@ const fixtures = path.join(__dirname, 'fixtures')
 const fixture = file => path.join(fixtures, file)
 
 const testFiles = readdirSync(fixtures)
-  .filter(file => file.endsWith('.js'))
+  .filter(file => file.endsWith('.re'))
   .map(file => ({
     [file]: {
       js: new Promise((resolve, reject) => {
-        readFile(fixture(file), (err, data) => {
+        readFile(fixture(file.replace('.re', '.js')), (err, data) => {
           if (err) return reject(err)
           resolve(data.toString())
         })
       }),
       re: new Promise((resolve, reject) => {
-        readFile(fixture(file.replace('.js', '.re')), (err, data) => {
-          if (err) return reject(err)
+        readFile(fixture(file), (err, data) => {
+          if (err) return resolve(null)
+          resolve(data.toString())
+        })
+      }),
+      ts: new Promise((resolve, reject) => {
+        readFile(fixture(file.replace('.re', '.d.ts')), (err, data) => {
+          if (err) return resolve(null)
           resolve(data.toString())
         })
       })
@@ -25,12 +31,26 @@ const testFiles = readdirSync(fixtures)
   }))
   .reduce((all, mod) => Object.assign({}, all, mod), {})
 
-const compareSources = (fname, { js, re }) => async () => {
-  const result = compile(await js, fname)
-  const expected = format(await re)
-  expect(result).toBe(expected)
-  expect(result).toBe(format(result))
-  expect(result).toMatchSnapshot()
+const compareSources = (fname, { js, re, ts }) => async () => {
+  const reSrc = await re
+  const jsSrc = await js
+  const tsSrc = await ts
+
+  if (jsSrc) {
+    const jsResult = compile(jsSrc, fname.replace('.re', '.js'))
+    const jsExpected = format(reSrc)
+    expect(jsResult).toBe(jsExpected)
+    expect(jsResult).toBe(format(jsResult))
+    expect(jsResult).toMatchSnapshot()
+  }
+
+  if (tsSrc) {
+    const tsResult = compile(tsSrc, fname.replace('.re', '.d.ts'))
+    const tsExpected = format(reSrc)
+    expect(tsResult).toBe(tsExpected)
+    expect(tsResult).toBe(format(tsResult))
+    expect(tsResult).toMatchSnapshot()
+  }
 }
 
 Object.entries(testFiles).forEach(([moduleName, source]) => {

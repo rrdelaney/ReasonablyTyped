@@ -1,12 +1,19 @@
 type t =
   | Class
+  | Variable string
   | None
   | NotFound;
 
-let get key table =>
-  try (List.assoc key table) {
-  | Not_found => NotFound
-  };
+let rec get key table => {
+  let lookup =
+    try (List.assoc key table) {
+    | Not_found => NotFound
+    };
+  switch lookup {
+  | Variable s => get s table
+  | match => match
+  }
+};
 
 let create statements =>
   List.map
