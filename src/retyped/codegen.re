@@ -26,7 +26,7 @@ let rec bstype_name =
   | Named s => String.uncapitalize_ascii s |> Genutils.normalize_name
   | Union types => union_types_to_name types
   | Class props => raise (CodegenTypeError "Unable to translate class into type name")
-  | Optional t => ""
+  | Optional t => bstype_name t
   | StringLiteral _ =>
     raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
 and union_types_to_name types => {
@@ -58,7 +58,7 @@ let rec bstype_to_code =
   fun
   | Regex => "Js.Re.t"
   | Dict t => "Js.Dict.t (" ^ bstype_to_code t ^ ")"
-  | Optional t => bstype_to_code t ^ "?"
+  | Optional t => bstype_to_code t
   | Unit => "unit"
   | Null => "null"
   | Array t => "array " ^ bstype_to_code t
@@ -83,7 +83,16 @@ let rec bstype_to_code =
     raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
   | Function params rt =>
     Render.functionType
-      params::(List.map (fun (name, param) => (name, bstype_to_code param)) params)
+      params::(
+        List.map
+          (
+            fun (name, param) => (
+              name,
+              bstype_to_code param ^ (Genutils.is_optional (name, param) ? "?" : "")
+            )
+          )
+          params
+      )
       has_optional::(List.exists Genutils.is_optional params)
       return_type::(bstype_to_code rt)
       ()
@@ -228,6 +237,7 @@ let rec declaration_to_code module_id types =>
         | None => raise (CodegenTypeError "typeof can only operate on classes")
         | NotFound => raise (CodegenTypeError ("Unknown identifier: " ^ t))
         | Variable s => raise (CodegenTypeError ("Cannot use typeof with variable: " ^ s))
+        | _ => raise (CodegenTypeError "Invalid type from table being rendered")
         }
       )
     | _ =>

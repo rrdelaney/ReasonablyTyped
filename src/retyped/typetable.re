@@ -1,5 +1,6 @@
 type t =
   | Class
+  | Type Modulegen.BsType.t
   | Variable string
   | None
   | NotFound;
@@ -21,6 +22,8 @@ let create statements =>
       fun
       | VarDecl id type_of => (id, None)
       | ClassDecl id type_of => (id, Class)
+      | TypeDecl id type_of => (id, Type type_of)
+      | FuncDecl id type_of => (id, Type type_of)
       | _ => ("", None)
     )
     statements |>
@@ -40,6 +43,7 @@ let show table => {
             | None => "None"
             | NotFound => "NotFound"
             | Variable s => "typeof " ^ s
+            | Type t => Flowprinter.show_type t
             }
           )
         )
