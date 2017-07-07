@@ -148,26 +148,24 @@ and function_type_to_bstype ctx f => {
   | Some _ => raise (ModulegenTypeError (not_supported "Type parameters" ctx))
   | None => ()
   };
-  let params =
-    if (List.length formal > 0) {
-      List.map
-        (
-          fun ((_, {typeAnnotation: (loc, t), name, optional}): Ast.Type.Function.Param.t) => (
-            switch name {
-            | Some id => string_of_id id
-            | None => ""
-            },
-            if optional {
-              BsType.Optional (type_to_bstype {...ctx, loc} t)
-            } else {
-              type_to_bstype {...ctx, loc} t
-            }
-          )
-        )
-        formal
+  let argTypes ((_, {typeAnnotation: (loc, t), name, optional}): Ast.Type.Function.Param.t) => (
+    switch name {
+    | Some id => string_of_id id
+    | None => ""
+    },
+    if optional {
+      BsType.Optional (type_to_bstype {...ctx, loc} t)
     } else {
-      [("", BsType.Unit)]
+      type_to_bstype {...ctx, loc} t
+    }
+  );
+  let formalParams = List.map argTypes formal;
+  let restParams =
+    switch rest {
+    | Some (_, {argument}) => [argTypes argument]
+    | None => []
     };
+  let params = List.concat [formalParams, restParams];
   let return = type_to_bstype {...ctx, loc: rt_loc} rt;
   BsType.Function params return
 }
