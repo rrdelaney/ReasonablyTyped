@@ -166,8 +166,14 @@ and function_type_to_bstype ctx f => {
     | None => []
     };
   let params = List.concat [formalParams, restParams];
+  let nominalUnit =
+    if (List.length formalParams == 0 && List.length restParams == 0) {
+      [("", BsType.Unit)]
+    } else {
+      []
+    };
   let return = type_to_bstype {...ctx, loc: rt_loc} rt;
-  BsType.Function params return
+  BsType.Function (List.concat [params, nominalUnit]) return
 }
 and value_to_bstype (value: Ast.Type.Object.Property.value) =>
   switch value {
