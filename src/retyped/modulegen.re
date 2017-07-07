@@ -125,6 +125,8 @@ and type_to_bstype (ctx: context) =>
     }
   | Array (loc, t) => BsType.Array (type_to_bstype {...ctx, loc} t)
   | Tuple types => BsType.Tuple (List.map (fun (loc, t) => type_to_bstype {...ctx, loc} t) types)
+  | Intersection (loc_a, first) (loc_b, second) rest =>
+    raise (ModulegenTypeError (not_supported "Intersection types" ctx))
   | Union (loc_a, first) (loc_b, second) rest =>
     BsType.Union [
       type_to_bstype {...ctx, loc: loc_a} first,
