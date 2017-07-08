@@ -37,11 +37,7 @@ let is_optional type_of =>
   | _ => false
   };
 
-let is_type_param params t =>
-  switch t {
-  | Named s => List.exists (fun p => p == s) params
-  | _ => false
-  };
+let is_type_param params t => List.exists (fun p => p == t) params;
 
 module Uid = {
   let get () => string_of_int 1;

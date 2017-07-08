@@ -54,15 +54,19 @@ and union_types_to_name types => {
   }
 };
 
-let rec bstype_to_code =
+type context = {type_params: list string};
+
+let intctx = {type_params: []};
+
+let rec bstype_to_code ::ctx=intctx =>
   fun
   | Regex => "Js.Re.t"
-  | Dict t => "Js.Dict.t (" ^ bstype_to_code t ^ ")"
-  | Optional t => bstype_to_code t
+  | Dict t => "Js.Dict.t (" ^ bstype_to_code ::ctx t ^ ")"
+  | Optional t => bstype_to_code ::ctx t
   | Unit => "unit"
   | Null => "null"
-  | Array t => "array " ^ bstype_to_code t
-  | Tuple types => Render.tupleType types::(List.map bstype_to_code types) ()
+  | Array t => "array " ^ bstype_to_code ::ctx t
+  | Tuple types => Render.tupleType types::(List.map (bstype_to_code ::ctx) types) ()
   | Any => "'any"
   | AnyObject => "'any"
   | AnyFunction => "'any"
@@ -70,33 +74,35 @@ let rec bstype_to_code =
     Render.objectType
       statements::(
         List.map
-          (fun (key, type_of) => (Genutils.normalize_name key, bstype_to_code type_of)) props
+          (fun (key, type_of) => (Genutils.normalize_name key, bstype_to_code ::ctx type_of)) props
       )
       ()
   | Number => "float"
   | String => "string"
   | Boolean => "Js.boolean"
-  | Named s => String.uncapitalize_ascii s |> Genutils.normalize_name
+  | Named s =>
+    (Genutils.is_type_param ctx.type_params s ? "'" : "") ^ String.uncapitalize_ascii s |> Genutils.normalize_name
   | Union types => union_types_to_name types
   | Typeof t => raise (CodegenTypeError "Typeof can only operate on variable declarations")
   | StringLiteral _ =>
     raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
-  | Function type_params params rt =>
-    Render.functionType
-      params::(
-        List.map
-          (
-            fun (name, param) => (
-              name,
-              (Genutils.is_type_param type_params param ? "'" : "") ^
-              bstype_to_code param ^ (Genutils.is_optional param ? "?" : "")
+  | Function type_params params rt => {
+      let ctx = {type_params: type_params @ ctx.type_params};
+      Render.functionType
+        params::(
+          List.map
+            (
+              fun (name, param) => (
+                name,
+                bstype_to_code ::ctx param ^ (Genutils.is_optional param ? "?" : "")
+              )
             )
-          )
-          params
-      )
-      has_optional::(List.exists (fun (name, t) => Genutils.is_optional t) params)
-      return_type::((Genutils.is_type_param type_params rt ? "'" : "") ^ bstype_to_code rt)
-      ()
+            params
+        )
+        has_optional::(List.exists (fun (name, t) => Genutils.is_optional t) params)
+        return_type::(bstype_to_code ::ctx rt)
+        ()
+    }
   | Class props => {
       let class_types =
         List.map
@@ -107,7 +113,7 @@ let rec bstype_to_code =
                 | Function _ => true
                 | _ => false
                 };
-              (key, bstype_to_code type_of, is_meth)
+              (key, bstype_to_code ::ctx type_of, is_meth)
             }
           )
           props;
