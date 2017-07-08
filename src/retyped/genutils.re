@@ -31,9 +31,15 @@ let rec uniq =
       [h, ...no_dups]
     };
 
-let is_optional (_, type_of) =>
+let is_optional type_of =>
   switch type_of {
   | Optional _ => true
+  | _ => false
+  };
+
+let is_type_param params t =>
+  switch t {
+  | Named s => List.exists (fun p => p == s) params
   | _ => false
   };
 

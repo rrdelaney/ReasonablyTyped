@@ -26,10 +26,11 @@ open Loc;
 
 type context = {
   loc: Loc.t,
-  is_params: bool
+  is_params: bool,
+  type_params: list string
 };
 
-let intctx = {loc: Loc.none, is_params: false};
+let intctx = {loc: Loc.none, is_params: false, type_params: []};
 
 exception ModulegenDeclError string;
 
@@ -62,7 +63,7 @@ module BsType = {
     | Number
     | Regex
     | String
-    | Function (list (string, t)) t
+    | Function (list string) (list (string, t)) t
     | AnyFunction
     | Object (list (string, t))
     | AnyObject
@@ -145,11 +146,25 @@ and type_to_bstype (ctx: context) =>
 and function_type_to_bstype ctx f => {
   open Ast.Type.Function;
   open Ast.Type.Function.Param;
+  open Ast.Type.ParameterDeclaration;
+  open Ast.Type.ParameterDeclaration.TypeParam;
   let {params: (formal, rest), returnType: (rt_loc, rt), typeParameters} = f;
-  switch typeParameters {
-  | Some _ => raise (ModulegenTypeError (not_supported "Type parameters" ctx))
-  | None => ()
-  };
+  let get_params (loc, {name, bound, variance, default}) =>
+    switch (bound, variance, default) {
+    | (Some _, _, _) =>
+      raise (ModulegenTypeError (not_supported "Type parameter bounds" {...ctx, loc}))
+    | (_, Some _, _) =>
+      raise (ModulegenTypeError (not_supported "Type parameter variance" {...ctx, loc}))
+    | (_, _, Some _) =>
+      raise (ModulegenTypeError (not_supported "Type parameter defaults" {...ctx, loc}))
+    | _ => name
+    };
+  let type_params =
+    switch typeParameters {
+    | Some (loc, {params}) => List.map get_params params
+    | None => []
+    };
+  let ctx = {...ctx, type_params: type_params @ ctx.type_params};
   let params =
     if (List.length formal > 0) {
       List.map
@@ -170,8 +185,8 @@ and function_type_to_bstype ctx f => {
     } else {
       [("", BsType.Unit)]
     };
-  let return = type_to_bstype {...ctx, loc: rt_loc} rt;
-  BsType.Function params return
+  let return_type = type_to_bstype {...ctx, loc: rt_loc} rt;
+  BsType.Function type_params params return_type
 }
 and value_to_bstype (value: Ast.Type.Object.Property.value) =>
   switch value {

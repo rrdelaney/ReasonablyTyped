@@ -81,20 +81,21 @@ let rec bstype_to_code =
   | Typeof t => raise (CodegenTypeError "Typeof can only operate on variable declarations")
   | StringLiteral _ =>
     raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
-  | Function params rt =>
+  | Function type_params params rt =>
     Render.functionType
       params::(
         List.map
           (
             fun (name, param) => (
               name,
-              bstype_to_code param ^ (Genutils.is_optional (name, param) ? "?" : "")
+              (Genutils.is_type_param type_params param ? "'" : "") ^
+              bstype_to_code param ^ (Genutils.is_optional param ? "?" : "")
             )
           )
           params
       )
-      has_optional::(List.exists Genutils.is_optional params)
-      return_type::(bstype_to_code rt)
+      has_optional::(List.exists (fun (name, t) => Genutils.is_optional t) params)
+      return_type::((Genutils.is_type_param type_params rt ? "'" : "") ^ bstype_to_code rt)
       ()
   | Class props => {
       let class_types =
@@ -119,7 +120,8 @@ module Precode = {
     | Union types =>
       let types_precode = List.map bstype_precode types |> List.flatten;
       types_precode @ [string_of_union_types def types]
-    | Function params rt => List.map (fun (id, t) => bstype_precode t) params |> List.flatten
+    | Function type_params params rt =>
+      List.map (fun (id, t) => bstype_precode t) params |> List.flatten
     | Object types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
     | Class types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
     | Optional t => bstype_precode t
@@ -202,7 +204,7 @@ let constructor_type class_name =>
   | Class props => {
       let constructors = List.find_all (fun (id, _) => id == "constructor") props;
       if (List.length constructors == 0) {
-        bstype_to_code (Function [("_", Unit)] (Named class_name))
+        bstype_to_code (Function [] [("_", Unit)] (Named class_name))
       } else {
         let (_, cons_type) = List.hd constructors;
         bstype_to_code cons_type

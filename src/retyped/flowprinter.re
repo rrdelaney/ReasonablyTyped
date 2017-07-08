@@ -18,7 +18,10 @@ let rec show_type =
     | BsType.Tuple types => "[" ^ (List.map show_type types |> String.concat ", ") ^ "]"
     | BsType.Array t => show_type t ^ "[]"
     | BsType.Typeof t => "typeof " ^ show_type t
-    | BsType.Function params return =>
+    | BsType.Function type_params params return =>
+      (List.length type_params > 0 ? "<" : "") ^
+      String.concat ", " type_params ^
+      (List.length type_params > 0 ? ">" : "") ^
       "(" ^
       String.concat
         ", "
