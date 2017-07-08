@@ -26,11 +26,10 @@ open Loc;
 
 type context = {
   loc: Loc.t,
-  is_params: bool,
-  type_params: list string
+  is_params: bool
 };
 
-let intctx = {loc: Loc.none, is_params: false, type_params: []};
+let intctx = {loc: Loc.none, is_params: false};
 
 exception ModulegenDeclError string;
 
@@ -164,7 +163,6 @@ and function_type_to_bstype ctx f => {
     | Some (loc, {params}) => List.map get_params params
     | None => []
     };
-  let ctx = {...ctx, type_params: type_params @ ctx.type_params};
   let params =
     if (List.length formal > 0) {
       List.map
