@@ -25,7 +25,7 @@ let rec bstype_name =
   | Tuple types => "tuple_of_" ^ (List.map bstype_name types |> String.concat "_")
   | Named s => String.uncapitalize_ascii s |> Genutils.normalize_name
   | Union types => union_types_to_name types
-  | Class props => raise (CodegenTypeError "Unable to translate class into type name")
+  | Class _ props => raise (CodegenTypeError "Unable to translate class into type name")
   | Optional t => bstype_name t
   | StringLiteral _ =>
     raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
@@ -103,7 +103,8 @@ let rec bstype_to_code ::ctx=intctx =>
         return_type::(bstype_to_code ::ctx rt)
         ()
     }
-  | Class props => {
+  | Class type_params props => {
+      let ctx = {type_params: type_params @ ctx.type_params};
       let class_types =
         List.map
           (
@@ -129,7 +130,7 @@ module Precode = {
     | Function type_params params rt =>
       List.map (fun (id, t) => bstype_precode t) params |> List.flatten
     | Object types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
-    | Class types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
+    | Class _ types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
     | Optional t => bstype_precode t
     | Array t => bstype_precode t
     | Dict t => bstype_precode t
@@ -207,13 +208,14 @@ module Precode = {
 
 let constructor_type class_name =>
   fun
-  | Class props => {
+  | Class type_params props => {
+      let ctx = {type_params: type_params};
       let constructors = List.find_all (fun (id, _) => id == "constructor") props;
       if (List.length constructors == 0) {
         bstype_to_code (Function [] [("_", Unit)] (Named class_name))
       } else {
         let (_, cons_type) = List.hd constructors;
-        bstype_to_code cons_type
+        bstype_to_code ::ctx cons_type
       }
     }
   | _ => raise (CodegenConstructorError "Type has no constructor");

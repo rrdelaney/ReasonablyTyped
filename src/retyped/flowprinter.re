@@ -59,7 +59,10 @@ let rec show_type =
             )
             props
         ) ^ " }"
-    | BsType.Class props =>
+    | BsType.Class type_params props =>
+      (List.length type_params > 0 ? "<" : "") ^
+      String.concat ", " type_params ^
+      (List.length type_params > 0 ? ">" : "") ^
       "{ " ^
       String.concat "; " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
     | BsType.Named s => s
