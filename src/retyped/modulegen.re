@@ -56,10 +56,6 @@ let not_supported interface (context: context) =>
 let sanity_check problem (context: context) =>
   problem ^ " should not happen" ^ loc_to_msg context.loc;
 
-type variadicity =
-  | Variadic
-  | FixedArity;
-
 module BsType = {
   type t =
     | Null
