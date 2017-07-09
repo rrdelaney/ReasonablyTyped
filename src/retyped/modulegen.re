@@ -189,14 +189,15 @@ and function_type_to_bstype ctx f => {
       )
     | None => None
     };
-  let nominalUnit =
+  /* because you can't have a zero-arity Reason function */
+  let allowingForVoid =
     if (List.length formalParams == 0 && restParams === None) {
       [("", BsType.Unit)]
     } else {
-      []
+      formalParams
     };
   let return_type = type_to_bstype {...ctx, loc: rt_loc} rt;
-  BsType.Function type_params (List.concat [formalParams, nominalUnit]) restParams return_type
+  BsType.Function type_params allowingForVoid restParams return_type
 }
 and value_to_bstype (value: Ast.Type.Object.Property.value) =>
   switch value {
