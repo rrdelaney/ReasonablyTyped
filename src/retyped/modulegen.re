@@ -175,14 +175,14 @@ and function_type_to_bstype ctx f => {
       type_to_bstype {...ctx, loc} t
     }
   );
-  let formalParams = List.map arg_types formal;
-  let restParams =
+  let formal_params = List.map arg_types formal;
+  let rest_params =
     switch rest {
     | Some (_, {argument}) =>
-      let baseType = arg_types argument;
+      let base_type = arg_types argument;
       /* rest params cannot be BS-optional */
       Some (
-        switch baseType {
+        switch base_type {
         | (id, BsType.Optional t) => (id, t)
         | t => t
         }
@@ -190,14 +190,10 @@ and function_type_to_bstype ctx f => {
     | None => None
     };
   /* because you can't have a zero-arity Reason function */
-  let allowingForVoid =
-    if (List.length formalParams == 0 && restParams === None) {
-      [("", BsType.Unit)]
-    } else {
-      formalParams
-    };
+  let no_args = List.length formal_params == 0 && rest_params === None;
   let return_type = type_to_bstype {...ctx, loc: rt_loc} rt;
-  BsType.Function type_params allowingForVoid restParams return_type
+  BsType.Function
+    type_params (no_args ? [("", BsType.Unit)] : formal_params) rest_params return_type
 }
 and value_to_bstype (value: Ast.Type.Object.Property.value) =>
   switch value {
