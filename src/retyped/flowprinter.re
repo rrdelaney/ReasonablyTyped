@@ -18,11 +18,8 @@ let rec show_type =
     | BsType.Tuple types => "[" ^ (List.map show_type types |> String.concat ", ") ^ "]"
     | BsType.Array t => show_type t ^ "[]"
     | BsType.Typeof t => "typeof " ^ show_type t
-    | BsType.Function params return =>
-      "(" ^
-      String.concat
-        ", "
-        (
+    | BsType.Function params rest_param return => {
+        let paramList =
           List.map
             (
               fun (name, type_of) =>
@@ -32,9 +29,14 @@ let rec show_type =
                 | _ => name ^ ": " ^ show_type type_of
                 }
             )
-            params
-        ) ^
-      "): " ^ show_type return
+            params;
+        let restArg =
+          switch rest_param {
+          | Some (name, type_of) => "..." ^ name ^ ": " ^ show_type type_of
+          | _ => ""
+          };
+        "(" ^ String.concat ", " (List.concat [paramList, [restArg]]) ^ "): " ^ show_type return
+      }
     | BsType.Null => "null"
     | BsType.Number => "number"
     | BsType.Boolean => "boolean"

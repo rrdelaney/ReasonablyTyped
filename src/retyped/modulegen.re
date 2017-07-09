@@ -56,13 +56,18 @@ let not_supported interface (context: context) =>
 let sanity_check problem (context: context) =>
   problem ^ " should not happen" ^ loc_to_msg context.loc;
 
+type variadicity =
+  | Variadic
+  | FixedArity;
+
 module BsType = {
   type t =
     | Null
     | Number
     | Regex
     | String
-    | Function (list (string, t)) t
+    /* formal params, rest param, return type */
+    | Function (list (string, t)) (option (string, t)) t
     | AnyFunction
     | Object (list (string, t))
     | AnyObject
@@ -162,18 +167,25 @@ and function_type_to_bstype ctx f => {
   let formalParams = List.map argTypes formal;
   let restParams =
     switch rest {
-    | Some (_, {argument}) => [argTypes argument]
-    | None => []
+    | Some (_, {argument}) =>
+      let baseType = argTypes argument;
+      /* rest params cannot be BS-optional */
+      Some (
+        switch baseType {
+        | (id, BsType.Optional t) => (id, t)
+        | t => t
+        }
+      )
+    | None => None
     };
-  let params = List.concat [formalParams, restParams];
   let nominalUnit =
-    if (List.length formalParams == 0 && List.length restParams == 0) {
+    if (List.length formalParams == 0 && restParams === None) {
       [("", BsType.Unit)]
     } else {
       []
     };
   let return = type_to_bstype {...ctx, loc: rt_loc} rt;
-  BsType.Function (List.concat [params, nominalUnit]) return
+  BsType.Function (List.concat [formalParams, nominalUnit]) restParams return
 }
 and value_to_bstype (value: Ast.Type.Object.Property.value) =>
   switch value {
@@ -260,8 +272,10 @@ let declaration_to_jsdecl loc =>
     fun
     | Variable (loc, {id, typeAnnotation}) =>
       BsDecl.VarDecl (string_of_id id) (type_annotation_to_bstype typeAnnotation)
-    | Function (loc, {id, typeAnnotation}) =>
-      BsDecl.FuncDecl (string_of_id id) (type_annotation_to_bstype (Some typeAnnotation))
+    | Function (loc, {id, typeAnnotation}) => {
+        let bstype = type_annotation_to_bstype (Some typeAnnotation);
+        BsDecl.FuncDecl (string_of_id id) bstype
+      }
     | Class (loc, {id, body: (_, interface)}) =>
       BsDecl.ClassDecl (string_of_id id) (BsType.Class (object_type_to_bstype interface))
     | _ =>
