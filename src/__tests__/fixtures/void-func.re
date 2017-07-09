@@ -1,0 +1,1 @@
+external voidFunc : unit => unit = "" [@@bs.module "void-func"];

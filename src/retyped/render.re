@@ -1,9 +1,13 @@
-let variableDeclaration ::name ::module_id ::type_of ::is_exports=false ::code="" () =>
+let variableDeclaration ::name ::module_id ::type_of ::is_exports=false ::splice=false ::code="" () =>
   if is_exports {
     "external " ^ name ^ " : " ^ type_of ^ " = \"" ^ module_id ^ "\" [@@bs.module];\n"
   } else {
     "external " ^
-    name ^ " : " ^ type_of ^ " = \"" ^ code ^ "\" [@@bs.module \"" ^ module_id ^ "\"];\n"
+    name ^
+    " : " ^
+    type_of ^
+    " = \"" ^
+    code ^ "\" [@@bs.module \"" ^ module_id ^ "\"]" ^ (splice ? "[@@bs.splice]" : "") ^ ";\n"
   };
 
 let moduleDeclaration ::name ::statements () =>
@@ -29,21 +33,29 @@ let objectType ::statements () =>
     String.concat ", "
   ) ^ " }";
 
-let functionType ::params ::has_optional ::return_type () =>
-  (
-    List.map
-      (
-        fun (name, param_type) =>
-          if (name != "") {
-            name ^ "::" ^ param_type
-          } else {
-            param_type
-          }
-      )
-      params |>
-    String.concat " => "
-  ) ^
-  " => " ^ (has_optional ? "unit => " : "") ^ return_type;
+let functionType ::formal_params ::rest_param ::has_optional ::return_type () => {
+  let print (name, param_type) =>
+    if (name != "") {
+      name ^ "::" ^ param_type
+    } else {
+      param_type
+    };
+  let formalCode =
+    List.map print formal_params |> String.concat " => " |> (
+      fun it =>
+        switch it {
+        | "" => ""
+        | s => s ^ " => "
+        }
+    );
+  let optUnit = has_optional ? "unit => " : "";
+  let restCode =
+    switch rest_param {
+    | Some param => print param ^ " => "
+    | None => ""
+    };
+  formalCode ^ optUnit ^ restCode ^ return_type
+};
 
 let tupleType ::types () => "(" ^ String.concat ", " types ^ ")";
 

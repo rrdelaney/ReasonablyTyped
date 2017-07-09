@@ -62,7 +62,8 @@ module BsType = {
     | Number
     | Regex
     | String
-    | Function (list string) (list (string, t)) t
+    /* formal params, rest param, return type */
+    | Function (list string) (list (string, t)) (option (string, t)) t
     | AnyFunction
     | Object (list (string, t))
     | AnyObject
@@ -163,28 +164,36 @@ and function_type_to_bstype ctx f => {
     | Some (loc, {params}) => List.map get_params params
     | None => []
     };
-  let params =
-    if (List.length formal > 0) {
-      List.map
-        (
-          fun ((_, {typeAnnotation: (loc, t), name, optional}): Ast.Type.Function.Param.t) => (
-            switch name {
-            | Some id => string_of_id id
-            | None => ""
-            },
-            if optional {
-              BsType.Optional (type_to_bstype {...ctx, loc} t)
-            } else {
-              type_to_bstype {...ctx, loc} t
-            }
-          )
-        )
-        formal
+  let arg_types ((_, {typeAnnotation: (loc, t), name, optional}): Ast.Type.Function.Param.t) => (
+    switch name {
+    | Some id => string_of_id id
+    | None => ""
+    },
+    if optional {
+      BsType.Optional (type_to_bstype {...ctx, loc} t)
     } else {
-      [("", BsType.Unit)]
+      type_to_bstype {...ctx, loc} t
+    }
+  );
+  let formal_params = List.map arg_types formal;
+  let rest_params =
+    switch rest {
+    | Some (_, {argument}) =>
+      let base_type = arg_types argument;
+      /* rest params cannot be BS-optional */
+      Some (
+        switch base_type {
+        | (id, BsType.Optional t) => (id, t)
+        | t => t
+        }
+      )
+    | None => None
     };
+  /* because you can't have a zero-arity Reason function */
+  let no_args = List.length formal_params == 0 && rest_params === None;
   let return_type = type_to_bstype {...ctx, loc: rt_loc} rt;
-  BsType.Function type_params params return_type
+  BsType.Function
+    type_params (no_args ? [("", BsType.Unit)] : formal_params) rest_params return_type
 }
 and value_to_bstype (value: Ast.Type.Object.Property.value) =>
   switch value {
@@ -270,8 +279,10 @@ let declaration_to_jsdecl loc =>
     fun
     | Variable (loc, {id, typeAnnotation}) =>
       BsDecl.VarDecl (string_of_id id) (type_annotation_to_bstype typeAnnotation)
-    | Function (loc, {id, typeAnnotation}) =>
-      BsDecl.FuncDecl (string_of_id id) (type_annotation_to_bstype (Some typeAnnotation))
+    | Function (loc, {id, typeAnnotation}) => {
+        let bstype = type_annotation_to_bstype (Some typeAnnotation);
+        BsDecl.FuncDecl (string_of_id id) bstype
+      }
     | Class (loc, {id, body: (_, interface)}) =>
       BsDecl.ClassDecl (string_of_id id) (BsType.Class (object_type_to_bstype interface))
     | _ =>
