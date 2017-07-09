@@ -31,11 +31,13 @@ let rec uniq =
       [h, ...no_dups]
     };
 
-let is_optional (_, type_of) =>
+let is_optional type_of =>
   switch type_of {
   | Optional _ => true
   | _ => false
   };
+
+let is_type_param params t => List.exists (fun p => p == t) params;
 
 module Uid = {
   let get () => string_of_int 1;

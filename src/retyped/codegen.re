@@ -54,15 +54,19 @@ and union_types_to_name types => {
   }
 };
 
-let rec bstype_to_code =
+type context = {type_params: list string};
+
+let intctx = {type_params: []};
+
+let rec bstype_to_code ::ctx=intctx =>
   fun
   | Regex => "Js.Re.t"
-  | Dict t => "Js.Dict.t (" ^ bstype_to_code t ^ ")"
-  | Optional t => bstype_to_code t
+  | Dict t => "Js.Dict.t (" ^ bstype_to_code ::ctx t ^ ")"
+  | Optional t => bstype_to_code ::ctx t
   | Unit => "unit"
   | Null => "null"
-  | Array t => "array " ^ bstype_to_code t
-  | Tuple types => Render.tupleType types::(List.map bstype_to_code types) ()
+  | Array t => "array " ^ bstype_to_code ::ctx t
+  | Tuple types => Render.tupleType types::(List.map (bstype_to_code ::ctx) types) ()
   | Any => "'any"
   | AnyObject => "'any"
   | AnyFunction => "'any"
@@ -70,21 +74,23 @@ let rec bstype_to_code =
     Render.objectType
       statements::(
         List.map
-          (fun (key, type_of) => (Genutils.normalize_name key, bstype_to_code type_of)) props
+          (fun (key, type_of) => (Genutils.normalize_name key, bstype_to_code ::ctx type_of)) props
       )
       ()
   | Number => "float"
   | String => "string"
   | Boolean => "Js.boolean"
-  | Named s => String.uncapitalize_ascii s |> Genutils.normalize_name
+  | Named s =>
+    (Genutils.is_type_param ctx.type_params s ? "'" : "") ^ String.uncapitalize_ascii s |> Genutils.normalize_name
   | Union types => union_types_to_name types
   | Typeof t => raise (CodegenTypeError "Typeof can only operate on variable declarations")
   | StringLiteral _ =>
     raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
-  | Function params rest_param rt => {
+  | Function type_params params rest_param rt => {
+      let ctx = {type_params: type_params @ ctx.type_params};
       let print (name, param) => (
         name,
-        bstype_to_code param ^ (Genutils.is_optional (name, param) ? "?" : "")
+        bstype_to_code ::ctx param ^ (Genutils.is_optional param ? "?" : "")
       );
       Render.functionType
         formal_params::(List.map print params)
@@ -94,8 +100,8 @@ let rec bstype_to_code =
           | None => None
           }
         )
-        has_optional::(List.exists Genutils.is_optional params)
-        return_type::(bstype_to_code rt)
+        has_optional::(List.exists (fun (name, t) => Genutils.is_optional t) params)
+        return_type::(bstype_to_code ::ctx rt)
         ()
     }
   | Class props => {
@@ -108,7 +114,7 @@ let rec bstype_to_code =
                 | Function _ => true
                 | _ => false
                 };
-              (key, bstype_to_code type_of, is_meth)
+              (key, bstype_to_code ::ctx type_of, is_meth)
             }
           )
           props;
@@ -121,7 +127,7 @@ module Precode = {
     | Union types =>
       let types_precode = List.map bstype_precode types |> List.flatten;
       types_precode @ [string_of_union_types def types]
-    | Function params rest_param rt =>
+    | Function type_params params rest_param rt =>
       List.map (fun (id, t) => bstype_precode t) params |>
       List.append (
         switch rest_param {
@@ -211,7 +217,7 @@ let constructor_type class_name =>
   | Class props => {
       let constructors = List.find_all (fun (id, _) => id == "constructor") props;
       if (List.length constructors == 0) {
-        bstype_to_code (Function [("_", Unit)] None (Named class_name))
+        bstype_to_code (Function [] [("_", Unit)] None (Named class_name))
       } else {
         let (_, cons_type) = List.hd constructors;
         bstype_to_code cons_type
@@ -234,7 +240,7 @@ let rec declaration_to_code module_id types =>
       type_of::(bstype_to_code type_of)
       splice::Modulegen.(
         switch type_of {
-        | Function _ (Some _) _ => true 
+        | Function _ _ (Some _) _ => true 
         | _ => false 
         }
       )

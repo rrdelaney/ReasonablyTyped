@@ -63,7 +63,7 @@ module BsType = {
     | Regex
     | String
     /* formal params, rest param, return type */
-    | Function (list (string, t)) (option (string, t)) t
+    | Function (list string) (list (string, t)) (option (string, t)) t
     | AnyFunction
     | Object (list (string, t))
     | AnyObject
@@ -126,6 +126,8 @@ and type_to_bstype (ctx: context) =>
     }
   | Array (loc, t) => BsType.Array (type_to_bstype {...ctx, loc} t)
   | Tuple types => BsType.Tuple (List.map (fun (loc, t) => type_to_bstype {...ctx, loc} t) types)
+  | Intersection (loc_a, first) (loc_b, second) rest =>
+    raise (ModulegenTypeError (not_supported "Intersection types" ctx))
   | Union (loc_a, first) (loc_b, second) rest =>
     BsType.Union [
       type_to_bstype {...ctx, loc: loc_a} first,
@@ -144,12 +146,25 @@ and type_to_bstype (ctx: context) =>
 and function_type_to_bstype ctx f => {
   open Ast.Type.Function;
   open Ast.Type.Function.Param;
+  open Ast.Type.ParameterDeclaration;
+  open Ast.Type.ParameterDeclaration.TypeParam;
   let {params: (formal, rest), returnType: (rt_loc, rt), typeParameters} = f;
-  switch typeParameters {
-  | Some _ => raise (ModulegenTypeError (not_supported "Type parameters" ctx))
-  | None => ()
-  };
-  let argTypes ((_, {typeAnnotation: (loc, t), name, optional}): Ast.Type.Function.Param.t) => (
+  let get_params (loc, {name, bound, variance, default}) =>
+    switch (bound, variance, default) {
+    | (Some _, _, _) =>
+      raise (ModulegenTypeError (not_supported "Type parameter bounds" {...ctx, loc}))
+    | (_, Some _, _) =>
+      raise (ModulegenTypeError (not_supported "Type parameter variance" {...ctx, loc}))
+    | (_, _, Some _) =>
+      raise (ModulegenTypeError (not_supported "Type parameter defaults" {...ctx, loc}))
+    | _ => name
+    };
+  let type_params =
+    switch typeParameters {
+    | Some (loc, {params}) => List.map get_params params
+    | None => []
+    };
+  let arg_types ((_, {typeAnnotation: (loc, t), name, optional}): Ast.Type.Function.Param.t) => (
     switch name {
     | Some id => string_of_id id
     | None => ""
@@ -160,11 +175,11 @@ and function_type_to_bstype ctx f => {
       type_to_bstype {...ctx, loc} t
     }
   );
-  let formalParams = List.map argTypes formal;
+  let formalParams = List.map arg_types formal;
   let restParams =
     switch rest {
     | Some (_, {argument}) =>
-      let baseType = argTypes argument;
+      let baseType = arg_types argument;
       /* rest params cannot be BS-optional */
       Some (
         switch baseType {
@@ -180,8 +195,8 @@ and function_type_to_bstype ctx f => {
     } else {
       []
     };
-  let return = type_to_bstype {...ctx, loc: rt_loc} rt;
-  BsType.Function (List.concat [formalParams, nominalUnit]) restParams return
+  let return_type = type_to_bstype {...ctx, loc: rt_loc} rt;
+  BsType.Function type_params (List.concat [formalParams, nominalUnit]) restParams return_type
 }
 and value_to_bstype (value: Ast.Type.Object.Property.value) =>
   switch value {
@@ -222,35 +237,34 @@ and generic_type_to_bstype ctx g => {
   let t =
     switch id {
     | Qualified (_, q) => BsType.Named (string_of_id q.id)
-    | Unqualified q =>
-      switch q {
-      | (_, "RegExp") => BsType.Regex
-      | (_, "Object") => BsType.AnyObject
-      | (loc, "Array") =>
-        open Ast.Type.ParameterInstantiation;
-        let params =
-          switch typeParameters {
-          | Some (_, {params: []}) =>
-            raise (ModulegenTypeError (not_supported "Array with no types" {...ctx, loc}))
-          | Some (_, {params}) => params
-          | None =>
-            raise (
-              ModulegenTypeError (not_supported "Array with more than one type" {...ctx, loc})
-            )
-          };
-        let (loc, inner_type) = List.hd params;
-        BsType.Array (type_to_bstype {...ctx, loc} inner_type)
-      | (_, "Function") => BsType.AnyFunction
-      | (loc, "Class") => raise (ModulegenTypeError (not_supported "Class types" {...ctx, loc}))
-      | _ => BsType.Named (string_of_id q)
-      }
+    | Unqualified q => named_to_bstype ctx typeParameters q
     };
   switch (t, typeParameters) {
   | (BsType.Array _, _) => t
   | (_, Some _) => raise (ModulegenTypeError (not_supported "Type parameters" ctx))
   | (_, None) => t
   }
-};
+}
+and named_to_bstype ctx type_params (loc, id) =>
+  switch id {
+  | "RegExp" => BsType.Regex
+  | "Object" => BsType.AnyObject
+  | "Array" =>
+    open Ast.Type.ParameterInstantiation;
+    let params =
+      switch type_params {
+      | Some (_, {params: []}) =>
+        raise (ModulegenTypeError (not_supported "Array with no types" {...ctx, loc}))
+      | Some (_, {params}) => params
+      | None =>
+        raise (ModulegenTypeError (not_supported "Array with more than one type" {...ctx, loc}))
+      };
+    let (loc, inner_type) = List.hd params;
+    BsType.Array (type_to_bstype {...ctx, loc} inner_type)
+  | "Function" => BsType.AnyFunction
+  | "Class" => raise (ModulegenTypeError (not_supported "Class types" {...ctx, loc}))
+  | _ => BsType.Named id
+  };
 
 module BsDecl = {
   type t =

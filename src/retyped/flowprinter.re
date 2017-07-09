@@ -18,7 +18,7 @@ let rec show_type =
     | BsType.Tuple types => "[" ^ (List.map show_type types |> String.concat ", ") ^ "]"
     | BsType.Array t => show_type t ^ "[]"
     | BsType.Typeof t => "typeof " ^ show_type t
-    | BsType.Function params rest_param return => {
+    | BsType.Function type_params params rest_param return => {
         let paramList =
           List.map
             (
@@ -35,6 +35,9 @@ let rec show_type =
           | Some (name, type_of) => "..." ^ name ^ ": " ^ show_type type_of
           | _ => ""
           };
+        (List.length type_params > 0 ? "<" : "") ^
+        String.concat ", " type_params ^
+        (List.length type_params > 0 ? ">" : "") ^
         "(" ^ String.concat ", " (List.concat [paramList, [restArg]]) ^ "): " ^ show_type return
       }
     | BsType.Null => "null"
