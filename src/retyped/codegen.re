@@ -85,7 +85,7 @@ let rec bstype_to_code ::ctx=intctx =>
     (Genutils.is_type_param ctx.type_params s ? "'" : "") ^ String.uncapitalize_ascii s |> Genutils.normalize_name
   | Union types => union_types_to_name types
   | Typeof t => raise (CodegenTypeError "Typeof can only operate on variable declarations")
-  | Promise t => "Js_promise.t " ^ bstype_to_code t
+  | Promise t => "Js_promise.t (" ^ bstype_to_code ::ctx t ^ ")"
   | StringLiteral _ =>
     raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
   | Function type_params params rest_param rt => {
