@@ -78,7 +78,8 @@ module BsType = {
     | Typeof t
     | Named string
     | Optional t
-    | StringLiteral string;
+    | StringLiteral string
+    | Promise t;
 };
 
 let string_of_id (loc: Loc.t, id: string) => id;
@@ -238,6 +239,7 @@ and generic_type_to_bstype ctx g => {
     };
   switch (t, typeParameters) {
   | (BsType.Array _, _) => t
+  | (BsType.Promise _, _) => t
   | (_, Some _) => raise (ModulegenTypeError (not_supported "Type parameters" ctx))
   | (_, None) => t
   }
@@ -260,6 +262,22 @@ and named_to_bstype ctx type_params (loc, id) =>
     BsType.Array (type_to_bstype {...ctx, loc} inner_type)
   | "Function" => BsType.AnyFunction
   | "Class" => raise (ModulegenTypeError (not_supported "Class types" {...ctx, loc}))
+  | "Promise" =>
+    open Ast.Type.ParameterInstantiation;
+    let (loc, inner_type) =
+      switch type_params {
+      | Some (_, {params: [type_param]}) => type_param
+      | None =>
+        raise (ModulegenTypeError "Promise must have exactly one type parameter. Found none.")
+      | Some (_, {params}) =>
+        raise (
+          ModulegenTypeError (
+            "Promise must have exactly one type parameter. Got: " ^
+            string_of_int @@ List.length params
+          )
+        )
+      };
+    BsType.Promise (type_to_bstype {...ctx, loc} inner_type)
   | _ => BsType.Named id
   };
 

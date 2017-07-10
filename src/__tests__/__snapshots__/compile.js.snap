@@ -67,6 +67,21 @@ exports[`Compile optional-param.re 1`] = `
 "
 `;
 
+exports[`Compile promise.re 1`] = `
+"external pOfString : unit => Js_promise.t string = \\"\\" [@@bs.module \\"promise\\"];
+
+external pOfNumber : unit => Js_promise.t float = \\"\\" [@@bs.module \\"promise\\"];
+
+external pOfArray : unit => Js_promise.t (array string) = \\"\\" [@@bs.module \\"promise\\"];
+
+external pOfVoid : unit => Js_promise.t unit = \\"\\" [@@bs.module \\"promise\\"];
+
+external argPromise : p::Js_promise.t string => unit = \\"\\" [@@bs.module \\"promise\\"];
+
+external somePromise : Js_promise.t (array float) = \\"\\" [@@bs.module \\"promise\\"];
+"
+`;
+
 exports[`Compile simple.re 1`] = `
 "external add : x::float => y::float => float = \\"\\" [@@bs.module \\"simple\\"];
 "
@@ -77,6 +92,29 @@ exports[`Compile simple-class.re 1`] = `
 
 external create_test : t::string => test =
   \\"Test\\" [@@bs.new] [@@bs.module \\"simple-class\\"];
+"
+`;
+
+exports[`Compile spread-args.re 1`] = `
+"external foo : bars::array float => unit = \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+
+external optFoo : bars::array float => unit =
+  \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+
+external bothFoo : anArg::string => bars::array float => unit =
+  \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+
+external bothOptFoo : anArg::string => bars::array float => unit =
+  \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+
+external soManyOpts : anArg::string? => unit => bars::array float => unit =
+  \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+
+external returns : anArg::string => bars::array float => float =
+  \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+
+external multipleLists : foos::array float => bars::array float => unit =
+  \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
 "
 `;
 
@@ -99,5 +137,10 @@ external number_or_string : union_of_number_or_string => number_or_string =
   \\"Array.prototype.shift.call\\" [@@bs.val];
 
 external double : x::number_or_string => float = \\"\\" [@@bs.module \\"union-type\\"];
+"
+`;
+
+exports[`Compile void-func.re 1`] = `
+"external voidFunc : unit => unit = \\"\\" [@@bs.module \\"void-func\\"];
 "
 `;
