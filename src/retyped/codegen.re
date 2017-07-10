@@ -66,7 +66,7 @@ let rec bstype_to_code ::ctx=intctx =>
   | Optional t => bstype_to_code ::ctx t
   | Unit => "unit"
   | Null => "null"
-  | Array t => "array " ^ bstype_to_code ::ctx t
+  | Array t => "array (" ^ bstype_to_code ::ctx t ^ ")"
   | Tuple types => Render.tupleType types::(List.map (bstype_to_code ::ctx) types) ()
   | Any => "'any"
   | AnyObject => "'any"
