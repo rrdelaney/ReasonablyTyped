@@ -65,6 +65,7 @@ let rec show_type =
       "{ " ^
       String.concat "; " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
     | BsType.Named s => s
+    | BsType.Promise t => "Promise<" ^ show_type t ^ ">"
     | BsType.StringLiteral t => "\"" ^ t ^ "\""
   );
 

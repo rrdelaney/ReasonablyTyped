@@ -27,6 +27,7 @@ let rec bstype_name =
   | Union types => union_types_to_name types
   | Class props => raise (CodegenTypeError "Unable to translate class into type name")
   | Optional t => bstype_name t
+  | Promise t => "promise_" ^ bstype_name t
   | StringLiteral _ =>
     raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
 and union_types_to_name types => {
@@ -84,6 +85,7 @@ let rec bstype_to_code ::ctx=intctx =>
     (Genutils.is_type_param ctx.type_params s ? "'" : "") ^ String.uncapitalize_ascii s |> Genutils.normalize_name
   | Union types => union_types_to_name types
   | Typeof t => raise (CodegenTypeError "Typeof can only operate on variable declarations")
+  | Promise t => "Js_promise.t " ^ bstype_to_code t
   | StringLiteral _ =>
     raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
   | Function type_params params rest_param rt => {
@@ -238,12 +240,13 @@ let rec declaration_to_code module_id types =>
       name::(Genutils.normalize_name id)
       module_id::(Genutils.unquote module_id)
       type_of::(bstype_to_code type_of)
-      splice::Modulegen.(
-        switch type_of {
-        | Function _ _ (Some _) _ => true 
-        | _ => false 
-        }
-      )
+      splice::
+        Modulegen.(
+          switch type_of {
+          | Function _ _ (Some _) _ => true
+          | _ => false
+          }
+        )
       ()
   | ExportsDecl type_of =>
     switch type_of {
