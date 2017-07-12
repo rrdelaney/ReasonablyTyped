@@ -14,14 +14,13 @@ let moduleDeclaration ::name ::statements () =>
   "module " ^ name ^ " = {\n" ^ String.concat "\n  " statements ^ "\n};";
 
 let classDeclaration ::name ::exported_as ::module_id ::class_type ::ctor_type () =>
-  "type " ^
+  "module " ^
   name ^
-  " = " ^
+  " = {\n  type t = " ^
   class_type ^
-  ";\n" ^
-  "external create_" ^
-  name ^
-  " : " ^ ctor_type ^ " = \"" ^ exported_as ^ "\" [@@bs.new] [@@bs.module \"" ^ module_id ^ "\"];";
+  ";\n  " ^
+  "external make : " ^
+  ctor_type ^ " = \"" ^ exported_as ^ "\" [@@bs.new] [@@bs.module \"" ^ module_id ^ "\"];\n};";
 
 let typeDeclaration ::name ::type_of () => "type " ^ name ^ " = " ^ type_of ^ ";";
 
@@ -80,7 +79,9 @@ let classType ::types () =>
   "Js.t {. " ^
   (
     List.filter (fun (key, type_of, _) => key != "constructor") types |>
-    List.map (fun (key, type_of, is_meth) => key ^ ": " ^ type_of ^ (is_meth ? "[@bs.meth]" : "")) |>
+    List.map (
+      fun (key, type_of, is_meth) => key ^ ": (" ^ type_of ^ ")" ^ (is_meth ? " [@bs.meth]" : "")
+    ) |>
     String.concat ", "
   ) ^ "}";
 

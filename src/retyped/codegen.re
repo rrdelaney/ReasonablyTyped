@@ -116,6 +116,13 @@ let rec bstype_to_code ::ctx=intctx =>
                 | Function _ => true
                 | _ => false
                 };
+              let type_of =
+                switch type_of {
+                | Function type_params params rest_param rt =>
+                  let new_params = List.map (fun (_, t) => ("", t)) params;
+                  Function type_params new_params rest_param rt
+                | any => any
+                };
               (key, bstype_to_code ::ctx type_of, is_meth)
             }
           )
@@ -214,12 +221,12 @@ module Precode = {
     };
 };
 
-let constructor_type class_name =>
+let constructor_type =
   fun
   | Class props => {
       let constructors = List.find_all (fun (id, _) => id == "constructor") props;
       if (List.length constructors == 0) {
-        bstype_to_code (Function [] [("_", Unit)] None (Named class_name))
+        bstype_to_code (Function [] [("_", Unit)] None (Named "t"))
       } else {
         let (_, cons_type) = List.hd constructors;
         bstype_to_code cons_type
@@ -277,8 +284,8 @@ let rec declaration_to_code module_id types =>
       name::id statements::(List.map (declaration_to_code id types) statements) ()
   | TypeDecl id type_of => ""
   | ClassDecl id type_of => {
-      let class_name = String.uncapitalize_ascii id;
-      let ctor_type = constructor_type class_name type_of;
+      let class_name = id;
+      let ctor_type = constructor_type type_of;
       let class_type = bstype_to_code type_of;
       Render.classDeclaration
         name::class_name
