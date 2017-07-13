@@ -229,6 +229,12 @@ let constructor_type =
         bstype_to_code (Function [] [("_", Unit)] None (Named "t"))
       } else {
         let (_, cons_type) = List.hd constructors;
+        let cons_type = switch cons_type {
+          | Function type_params params rest_param rt =>
+            let new_params = List.map (fun (_, t) => ("", t)) params;
+            Function type_params new_params rest_param (Named "t")
+          | any => any
+        };
         bstype_to_code cons_type
       }
     }

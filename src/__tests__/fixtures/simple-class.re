@@ -1,3 +1,4 @@
-type test = Js.t {. action : a::float => string [@bs.meth]};
-
-external create_test : t::string => test = "Test" [@@bs.new] [@@bs.module "simple-class"];
+module Test = {
+  type t = Js.t {. action : (float => string) [@bs.meth]};
+  external make : string => t = "Test" [@@bs.new] [@@bs.module "simple-class"];
+};
