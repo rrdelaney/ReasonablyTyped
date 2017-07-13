@@ -24,7 +24,8 @@ let rec bstype_name =
   | Array t => "array_" ^ bstype_name t
   | Tuple types =>
     "tuple_of_" ^ (List.map bstype_name types |> String.concat "_")
-  | Named s => String.uncapitalize_ascii s |> Genutils.normalize_name
+  | Named type_params s =>
+    String.uncapitalize_ascii s |> Genutils.normalize_name
   | Union types => union_types_to_name types
   | Class props =>
     raise (CodegenTypeError "Unable to translate class into type name")
@@ -95,9 +96,10 @@ let rec bstype_to_code ::ctx=intctx =>
   | Number => "float"
   | String => "string"
   | Boolean => "Js.boolean"
-  | Named s =>
+  | Named type_params s =>
     (Genutils.is_type_param ctx.type_params s ? "'" : "") ^
-    String.uncapitalize_ascii s |> Genutils.normalize_name
+    (String.uncapitalize_ascii s |> Genutils.normalize_name) ^
+    " " ^ (List.map bstype_to_code type_params |> String.concat " ")
   | Union types => union_types_to_name types
   | Typeof t =>
     raise (CodegenTypeError "Typeof can only operate on variable declarations")
@@ -264,14 +266,14 @@ let constructor_type =
       let constructors =
         List.find_all (fun (id, _) => id == "constructor") props;
       if (List.length constructors == 0) {
-        bstype_to_code (Function [] [("_", Unit)] None (Named "t"))
+        bstype_to_code (Function [] [("_", Unit)] None (Named [] "t"))
       } else {
         let (_, cons_type) = List.hd constructors;
         let cons_type =
           switch cons_type {
           | Function type_params params rest_param rt =>
             let new_params = List.map (fun (_, t) => ("", t)) params;
-            Function type_params new_params rest_param (Named "t")
+            Function type_params new_params rest_param (Named [] "t")
           | any => any
           };
         bstype_to_code cons_type
@@ -302,7 +304,7 @@ let rec declaration_to_code module_id types =>
       ()
   | ExportsDecl type_of =>
     switch type_of {
-    | Typeof (Named t) =>
+    | Typeof (Named _ t) =>
       Typetable.(
         switch (Typetable.get t types) {
         | Class =>

@@ -76,7 +76,8 @@ module BsType = {
     | Unit
     | Any
     | Typeof t
-    | Named string
+    /* type params, name */
+    | Named (list t) string
     | Optional t
     | StringLiteral string
     | Promise t;
@@ -283,18 +284,9 @@ and generic_type_to_bstype ctx g => {
   open Ast.Type.Generic;
   open Ast.Type.Generic.Identifier;
   let {id, typeParameters} = g;
-  let t =
-    switch id {
-    | Qualified (_, q) => BsType.Named (string_of_id q.id)
-    | Unqualified q => named_to_bstype ctx typeParameters q
-    };
-  switch (t, typeParameters) {
-  | (BsType.Array _, _) => t
-  | (BsType.Promise _, _) => t
-  | (BsType.Typeof _, _) => t
-  | (_, Some _) =>
-    raise (ModulegenTypeError (not_supported "Type parameters" ctx))
-  | (_, None) => t
+  switch id {
+  | Qualified (_, q) => BsType.Named [] (string_of_id q.id)
+  | Unqualified q => named_to_bstype ctx typeParameters q
   }
 }
 and named_to_bstype ctx type_params (loc, id) =>
@@ -329,12 +321,12 @@ and named_to_bstype ctx type_params (loc, id) =>
       | Some (_, {params: [type_param]}) => type_param
       | None =>
         raise (
-          ModulegenTypeError "Promise must have exactly one type parameter. Found none."
+          ModulegenTypeError "Class must have exactly one type parameter. Found none."
         )
       | Some (_, {params}) =>
         raise (
           ModulegenTypeError (
-            "Promise must have exactly one type parameter. Got: " ^
+            "Class must have exactly one type parameter. Got: " ^
             string_of_int @@ List.length params
           )
         )
@@ -358,7 +350,19 @@ and named_to_bstype ctx type_params (loc, id) =>
         )
       };
     BsType.Promise (type_to_bstype {...ctx, loc} inner_type)
-  | _ => BsType.Named id
+  | _ =>
+    if (String.length id > 0 && id.[0] == '$') {
+      raise (ModulegenTypeError (not_supported ("Built-in type " ^ id) ctx))
+    } else {
+      let type_params =
+        switch type_params {
+        | None => []
+        | Some (_, {params}) =>
+          List.map
+            (fun (loc, type_of) => type_to_bstype {...ctx, loc} type_of) params
+        };
+      BsType.Named type_params id
+    }
   };
 
 module BsDecl = {
