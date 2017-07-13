@@ -307,9 +307,7 @@ let rec declaration_to_code module_id types =>
         switch (Typetable.get t types) {
         | Class =>
           Render.alias
-            name::(Genutils.to_module_name module_id)
-            value::("create_" ^ bstype_to_code (Named t))
-            ()
+            name::(Genutils.to_module_name module_id) value::(t ^ ".make") ()
         | None => raise (CodegenTypeError "typeof can only operate on classes")
         | NotFound => raise (CodegenTypeError ("Unknown identifier: " ^ t))
         | Variable s =>
