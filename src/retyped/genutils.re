@@ -23,6 +23,8 @@ let normalize_name name => normalize_chars name |> normalize_keywords;
 
 let to_module_name str => normalize_name (unquote str);
 
+let to_type_param str => "'" ^ String.uncapitalize_ascii str |> normalize_name;
+
 let rec uniq =
   fun
   | [] => []

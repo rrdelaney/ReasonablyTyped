@@ -1,28 +1,47 @@
-let variableDeclaration ::name ::module_id ::type_of ::is_exports=false ::splice=false ::code="" () =>
+let variableDeclaration
+    ::name
+    ::module_id
+    ::type_of
+    ::is_exports=false
+    ::splice=false
+    ::code=""
+    () =>
   if is_exports {
-    "external " ^ name ^ " : " ^ type_of ^ " = \"" ^ module_id ^ "\" [@@bs.module];\n"
+    "external " ^
+    name ^ " : " ^ type_of ^ " = \"" ^ module_id ^ "\" [@@bs.module];\n"
   } else {
     "external " ^
     name ^
     " : " ^
     type_of ^
     " = \"" ^
-    code ^ "\" [@@bs.module \"" ^ module_id ^ "\"]" ^ (splice ? "[@@bs.splice]" : "") ^ ";\n"
+    code ^
+    "\" [@@bs.module \"" ^
+    module_id ^ "\"]" ^ (splice ? "[@@bs.splice]" : "") ^ ";\n"
   };
 
 let moduleDeclaration ::name ::statements () =>
   "module " ^ name ^ " = {\n" ^ String.concat "\n  " statements ^ "\n};";
 
-let classDeclaration ::name ::exported_as ::module_id ::class_type ::ctor_type () =>
+let classDeclaration
+    ::name
+    ::exported_as
+    ::module_id
+    ::class_type
+    ::ctor_type
+    () =>
   "module " ^
   name ^
   " = {\n  type t = " ^
   class_type ^
   ";\n  " ^
   "external make : " ^
-  ctor_type ^ " = \"" ^ exported_as ^ "\" [@@bs.new] [@@bs.module \"" ^ module_id ^ "\"];\n};";
+  ctor_type ^
+  " = \"" ^
+  exported_as ^ "\" [@@bs.new] [@@bs.module \"" ^ module_id ^ "\"];\n};";
 
-let typeDeclaration ::name ::type_of () => "type " ^ name ^ " = " ^ type_of ^ ";";
+let typeDeclaration ::name ::type_of () =>
+  "type " ^ name ^ " = " ^ type_of ^ ";";
 
 let objectType ::statements () =>
   "Js.t {. " ^
@@ -67,20 +86,33 @@ let unionType ::name ::types () =>
   name ^
   " = " ^
   (
-    List.map (fun (type_name, type_of) => "\n| " ^ type_name ^ " (" ^ type_of ^ ")") types |>
+    List.map
+      (fun (type_name, type_of) => "\n| " ^ type_name ^ " (" ^ type_of ^ ")")
+      types |>
     String.concat ""
   ) ^
   ";\n\ntype " ^
   name ^
   ";\n\nexternal " ^
-  name ^ " : union_of_" ^ name ^ " => " ^ name ^ " = \"Array.prototype.shift.call\" [@@bs.val];\n";
+  name ^
+  " : union_of_" ^
+  name ^ " => " ^ name ^ " = \"Array.prototype.shift.call\" [@@bs.val];\n";
 
 let classType ::types () =>
   "Js.t {. " ^
   (
-    List.filter (fun (key, type_of, _) => key != "constructor") types |>
+    List.filter (fun (key, _, type_of, _) => key != "constructor") types |>
     List.map (
-      fun (key, type_of, is_meth) => key ^ ": (" ^ type_of ^ ")" ^ (is_meth ? " [@bs.meth]" : "")
+      fun (key, type_params, type_of, is_meth) =>
+        key ^
+        ": " ^
+        (
+          switch type_params {
+          | [] => ""
+          | p => String.concat " " p ^ " . "
+          }
+        ) ^
+        "(" ^ type_of ^ ")" ^ (is_meth ? " [@bs.meth]" : "")
     ) |>
     String.concat ", "
   ) ^ "}";
