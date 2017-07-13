@@ -146,9 +146,7 @@ let rec bstype_to_code ::ctx=intctx =>
               let method_type_params =
                 switch type_of {
                 | Function type_params _ _ _ =>
-
-                    List.map Genutils.to_type_param type_params
-
+                  List.map Genutils.to_type_param type_params
                 | any => []
                 };
               (key, method_type_params, bstype_to_code ::ctx type_of, is_meth)
