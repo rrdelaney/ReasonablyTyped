@@ -10,7 +10,12 @@ module Second = {
   external third : unit => unit = "" [@@bs.module "multiple-modules/second"];
 };
 
-module NestedThird = {
-  external third : unit => string = "" [@@bs.module "multiple-modules/nested/third"];
-  external fourth : unit => unit = "" [@@bs.module "multiple-modules/nested/third"];
+module Third = {
+  external third : unit => string = "" [@@bs.module "multiple-modules/third"];
+  external fourth : unit => unit = "" [@@bs.module "multiple-modules/third"];
+};
+
+module ThirdInner = {
+  external third : unit => string = "" [@@bs.module "multiple-modules/third/inner"];
+  external fourth : unit => unit = "" [@@bs.module "multiple-modules/third/inner"];
 };

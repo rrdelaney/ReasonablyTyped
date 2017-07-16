@@ -12,7 +12,12 @@ declare module 'multiple-modules/second' {
   declare export function third(): void
 }
 
-declare module 'multiple-modules/nested/third' {
+declare module 'multiple-modules/third' {
+  declare export function third(): string 
+  declare export function fourth(): void
+}
+
+declare module 'multiple-modules/third/inner' {
   declare export function third(): string 
   declare export function fourth(): void
 }
