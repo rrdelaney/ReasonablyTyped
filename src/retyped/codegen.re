@@ -22,19 +22,14 @@ let rec bstype_name =
   | Function _ => "func"
   | Typeof t => "typeof_" ^ bstype_name t
   | Array t => "array_" ^ bstype_name t
-  | Tuple types =>
-    "tuple_of_" ^ (List.map bstype_name types |> String.concat "_")
-  | Named type_params s =>
-    String.uncapitalize_ascii s |> Genutils.normalize_name
+  | Tuple types => "tuple_of_" ^ (List.map bstype_name types |> String.concat "_")
+  | Named type_params s => String.uncapitalize_ascii s |> Genutils.normalize_name
   | Union types => union_types_to_name types
-  | Class props =>
-    raise (CodegenTypeError "Unable to translate class into type name")
+  | Class props => raise (CodegenTypeError "Unable to translate class into type name")
   | Optional t => bstype_name t
   | Promise t => "promise_" ^ bstype_name t
   | StringLiteral _ =>
-    raise (
-      CodegenTypeError "Cannot use string literal outside the context of a union type"
-    )
+    raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
 and union_types_to_name types => {
   let is_string_union =
     List.for_all
@@ -50,10 +45,7 @@ and union_types_to_name types => {
         (
           fun
           | StringLiteral s => s
-          | _ =>
-            raise (
-              CodegenTypeError "Expected a StringLiteral when converting to union type"
-            )
+          | _ => raise (CodegenTypeError "Expected a StringLiteral when converting to union type")
         )
         types;
     Render.unionTypeStrings types::type_names ()
@@ -75,8 +67,7 @@ let rec bstype_to_code ::ctx=intctx =>
   | Unit => "unit"
   | Null => "null"
   | Array t => "array (" ^ bstype_to_code ::ctx t ^ ")"
-  | Tuple types =>
-    Render.tupleType types::(List.map (bstype_to_code ::ctx) types) ()
+  | Tuple types => Render.tupleType types::(List.map (bstype_to_code ::ctx) types) ()
   | Any => "'any"
   | AnyObject => "'any"
   | AnyFunction => "'any"
@@ -84,13 +75,7 @@ let rec bstype_to_code ::ctx=intctx =>
     Render.objectType
       statements::(
         List.map
-          (
-            fun (key, type_of) => (
-              Genutils.normalize_name key,
-              bstype_to_code ::ctx type_of
-            )
-          )
-          props
+          (fun (key, type_of) => (Genutils.normalize_name key, bstype_to_code ::ctx type_of)) props
       )
       ()
   | Number => "float"
@@ -101,13 +86,10 @@ let rec bstype_to_code ::ctx=intctx =>
     (String.uncapitalize_ascii s |> Genutils.normalize_name) ^
     " " ^ (List.map bstype_to_code type_params |> String.concat " ")
   | Union types => union_types_to_name types
-  | Typeof t =>
-    raise (CodegenTypeError "Typeof can only operate on variable declarations")
+  | Typeof t => raise (CodegenTypeError "Typeof can only operate on variable declarations")
   | Promise t => "Js_promise.t (" ^ bstype_to_code ::ctx t ^ ")"
   | StringLiteral _ =>
-    raise (
-      CodegenTypeError "Cannot use string literal outside the context of a union type"
-    )
+    raise (CodegenTypeError "Cannot use string literal outside the context of a union type")
   | Function type_params params rest_param rt => {
       let ctx = {type_params: type_params @ ctx.type_params};
       let print (name, param) => (
@@ -122,9 +104,7 @@ let rec bstype_to_code ::ctx=intctx =>
           | None => None
           }
         )
-        has_optional::(
-          List.exists (fun (name, t) => Genutils.is_optional t) params
-        )
+        has_optional::(List.exists (fun (name, t) => Genutils.is_optional t) params)
         return_type::(bstype_to_code ::ctx rt)
         ()
     }
@@ -147,8 +127,7 @@ let rec bstype_to_code ::ctx=intctx =>
                 };
               let method_type_params =
                 switch type_of {
-                | Function type_params _ _ _ =>
-                  List.map Genutils.to_type_param type_params
+                | Function type_params _ _ _ => List.map Genutils.to_type_param type_params
                 | any => []
                 };
               (key, method_type_params, bstype_to_code ::ctx type_of, is_meth)
@@ -172,10 +151,8 @@ module Precode = {
         | None => []
         }
       ) |> List.flatten
-    | Object types =>
-      List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
-    | Class types =>
-      List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
+    | Object types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
+    | Class types => List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
     | Optional t => bstype_precode t
     | Array t => bstype_precode t
     | Dict t => bstype_precode t
@@ -196,12 +173,7 @@ module Precode = {
       let union_name = bstype_name t;
       let union_types =
         List.map
-          (
-            fun type_of => (
-              String.capitalize_ascii (bstype_name type_of),
-              bstype_to_code type_of
-            )
-          )
+          (fun type_of => (String.capitalize_ascii (bstype_name type_of), bstype_to_code type_of))
           types;
       Render.unionType name::union_name types::union_types ()
     }
@@ -212,9 +184,7 @@ module Precode = {
       fun (key, type_of) =>
         bstype_precode type_of @ [
           Render.variableDeclaration
-            name::(
-              (var_name == "" ? Genutils.to_module_name module_id : var_name) ^ "_apply"
-            )
+            name::((var_name == "" ? Genutils.to_module_name module_id : var_name) ^ "_apply")
             module_id::(Genutils.to_module_name module_id)
             type_of::(bstype_to_code type_of)
             code::var_name
@@ -235,9 +205,7 @@ module Precode = {
         let precode = bstype_precode type_of;
         let type_decl =
           Render.typeDeclaration
-            name::(String.uncapitalize_ascii id)
-            type_of::(bstype_to_code type_of)
-            ();
+            name::(String.uncapitalize_ascii id) type_of::(bstype_to_code type_of) ();
         List.append precode [type_decl]
       }
     | ClassDecl _ type_of => bstype_precode type_of
@@ -263,8 +231,7 @@ module Precode = {
 let constructor_type =
   fun
   | Class props => {
-      let constructors =
-        List.find_all (fun (id, _) => id == "constructor") props;
+      let constructors = List.find_all (fun (id, _) => id == "constructor") props;
       if (List.length constructors == 0) {
         bstype_to_code (Function [] [("_", Unit)] None (Named [] "t"))
       } else {
@@ -307,15 +274,11 @@ let rec declaration_to_code module_id types =>
     | Typeof (Named _ t) =>
       Typetable.(
         switch (Typetable.get t types) {
-        | Class =>
-          Render.alias
-            name::(Genutils.to_module_name module_id) value::(t ^ ".make") ()
+        | Class => Render.alias name::(Genutils.to_module_name module_id) value::(t ^ ".make") ()
         | None => raise (CodegenTypeError "typeof can only operate on classes")
         | NotFound => raise (CodegenTypeError ("Unknown identifier: " ^ t))
-        | Variable s =>
-          raise (CodegenTypeError ("Cannot use typeof with variable: " ^ s))
-        | _ =>
-          raise (CodegenTypeError "Invalid type from table being rendered")
+        | Variable s => raise (CodegenTypeError ("Cannot use typeof with variable: " ^ s))
+        | _ => raise (CodegenTypeError "Invalid type from table being rendered")
         }
       )
     | _ =>
@@ -328,9 +291,7 @@ let rec declaration_to_code module_id types =>
     }
   | ModuleDecl id statements =>
     Render.moduleDeclaration
-      name::id
-      statements::(List.map (declaration_to_code id types) statements)
-      ()
+      name::id statements::(List.map (declaration_to_code id types) statements) ()
   | TypeDecl id type_of => ""
   | ClassDecl id type_of => {
       let class_name = id;
@@ -346,22 +307,60 @@ let rec declaration_to_code module_id types =>
     }
   | InterfaceDecl id type_of =>
     Render.typeDeclaration
-      name::(String.uncapitalize_ascii id)
-      type_of::(bstype_to_code type_of)
-      ();
+      name::(String.uncapitalize_ascii id) type_of::(bstype_to_code type_of) ();
+
+
+/** Str is missing regex primitive implementations for the JS target.
+ *  js_of_ocaml Regexp isn't available native.
+ *  The use case was simple enough to just make this.
+ */
+let rec split sep str acc => {
+  open String;
+  let len = length str;
+  let first_index =
+    try (Some (index str sep)) {
+    | Not_found => None
+    };
+  switch first_index {
+  | None => List.append acc [str]
+  | Some i =>
+    let beginning = min len (i + 1);
+    split
+      sep
+      (sub str beginning (len - beginning))
+      (List.append acc [sub str 0 (max 0 (beginning - 1))])
+  }
+};
 
 let program_to_code program =>
   switch program {
   | ModuleDecl id statements =>
     let typeof_table = Typetable.create statements;
+    /* is the module nested ? */
+    let inner_module_name =
+      switch (split '/' id []) {
+      | [_, x, ...xs] =>
+        let module_name =
+          [x, ...xs] |> List.map String.capitalize_ascii |> String.concat "" |> (
+            /* drop the terminal ' from quotes */
+            fun s =>
+              String.sub s 0 (String.length s - 1)
+          );
+        Some ("module " ^ module_name ^ " = {\n")
+      | _ => None
+      };
+    let (module_prefix, module_postfix) =
+      switch inner_module_name {
+      | Some n => (n, "\n};\n")
+      | None => ("", "")
+      };
     /*Typetable.show typeof_table;*/
     Some (
       Genutils.to_module_name id,
+      module_prefix ^
       Precode.from_program program ^
-      String.concat
-        "\n" (List.map (declaration_to_code id typeof_table) statements)
+      String.concat "\n" (List.map (declaration_to_code id typeof_table) statements) ^ module_postfix
     )
-  | TypeDecl _ _ =>
-    Some ("", Precode.from_program program ^ declaration_to_code "" [] program)
+  | TypeDecl _ _ => Some ("", Precode.from_program program ^ declaration_to_code "" [] program)
   | _ => None
   };
