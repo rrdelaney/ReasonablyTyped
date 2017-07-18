@@ -309,17 +309,42 @@ let rec declaration_to_code module_id types =>
     Render.typeDeclaration
       name::(String.uncapitalize_ascii id) type_of::(bstype_to_code type_of) ();
 
+
+/** Str is missing regex primitive implementations for the JS target.
+ *  js_of_ocaml Regexp isn't available native.
+ *  The use case was simple enough to just make this.
+ */
+let rec split sep str acc => {
+  open String;
+  let len = length str;
+  let first_index =
+    try (Some (index str sep)) {
+    | Not_found => None
+    };
+  switch first_index {
+  | None => List.append acc [str]
+  | Some i =>
+    let beginning = min len (i + 1);
+    split
+      sep
+      (sub str beginning (len - beginning))
+      (List.append acc [sub str 0 (max 0 (beginning - 1))])
+  }
+};
+
 let program_to_code program =>
   switch program {
   | ModuleDecl id statements =>
     let typeof_table = Typetable.create statements;
     /* is the module nested ? */
     let inner_module_name =
-      switch (Regexp.split (Regexp.regexp_string "/") id) {
+      switch (split '/' id []) {
       | [_, x, ...xs] =>
         let module_name =
           [x, ...xs] |> List.map String.capitalize_ascii |> String.concat "" |> (
-            fun names => Regexp.global_replace (Regexp.regexp "\\'") names ""
+            /* drop the terminal ' from quotes */
+            fun s =>
+              String.sub s 0 (String.length s - 1)
           );
         Some ("module " ^ module_name ^ " = {\n")
       | _ => None

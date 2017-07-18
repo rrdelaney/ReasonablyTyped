@@ -2,4 +2,4 @@
 
 (library
   ((name retyped)
-    (libraries (js_of_ocaml sedlex flow_parser))))
+    (libraries (sedlex flow_parser))))
