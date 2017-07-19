@@ -6,8 +6,8 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-        keys:
-          - opam-deps-{{ checksum "ReasonablyTyped.opam" }}
+          keys:
+            - opam-deps-{{ checksum "ReasonablyTyped.opam" }}
       - run:
           name: 'Install OCaml dependencies'
           command: 'eval $(opam config env) && opam install -y reason sedlex js_of_ocaml flow_parser'
