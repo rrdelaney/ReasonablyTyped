@@ -1,5 +1,5 @@
 opam-version: "1.2"
-name: "ReasonNativeProject"
+name: "ReasonablyTyped"
 version: "0.8.0"
 maintainer: "Ryan Delaney <rrdelaney@outlook.com>"
 authors: [
@@ -7,7 +7,7 @@ authors: [
 ]
 license: "MIT"
 homepage: "https://github.com/rrdelaney/ReasonablyTyped"
-doc: "https://rrdelaney.github.io/ReasonablyTyped/"
+doc: "https://rrdelaney.github.io/ReasonablyTyped"
 bug-reports: "https://github.com/rrdelaney/ReasonablyTyped/issues"
 dev-repo: "git://github.com/rrdelaney/ReasonablyTyped.git"
 tags: [ "reason" "example" ]
@@ -19,5 +19,6 @@ depends: [
   "reason"  {= "2.0.0"}
   "sedlex"
   "js_of_ocaml"
+  "flow_parser"
 ]
 available: [ ocaml-version >= "4.02" & ocaml-version < "4.05" ]
