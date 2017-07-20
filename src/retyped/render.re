@@ -29,10 +29,13 @@ let classDeclaration
     ::module_id
     ::class_type
     ::ctor_type
+    ::type_params
     () =>
   "module " ^
   name ^
-  " = {\n  type t = " ^
+  " = {\n  type t " ^
+  type_params ^
+  " = " ^
   class_type ^
   ";\n  " ^
   "external make : " ^

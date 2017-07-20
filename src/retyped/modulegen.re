@@ -67,7 +67,8 @@ module BsType = {
     | AnyFunction
     | Object (list (string, t))
     | AnyObject
-    | Class (list (string, t))
+    /* type params, properties */
+    | Class (list string) (list (string, t))
     | Union (list t)
     | Array t
     | Dict t
@@ -105,6 +106,37 @@ let string_of_key (key: Ast.Expression.Object.Property.key) =>
       )
     )
   };
+
+let extract_type_params ctx type_parameters => {
+  open Ast.Type.ParameterDeclaration;
+  open Ast.Type.ParameterDeclaration.TypeParam;
+  let get_params (loc, {name, bound, variance, default}) =>
+    switch (bound, variance, default) {
+    | (Some _, _, _) =>
+      raise (
+        ModulegenTypeError (
+          not_supported "Type parameter bounds" {...ctx, loc}
+        )
+      )
+    | (_, Some _, _) =>
+      raise (
+        ModulegenTypeError (
+          not_supported "Type parameter variance" {...ctx, loc}
+        )
+      )
+    | (_, _, Some _) =>
+      raise (
+        ModulegenTypeError (
+          not_supported "Type parameter defaults" {...ctx, loc}
+        )
+      )
+    | _ => name
+    };
+  switch type_parameters {
+  | Some (loc, {params}) => List.map get_params params
+  | None => []
+  }
+};
 
 let rec type_annotation_to_bstype (annotation: option Ast.Type.annotation) =>
   switch annotation {
@@ -171,36 +203,8 @@ and type_to_bstype (ctx: context) =>
 and function_type_to_bstype ctx f => {
   open Ast.Type.Function;
   open Ast.Type.Function.Param;
-  open Ast.Type.ParameterDeclaration;
-  open Ast.Type.ParameterDeclaration.TypeParam;
   let {params: (formal, rest), returnType: (rt_loc, rt), typeParameters} = f;
-  let get_params (loc, {name, bound, variance, default}) =>
-    switch (bound, variance, default) {
-    | (Some _, _, _) =>
-      raise (
-        ModulegenTypeError (
-          not_supported "Type parameter bounds" {...ctx, loc}
-        )
-      )
-    | (_, Some _, _) =>
-      raise (
-        ModulegenTypeError (
-          not_supported "Type parameter variance" {...ctx, loc}
-        )
-      )
-    | (_, _, Some _) =>
-      raise (
-        ModulegenTypeError (
-          not_supported "Type parameter defaults" {...ctx, loc}
-        )
-      )
-    | _ => name
-    };
-  let type_params =
-    switch typeParameters {
-    | Some (loc, {params}) => List.map get_params params
-    | None => []
-    };
+  let type_params = extract_type_params ctx typeParameters;
   let arg_types
       (
         (_, {typeAnnotation: (loc, t), name, optional}): Ast.Type.Function.Param.t
@@ -386,9 +390,14 @@ let declaration_to_jsdecl loc =>
         let bstype = type_annotation_to_bstype (Some typeAnnotation);
         BsDecl.FuncDecl (string_of_id id) bstype
       }
-    | Class (loc, {id, body: (_, interface)}) =>
+    | Class (loc, {id, typeParameters, body: (_, interface)}) =>
       BsDecl.ClassDecl
-        (string_of_id id) (BsType.Class (object_type_to_bstype interface))
+        (string_of_id id)
+        (
+          BsType.Class
+            (extract_type_params intctx typeParameters)
+            (object_type_to_bstype interface)
+        )
     | _ =>
       raise (
         ModulegenDeclError (
@@ -407,9 +416,14 @@ let rec statement_to_program (loc, s) =>
       declaration_to_jsdecl loc declaration
     | Ast.Statement.DeclareFunction declare_function =>
       declaration_to_jsdecl loc (Function (loc, declare_function))
-    | Ast.Statement.DeclareClass {id, body: (_, interface)} =>
+    | Ast.Statement.DeclareClass {id, typeParameters, body: (_, interface)} =>
       BsDecl.ClassDecl
-        (string_of_id id) (BsType.Class (object_type_to_bstype interface))
+        (string_of_id id)
+        (
+          BsType.Class
+            (extract_type_params intctx typeParameters)
+            (object_type_to_bstype interface)
+        )
     | Ast.Statement.TypeAlias {id, right: (loc, t)} =>
       BsDecl.TypeDecl (string_of_id id) (type_to_bstype {...intctx, loc} t)
     | Ast.Statement.DeclareModule s => declare_module_to_jsdecl loc s
