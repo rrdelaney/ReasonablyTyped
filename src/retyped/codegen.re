@@ -274,7 +274,10 @@ let constructor_type =
           switch cons_type {
           | Function type_params params rest_param rt =>
             let new_params = List.map (fun (_, t) => ("", t)) params;
-            Function type_params new_params rest_param (Named [] "t")
+            let cons_type_params =
+              List.map (fun name => Named [] name) type_params;
+            Function
+              type_params new_params rest_param (Named cons_type_params "t")
           | any => any
           };
         bstype_to_code ctx::{type_params: type_params} cons_type
