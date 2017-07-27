@@ -1,5 +1,5 @@
 declare module 'type-decl' {
-  declare type StringOptions = { value: string }
+  declare type stringOptions = { value: string }
 
-  declare export function test(s: string, options: StringOptions): string
+  declare export function test(s: string, options: stringOptions): string
 }
