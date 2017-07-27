@@ -97,9 +97,19 @@ let rec bstype_to_code ::ctx=intctx =>
   | String => "string"
   | Boolean => "Js.boolean"
   | Named type_params s =>
-    (Genutils.is_type_param ctx.type_params s ? "'" : "") ^
-    (String.uncapitalize_ascii s |> Genutils.normalize_name) ^
-    " " ^ (List.map (bstype_to_code ::ctx) type_params |> String.concat " ")
+    (
+      if (Genutils.is_type_param ctx.type_params s) {
+        "'" ^ (String.uncapitalize_ascii s |> Genutils.normalize_name) ^ " "
+      } else if (
+        String.capitalize_ascii s == s
+      ) {
+        s ^ ".t "
+      } else {
+        (String.uncapitalize_ascii s |> Genutils.normalize_name) ^ " "
+      }
+    ) ^ (
+      List.map (bstype_to_code ::ctx) type_params |> String.concat " "
+    )
   | Union types => union_types_to_name types
   | Typeof t =>
     raise (CodegenTypeError "Typeof can only operate on variable declarations")
