@@ -3,6 +3,8 @@ jobs:
   build:
     docker:
       - image: rrdelaney/circleci2-jbuilder
+        environment:
+          TERM: xterm
     steps:
       - checkout
       - restore_cache:
