@@ -41,6 +41,12 @@ let is_optional type_of =>
 
 let is_type_param params t => List.exists (fun p => p == t) params;
 
+let is_class t table =>
+  switch (Typetable.get t table) {
+  | Class => true
+  | _ => false
+  };
+
 module Uid = {
   let get () => string_of_int 1;
   let uniq prefix => prefix ^ "_" ^ get ();

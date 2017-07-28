@@ -63,9 +63,12 @@ and union_types_to_name types => {
   }
 };
 
-type context = {type_params: list string};
+type context = {
+  type_params: list string,
+  type_table: list (string, Typetable.t)
+};
 
-let intctx = {type_params: []};
+let intctx = {type_params: [], type_table: []};
 
 let rec bstype_to_code ::ctx=intctx =>
   fun
@@ -101,7 +104,7 @@ let rec bstype_to_code ::ctx=intctx =>
       if (Genutils.is_type_param ctx.type_params s) {
         "'" ^ (String.uncapitalize_ascii s |> Genutils.normalize_name) ^ " "
       } else if (
-        String.capitalize_ascii s == s
+        Genutils.is_class s ctx.type_table
       ) {
         s ^ ".t "
       } else {
@@ -119,7 +122,7 @@ let rec bstype_to_code ::ctx=intctx =>
       CodegenTypeError "Cannot use string literal outside the context of a union type"
     )
   | Function type_params params rest_param rt => {
-      let ctx = {type_params: type_params @ ctx.type_params};
+      let ctx = {...ctx, type_params: type_params @ ctx.type_params};
       let print (name, param) => (
         name,
         bstype_to_code ::ctx param ^ (Genutils.is_optional param ? "?" : "")
@@ -161,7 +164,7 @@ let rec bstype_to_code ::ctx=intctx =>
                   List.map Genutils.to_type_param type_params
                 | any => []
                 };
-              let ctx = {type_params: type_params @ ctx.type_params};
+              let ctx = {...ctx, type_params: type_params @ ctx.type_params};
               (key, method_type_params, bstype_to_code ::ctx type_of, is_meth)
             }
           )
@@ -271,13 +274,15 @@ module Precode = {
     };
 };
 
-let constructor_type =
+let constructor_type type_table =>
   fun
   | Class type_params props => {
       let constructors =
         List.find_all (fun (id, _) => id == "constructor") props;
       if (List.length constructors == 0) {
-        bstype_to_code (Function [] [("_", Unit)] None (Named [] "t"))
+        bstype_to_code
+          ctx::{...intctx, type_table}
+          (Function [] [("_", Unit)] None (Named [] "t"))
       } else {
         let (_, cons_type) = List.hd constructors;
         let cons_type =
@@ -290,24 +295,24 @@ let constructor_type =
               type_params new_params rest_param (Named cons_type_params "t")
           | any => any
           };
-        bstype_to_code ctx::{type_params: type_params} cons_type
+        bstype_to_code ctx::{type_table, type_params} cons_type
       }
     }
   | _ => raise (CodegenConstructorError "Type has no constructor");
 
-let rec declaration_to_code module_id types =>
+let rec declaration_to_code module_id type_table =>
   fun
   | VarDecl id type_of =>
     Render.variableDeclaration
       name::(Genutils.normalize_name id)
       module_id::(Genutils.unquote module_id)
-      type_of::(bstype_to_code type_of)
+      type_of::(bstype_to_code ctx::{...intctx, type_table} type_of)
       ()
   | FuncDecl id type_of =>
     Render.variableDeclaration
       name::(Genutils.normalize_name id)
       module_id::(Genutils.unquote module_id)
-      type_of::(bstype_to_code type_of)
+      type_of::(bstype_to_code ctx::{...intctx, type_table} type_of)
       splice::
         Modulegen.(
           switch type_of {
@@ -320,7 +325,7 @@ let rec declaration_to_code module_id types =>
     switch type_of {
     | Typeof (Named _ t) =>
       Typetable.(
-        switch (Typetable.get t types) {
+        switch (Typetable.get t type_table) {
         | Class =>
           Render.alias
             name::(Genutils.to_module_name module_id) value::(t ^ ".make") ()
@@ -335,7 +340,7 @@ let rec declaration_to_code module_id types =>
     | _ =>
       Render.variableDeclaration
         name::(Genutils.to_module_name module_id)
-        type_of::(bstype_to_code type_of)
+        type_of::(bstype_to_code ctx::{...intctx, type_table} type_of)
         module_id::(Genutils.unquote module_id)
         is_exports::true
         ()
@@ -343,7 +348,7 @@ let rec declaration_to_code module_id types =>
   | ModuleDecl id statements =>
     Render.moduleDeclaration
       name::id
-      statements::(List.map (declaration_to_code id types) statements)
+      statements::(List.map (declaration_to_code id type_table) statements)
       ()
   | TypeDecl id type_of => ""
   | ClassDecl id type_of => {
@@ -354,8 +359,8 @@ let rec declaration_to_code module_id types =>
         | _ => []
         };
       let class_name = id;
-      let ctor_type = constructor_type type_of;
-      let class_type = bstype_to_code ctx::{type_params: type_params} type_of;
+      let ctor_type = constructor_type type_table type_of;
+      let class_type = bstype_to_code ctx::{type_table, type_params} type_of;
       Render.classDeclaration
         name::class_name
         exported_as::id
@@ -368,7 +373,7 @@ let rec declaration_to_code module_id types =>
   | InterfaceDecl id type_of =>
     Render.typeDeclaration
       name::(String.uncapitalize_ascii id)
-      type_of::(bstype_to_code type_of)
+      type_of::(bstype_to_code ctx::{...intctx, type_table} type_of)
       ();
 
 
@@ -416,7 +421,6 @@ let program_to_code program =>
       | Some n => (n, "\n};\n")
       | None => ("", "")
       };
-    /*Typetable.show typeof_table;*/
     Some (
       Genutils.to_module_name id,
       module_prefix ^
