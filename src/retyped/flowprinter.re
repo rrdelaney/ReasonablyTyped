@@ -64,10 +64,7 @@ let rec show_type =
             )
             props
         ) ^ " }"
-    | BsType.Class type_params props =>
-      (List.length type_params > 0 ? "<" : "") ^
-      String.concat ", " type_params ^
-      (List.length type_params > 0 ? ">" : "") ^
+    | BsType.Class props =>
       "{ " ^
       String.concat
         "; " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
@@ -91,14 +88,19 @@ let rec show_decl =
     | BsDecl.ModuleDecl name decls =>
       "declare module " ^
       name ^ " {\n  " ^ String.concat "\n  " (List.map show_decl decls) ^ "\n}"
-    | BsDecl.TypeDecl id of_type =>
+    | BsDecl.TypeDecl id type_params of_type =>
       "declare type " ^ id ^ " = " ^ show_type of_type
     | BsDecl.FuncDecl name of_type =>
       "declare export function " ^ name ^ show_type of_type
     | BsDecl.VarDecl name of_type =>
       "declare export var " ^ name ^ ": " ^ show_type of_type
-    | BsDecl.ClassDecl name of_type =>
-      "declare class " ^ name ^ " " ^ show_type of_type
-    | BsDecl.InterfaceDecl name of_type =>
+    | BsDecl.ClassDecl name type_params of_type =>
+      "declare class " ^
+      name ^
+      " " ^
+      (List.length type_params > 0 ? "<" : "") ^
+      String.concat ", " type_params ^
+      (List.length type_params > 0 ? ">" : "") ^ show_type of_type
+    | BsDecl.InterfaceDecl name type_params of_type =>
       "declare interface " ^ name ^ " " ^ show_type of_type
   );

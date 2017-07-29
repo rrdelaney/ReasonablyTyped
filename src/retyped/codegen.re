@@ -27,7 +27,7 @@ let rec bstype_name =
   | Named type_params s =>
     String.uncapitalize_ascii s |> Genutils.normalize_name
   | Union types => union_types_to_name types
-  | Class type_params props =>
+  | Class props =>
     raise (CodegenTypeError "Unable to translate class into type name")
   | Optional t => bstype_name t
   | Promise t => "promise_" ^ bstype_name t
@@ -141,7 +141,7 @@ let rec bstype_to_code ::ctx=intctx =>
         return_type::(bstype_to_code ::ctx rt)
         ()
     }
-  | Class type_params props => {
+  | Class props => {
       let class_types =
         List.map
           (
@@ -164,7 +164,6 @@ let rec bstype_to_code ::ctx=intctx =>
                   List.map Genutils.to_type_param type_params
                 | any => []
                 };
-              let ctx = {...ctx, type_params: type_params @ ctx.type_params};
               (key, method_type_params, bstype_to_code ::ctx type_of, is_meth)
             }
           )
@@ -188,7 +187,7 @@ module Precode = {
       ) |> List.flatten
     | Object types =>
       List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
-    | Class _type_params types =>
+    | Class types =>
       List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
     | Optional t => bstype_precode t
     | Array t => bstype_precode t
@@ -245,7 +244,7 @@ module Precode = {
         }
       )
     | FuncDecl _ type_of => bstype_precode type_of
-    | TypeDecl id type_of => {
+    | TypeDecl id _ type_of => {
         let precode = bstype_precode type_of;
         let type_decl =
           Render.typeDeclaration
@@ -254,8 +253,8 @@ module Precode = {
             ();
         List.append precode [type_decl]
       }
-    | ClassDecl _ type_of => bstype_precode type_of
-    | InterfaceDecl _ type_of => bstype_precode type_of
+    | ClassDecl _ _ type_of => bstype_precode type_of
+    | InterfaceDecl _ _ type_of => bstype_precode type_of
     | ExportsDecl type_of =>
       bstype_precode type_of @ (
         switch type_of {
@@ -269,14 +268,14 @@ module Precode = {
     | ModuleDecl id statements =>
       List.map (decl_to_precode id) statements |> List.flatten |> Genutils.uniq |>
       String.concat "\n"
-    | TypeDecl _ _ => decl_to_precode "" program |> String.concat "\n"
+    | TypeDecl _ _ _ => decl_to_precode "" program |> String.concat "\n"
     | _ => ""
     };
 };
 
 let constructor_type type_table =>
   fun
-  | Class type_params props => {
+  | Class props => {
       let constructors =
         List.find_all (fun (id, _) => id == "constructor") props;
       if (List.length constructors == 0) {
@@ -295,7 +294,7 @@ let constructor_type type_table =>
               type_params new_params rest_param (Named cons_type_params "t")
           | any => any
           };
-        bstype_to_code ctx::{type_table, type_params} cons_type
+        bstype_to_code ctx::{...intctx, type_table} cons_type
       }
     }
   | _ => raise (CodegenConstructorError "Type has no constructor");
@@ -350,14 +349,9 @@ let rec declaration_to_code module_id type_table =>
       name::id
       statements::(List.map (declaration_to_code id type_table) statements)
       ()
-  | TypeDecl id type_of => ""
-  | ClassDecl id type_of => {
-      let type_params =
-        switch type_of {
-        | Class type_params _props =>
-          List.map Genutils.to_type_param type_params
-        | _ => []
-        };
+  | TypeDecl id type_params type_of => ""
+  | ClassDecl id type_params type_of => {
+      let type_param_names = List.map Genutils.to_type_param type_params;
       let class_name = id;
       let ctor_type = constructor_type type_table type_of;
       let class_type = bstype_to_code ctx::{type_table, type_params} type_of;
@@ -367,10 +361,10 @@ let rec declaration_to_code module_id type_table =>
         module_id::(Genutils.unquote module_id)
         ::class_type
         ::ctor_type
-        type_params::(String.concat " " type_params)
+        type_params::(String.concat " " type_param_names)
         ()
     }
-  | InterfaceDecl id type_of =>
+  | InterfaceDecl id type_params type_of =>
     Render.typeDeclaration
       name::(String.uncapitalize_ascii id)
       type_of::(bstype_to_code ctx::{...intctx, type_table} type_of)
@@ -428,7 +422,7 @@ let program_to_code program =>
       String.concat
         "\n" (List.map (declaration_to_code id typeof_table) statements) ^ module_postfix
     )
-  | TypeDecl _ _ =>
+  | TypeDecl _ _ _ =>
     Some ("", Precode.from_program program ^ declaration_to_code "" [] program)
   | _ => None
   };

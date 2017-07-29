@@ -21,8 +21,8 @@ let create statements =>
     Modulegen.BsDecl.(
       fun
       | VarDecl id type_of => (id, None)
-      | ClassDecl id type_of => (id, Class)
-      | TypeDecl id type_of => (id, Type type_of)
+      | ClassDecl id type_params type_of => (id, Class)
+      | TypeDecl id type_params type_of => (id, Type type_of)
       | FuncDecl id type_of => (id, Type type_of)
       | _ => ("", None)
     )

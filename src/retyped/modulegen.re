@@ -67,8 +67,7 @@ module BsType = {
     | AnyFunction
     | Object (list (string, t))
     | AnyObject
-    /* type params, properties */
-    | Class (list string) (list (string, t))
+    | Class (list (string, t))
     | Union (list t)
     | Array t
     | Dict t
@@ -375,9 +374,9 @@ module BsDecl = {
     | FuncDecl string BsType.t
     | ModuleDecl string (list t)
     | ExportsDecl BsType.t
-    | TypeDecl string BsType.t
-    | ClassDecl string BsType.t
-    | InterfaceDecl string BsType.t;
+    | TypeDecl string (list string) BsType.t
+    | ClassDecl string (list string) BsType.t
+    | InterfaceDecl string (list string) BsType.t;
 };
 
 let declaration_to_jsdecl loc =>
@@ -393,11 +392,8 @@ let declaration_to_jsdecl loc =>
     | Class (loc, {id, typeParameters, body: (_, interface)}) =>
       BsDecl.ClassDecl
         (string_of_id id)
-        (
-          BsType.Class
-            (extract_type_params intctx typeParameters)
-            (object_type_to_bstype interface)
-        )
+        (extract_type_params intctx typeParameters)
+        (BsType.Class (object_type_to_bstype interface))
     | _ =>
       raise (
         ModulegenDeclError (
@@ -419,13 +415,10 @@ let rec statement_to_program (loc, s) =>
     | Ast.Statement.DeclareClass {id, typeParameters, body: (_, interface)} =>
       BsDecl.ClassDecl
         (string_of_id id)
-        (
-          BsType.Class
-            (extract_type_params intctx typeParameters)
-            (object_type_to_bstype interface)
-        )
+        (extract_type_params intctx typeParameters)
+        (BsType.Class (object_type_to_bstype interface))
     | Ast.Statement.TypeAlias {id, right: (loc, t)} =>
-      BsDecl.TypeDecl (string_of_id id) (type_to_bstype {...intctx, loc} t)
+      BsDecl.TypeDecl (string_of_id id) [] (type_to_bstype {...intctx, loc} t)
     | Ast.Statement.DeclareModule s => declare_module_to_jsdecl loc s
     | Ast.Statement.DeclareVariable {id, typeAnnotation} =>
       if (string_of_id id == "exports") {
@@ -434,12 +427,6 @@ let rec statement_to_program (loc, s) =>
         BsDecl.VarDecl
           (string_of_id id) (type_annotation_to_bstype typeAnnotation)
       }
-    | Ast.Statement.Debugger =>
-      raise (
-        ModulegenStatementError (
-          not_supported "Debugger statments" {...intctx, loc}
-        )
-      )
     | Ast.Statement.InterfaceDeclaration s => declare_interface_to_jsdecl loc s
     | _ =>
       raise (
@@ -486,5 +473,5 @@ and declare_interface_to_jsdecl loc s => {
   let (body_loc, obj_type) = body;
   let body_type = Object obj_type;
   BsDecl.InterfaceDecl
-    (string_of_id id) (type_to_bstype {...intctx, loc: body_loc} body_type)
+    (string_of_id id) [] (type_to_bstype {...intctx, loc: body_loc} body_type)
 };
