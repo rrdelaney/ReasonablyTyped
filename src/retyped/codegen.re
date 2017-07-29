@@ -244,12 +244,14 @@ module Precode = {
         }
       )
     | FuncDecl _ type_of => bstype_precode type_of
-    | TypeDecl id _ type_of => {
+    | TypeDecl id type_params type_of => {
         let precode = bstype_precode type_of;
+        let type_param_names = List.map Genutils.to_type_param type_params;
         let type_decl =
           Render.typeDeclaration
             name::(String.uncapitalize_ascii id)
-            type_of::(bstype_to_code type_of)
+            type_of::(bstype_to_code ctx::{...intctx, type_params} type_of)
+            type_params::(String.concat " " type_param_names)
             ();
         List.append precode [type_decl]
       }
@@ -364,11 +366,14 @@ let rec declaration_to_code module_id type_table =>
         type_params::(String.concat " " type_param_names)
         ()
     }
-  | InterfaceDecl id type_params type_of =>
-    Render.typeDeclaration
-      name::(String.uncapitalize_ascii id)
-      type_of::(bstype_to_code ctx::{...intctx, type_table} type_of)
-      ();
+  | InterfaceDecl id type_params type_of => {
+      let type_param_names = List.map Genutils.to_type_param type_params;
+      Render.typeDeclaration
+        name::(String.uncapitalize_ascii id)
+        type_of::(bstype_to_code ctx::{type_table, type_params} type_of)
+        type_params::(String.concat " " type_param_names)
+        ()
+    };
 
 
 /** Str is missing regex primitive implementations for the JS target.

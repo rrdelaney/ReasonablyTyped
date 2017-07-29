@@ -417,8 +417,11 @@ let rec statement_to_program (loc, s) =>
         (string_of_id id)
         (extract_type_params intctx typeParameters)
         (BsType.Class (object_type_to_bstype interface))
-    | Ast.Statement.TypeAlias {id, right: (loc, t)} =>
-      BsDecl.TypeDecl (string_of_id id) [] (type_to_bstype {...intctx, loc} t)
+    | Ast.Statement.TypeAlias {id, typeParameters, right: (loc, t)} =>
+      BsDecl.TypeDecl
+        (string_of_id id)
+        (extract_type_params intctx typeParameters)
+        (type_to_bstype {...intctx, loc} t)
     | Ast.Statement.DeclareModule s => declare_module_to_jsdecl loc s
     | Ast.Statement.DeclareVariable {id, typeAnnotation} =>
       if (string_of_id id == "exports") {
@@ -455,14 +458,8 @@ and declare_interface_to_jsdecl loc s => {
   open Ast.Statement.Interface;
   open Ast.Type;
   let {id, body, typeParameters, extends} = s;
-  switch (typeParameters, extends) {
-  | (Some _tp, _extends) =>
-    raise (
-      ModulegenStatementError (
-        not_supported "Generic Intefaces" {...intctx, loc}
-      )
-    )
-  | (_tp, [(loc, _extends), ...t]) =>
+  switch extends {
+  | [(loc, _extends), ...t] =>
     raise (
       ModulegenStatementError (
         not_supported "Inheriting in interfaces" {...intctx, loc}
@@ -473,5 +470,7 @@ and declare_interface_to_jsdecl loc s => {
   let (body_loc, obj_type) = body;
   let body_type = Object obj_type;
   BsDecl.InterfaceDecl
-    (string_of_id id) [] (type_to_bstype {...intctx, loc: body_loc} body_type)
+    (string_of_id id)
+    (extract_type_params intctx typeParameters)
+    (type_to_bstype {...intctx, loc: body_loc} body_type)
 };

@@ -43,8 +43,8 @@ let classDeclaration
   " = \"" ^
   exported_as ^ "\" [@@bs.new] [@@bs.module \"" ^ module_id ^ "\"];\n};";
 
-let typeDeclaration ::name ::type_of () =>
-  "type " ^ name ^ " = " ^ type_of ^ ";";
+let typeDeclaration ::name ::type_of ::type_params () =>
+  "type " ^ name ^ " " ^ type_params ^ " = " ^ type_of ^ ";";
 
 let objectType ::statements () =>
   "Js.t {. " ^
