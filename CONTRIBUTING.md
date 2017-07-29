@@ -1,10 +1,8 @@
-# Contributing
+# Contributing Guide
 
-Right now the areas that need the most help are:
-- Union types
-- Generics
+## Developing
 
-# Building
+### Building
 
 There's a Makefile for the project, so compilation _should_ be easy. There's two targets right now,
 native and JS. Native is mostly used for testing and not distributed any where. The JS target is what
@@ -35,7 +33,7 @@ $ make js
 The JS target runs `refmt` against all output, and is what is distributed through npm. Make
 sure you test with this target before shipping a release!
 
-# How is the code structured?
+### How is the code structured?
 
 The main compiler is written in Reason, in the package `src/retyped`. This exports a compiler
 and a compile function that is used by the two entry points: `src/cli.re` and `src/retyped_node.re`.
@@ -63,7 +61,7 @@ both is glued together in `src/retyped.re`. Code snippets themselves are generat
                                                 *----------*
 ```
 
-# Testing
+### Testing
 
 To run tests:
 
@@ -73,8 +71,8 @@ $ npm test
 
 Make sure you build the JS files first!
 
-ReasonablyTyped uses Jest for testing. The main test suite can be found in `test`. Currently, the test
-suite looks at all the `.js` files in `test/fixtures`, compiles them, and compares the result to a
+ReasonablyTyped uses Jest for testing. The main test suite can be found in `src/__test__`. Currently, the test
+suite looks at all the `.js` files in `__test__/fixtures`, compiles them, and compares the result to a
 corresponding `.re` file, as well as several snapshot tests.
 
 There is also a test suite against all FlowTyped definitions. Run this with:
