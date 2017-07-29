@@ -45,6 +45,8 @@ external create_store : initialState::state => store =
   "Store" [@@bs.new] [@@bs.module "classes"];
 ```
 
+## Docs
+
 <p><details>
 <summary><b><a href="https://rrdelaney.github.io/ReasonablyTyped">Examples</a></b></summary>
 </details></p>
@@ -120,3 +122,7 @@ Compiles a libdef, formats the result, and handles errors cleanly
 - [ ] Generics
 - [ ] Built-ins like Promises and React
 </details></p>
+
+## Status
+
+[![CircleCI](https://circleci.com/gh/rrdelaney/ReasonablyTyped.svg?style=svg)](https://circleci.com/gh/rrdelaney/ReasonablyTyped)
