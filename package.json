@@ -29,8 +29,9 @@
   "scripts": {
     "test": "jest compile format",
     "test:flow-typed": "jest flow-typed --noStackTrace",
+    "test:definitely-typed": "jest definitely-typed --noStackTrace",
     "test:all": "jest",
-    "test:collect": "jest flow-typed --noStackTrace --json --outputFile=docs/test-results.json"
+    "test:collect": "jest definitely-typed flow-typed --noStackTrace --json --outputFile=docs/test-results.json"
   },
   "devDependencies": {
     "glob": "^7.1.2",
@@ -42,7 +43,8 @@
       "/flow/",
       "/reason-tools/",
       "/fixtures/",
-      "/flow-typed/"
+      "/flow-typed/",
+      "/definitely-typed/"
     ],
     "modulePathIgnorePatterns": [
       "/flow/"
