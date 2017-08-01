@@ -5,22 +5,22 @@ const { compile } = require('../../lib')
 
 const getLibDef = fname =>
   new Promise((resolve, reject) => {
-      readFile(fname, (err, data) => {
-        if (err) return reject(err)
-        resolve(data.toString())
-      })
+    readFile(fname, (err, data) => {
+      if (err) return reject(err)
+      resolve(data.toString())
+    })
   })
 
-const basedir = 'src/__tests__/definitely-typed/types/'
-const files = glob.sync(`${basedir}**/*.d.ts`)
+const basedir = 'src/__tests__/definitely-typed/types'
+const files = glob.sync(`${basedir}/**/index.d.ts`)
 
 files.forEach(f => {
-    const libraryName = f.replace(basedir, '')
+  const libraryName = f.replace(basedir, '')
 
-    test(`Library ${libraryName}`, async () => {
-        const libDef = await getLibDef(f)
-        const bsInterface = compile(libDef, libraryName)
+  test(`TypeScript Library ${libraryName}`, async () => {
+    const libDef = await getLibDef(f)
+    const bsInterface = compile(libDef, libraryName)
 
-        expect(bsInterface).toBeTruthy()
-    })
+    expect(bsInterface).toBeTruthy()
+  })
 })
