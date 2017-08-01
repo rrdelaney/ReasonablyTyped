@@ -10,12 +10,7 @@
     "type": "git",
     "url": "https://github.com/rrdelaney/ReasonablyTyped"
   },
-  "keywords": [
-    "Reason",
-    "OCaml",
-    "Bucklescript",
-    "Flow"
-  ],
+  "keywords": ["Reason", "OCaml", "Bucklescript", "Flow"],
   "author": "Ryan Delaney <rrdelaney@outlook.com>",
   "license": "MIT",
   "bugs": {
@@ -28,9 +23,10 @@
   },
   "scripts": {
     "test": "jest compile format",
-    "test:flow-typed": "jest flow-typed --noStackTrace",
+    "test:flow-typed": "jest flow-typed --noStackTrace --silent",
+    "test:definitely-typed": "jest definitely-typed --noStackTrace --silent",
     "test:all": "jest",
-    "test:collect": "jest flow-typed --noStackTrace --json --outputFile=docs/test-results.json"
+    "test:collect": "jest definitely-typed flow-typed --noStackTrace --json --outputFile=docs/test-results.json"
   },
   "devDependencies": {
     "glob": "^7.1.2",
@@ -42,14 +38,10 @@
       "/flow/",
       "/reason-tools/",
       "/fixtures/",
-      "/flow-typed/"
+      "/flow-typed/",
+      "/definitely-typed/"
     ],
-    "modulePathIgnorePatterns": [
-      "/flow/"
-    ],
-    "transformIgnorePatterns": [
-      "/node_modules/",
-      "/lib/"
-    ]
+    "modulePathIgnorePatterns": ["/flow/"],
+    "transformIgnorePatterns": ["/node_modules/", "/lib/"]
   }
 }

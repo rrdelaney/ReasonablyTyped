@@ -11,14 +11,13 @@ const getLibDef = fname =>
     })
   })
 
-const files = glob.sync(
-  'src/__tests__/flow-typed/definitions/npm/**/!(test)*.js'
-)
+const basedir = 'src/__tests__/definitely-typed/types'
+const files = glob.sync(`${basedir}/**/index.d.ts`)
 
 files.forEach(f => {
-  const libraryName = path.basename(f, '.js')
+  const libraryName = f.replace(basedir, '')
 
-  test(`Flow Library ${libraryName}`, async () => {
+  test(`TypeScript Library ${libraryName}`, async () => {
     const libDef = await getLibDef(f)
     const bsInterface = compile(libDef, libraryName)
 

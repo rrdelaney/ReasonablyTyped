@@ -10,3 +10,6 @@ test: js
 
 test-flow: js
 	npm run test:flow-typed
+
+test-typescript: js
+	npm run test:definitely-typed
