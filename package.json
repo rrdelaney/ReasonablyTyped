@@ -10,7 +10,12 @@
     "type": "git",
     "url": "https://github.com/rrdelaney/ReasonablyTyped"
   },
-  "keywords": ["Reason", "OCaml", "Bucklescript", "Flow"],
+  "keywords": [
+    "Reason",
+    "OCaml",
+    "Bucklescript",
+    "Flow"
+  ],
   "author": "Ryan Delaney <rrdelaney@outlook.com>",
   "license": "MIT",
   "bugs": {
@@ -26,11 +31,21 @@
     "test:flow-typed": "jest flow-typed --noStackTrace --silent",
     "test:definitely-typed": "jest definitely-typed --noStackTrace --silent",
     "test:all": "jest",
-    "test:collect": "jest definitely-typed flow-typed --noStackTrace --json --outputFile=docs/test-results.json"
+    "test:collect": "jest definitely-typed flow-typed --noStackTrace --json --outputFile=docs/test-results.json",
+    "precommit": "lint-staged"
   },
   "devDependencies": {
     "glob": "^7.1.2",
-    "jest": "^20.0.4"
+    "husky": "^0.14.3",
+    "jest": "^20.0.4",
+    "lint-staged": "^4.0.2",
+    "prettier": "^1.5.3"
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --no-semi --single-quote --write",
+      "git add"
+    ]
   },
   "jest": {
     "testPathIgnorePatterns": [
@@ -41,7 +56,12 @@
       "/flow-typed/",
       "/definitely-typed/"
     ],
-    "modulePathIgnorePatterns": ["/flow/"],
-    "transformIgnorePatterns": ["/node_modules/", "/lib/"]
+    "modulePathIgnorePatterns": [
+      "/flow/"
+    ],
+    "transformIgnorePatterns": [
+      "/node_modules/",
+      "/lib/"
+    ]
   }
 }
