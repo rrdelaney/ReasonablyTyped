@@ -26,7 +26,7 @@
     "test:flow-typed": "jest flow-typed --noStackTrace --silent",
     "test:definitely-typed": "jest definitely-typed --noStackTrace --silent",
     "test:all": "jest",
-    "test:collect": "jest definitely-typed flow-typed --noStackTrace --json --outputFile=docs/test-results.json"
+    "test:collect": "jest flow-typed --noStackTrace --json --outputFile=docs/test-results.json"
   },
   "devDependencies": {
     "glob": "^7.1.2",
