@@ -39,10 +39,10 @@ $ retyped compile class.js
 
 type state = Js.t {. id : float, storeName : string};
 
-type store = Js.t {. state : state, update : nextState::state => unit [@bs.meth]};
-
-external create_store : initialState::state => store =
-  "Store" [@@bs.new] [@@bs.module "classes"];
+module Store = {
+  type t = Js.t {. state : state, update : (state => unit) [@bs.meth]};
+  external make : state => t = "Store" [@@bs.new] [@@bs.module "classes"];
+};
 ```
 
 ## Docs
