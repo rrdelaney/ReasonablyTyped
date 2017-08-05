@@ -179,14 +179,7 @@ and type_to_bstype (ctx: context) =>
       ...List.map (fun (_, t) => type_to_bstype ctx t) rest
     ]
   | Generic g => generic_type_to_bstype ctx g
-  | StringLiteral {value} =>
-    raise (
-      ModulegenTypeError (
-        not_supported
-          "StringLiteral"
-          ctx /* BsType.StringLiteral value */
-      )
-    )
+  | StringLiteral {value} => BsType.StringLiteral value
   | NumberLiteral _ =>
     raise (ModulegenTypeError (not_supported "NumberLiteral" ctx))
   | BooleanLiteral _ =>
