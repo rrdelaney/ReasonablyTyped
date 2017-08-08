@@ -47,7 +47,7 @@ let typeDeclaration ::name ::type_of ::type_params () =>
   "type " ^ name ^ " " ^ type_params ^ " = " ^ type_of ^ ";";
 
 let objectType ::statements () =>
-  "Js.t {. " ^
+  "Js.t {.. " ^
   (
     List.filter (fun (key, type_of) => key != "__callProperty") statements |>
     List.map (fun (key, type_of) => key ^ ": " ^ type_of) |>

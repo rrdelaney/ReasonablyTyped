@@ -32,19 +32,19 @@ external add : x::number_or_string => y::number_or_string => float =
 `;
 
 exports[`Compile generics.re 1`] = `
-"type thing 'x = Js.t {. lst : array 'x};
+"type thing 'x = Js.t {.. lst : array 'x};
 
 module Adder = {
   type t 'x = Js.t {. add : ('x => 'x) [@bs.meth]};
   external make : 'x => t 'x = \\"Adder\\" [@@bs.new] [@@bs.module \\"generics\\"];
 };
 
-type subOpts 'm 'n = Js.t {. m : 'm, n : Adder.t 'n};
+type subOpts 'm 'n = Js.t {.. m : 'm, n : Adder.t 'n};
 "
 `;
 
 exports[`Compile interface.re 1`] = `
-"type options = Js.t {. op : string};
+"type options = Js.t {.. op : string};
 
 external apply : x::float => y::float => options::options? => unit => float =
   \\"\\" [@@bs.module \\"interface\\"];
@@ -91,9 +91,9 @@ external add : a::float => b::float => float = \\"\\" [@@bs.module \\"numbers\\"
 `;
 
 exports[`Compile object-type.re 1`] = `
-"type subscribeOptions = Js.t {. start : float, stop : float};
+"type subscribeOptions = Js.t {.. start : float, stop : float};
 
-type testOptions = Js.t {. method : string, subscribe : subscribeOptions};
+type testOptions = Js.t {.. method : string, subscribe : subscribeOptions};
 
 external test : options::testOptions => string = \\"\\" [@@bs.module \\"object-type\\"];
 "
@@ -159,7 +159,7 @@ external multipleLists : foos::array float => bars::array float => unit =
 `;
 
 exports[`Compile type-decl.re 1`] = `
-"type stringOptions = Js.t {. value : string};
+"type stringOptions = Js.t {.. value : string};
 
 external test : s::string => options::stringOptions => string =
   \\"\\" [@@bs.module \\"type-decl\\"];
