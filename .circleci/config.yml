@@ -19,7 +19,7 @@ jobs:
             - ~/.opam
       - run:
           name: 'Build JS files'
-          command: 'eval $(opam config env) && jbuilder build src/retyped_node.bc.js'
+          command: 'eval $(opam config env) && jbuilder build src/retyped_node.bc.js && cp _build/default/src/retyped_node.bc.js lib/retyped_node.js'
       - run:
           name: 'Install JS dependencies'
           command: 'npm install'
