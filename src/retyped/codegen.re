@@ -398,10 +398,9 @@ let rec split sep str acc => {
   }
 };
 
-let program_to_code program =>
+let program_to_code program typeof_table =>
   switch program {
   | ModuleDecl id statements =>
-    let typeof_table = Typetable.create statements;
     /* is the module nested ? */
     let inner_module_name =
       switch (split '/' id []) {
