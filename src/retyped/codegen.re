@@ -31,6 +31,7 @@ let rec bstype_name =
     raise (CodegenTypeError "Unable to translate class into type name")
   | Optional t => bstype_name t
   | Promise t => "promise_" ^ bstype_name t
+  | Date => "date"
   | StringLiteral _ =>
     raise (
       CodegenTypeError "Cannot use string literal outside the context of a union type"
@@ -169,7 +170,8 @@ let rec bstype_to_code ::ctx=intctx =>
           )
           props;
       Render.classType types::class_types ()
-    };
+    }
+    | Date => "Js.Date.t";
 
 module Precode = {
   let rec bstype_precode def =>

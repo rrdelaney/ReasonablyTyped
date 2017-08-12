@@ -81,6 +81,7 @@ let rec show_type =
       )
     | BsType.Promise t => "Promise<" ^ show_type t ^ ">"
     | BsType.StringLiteral t => "\"" ^ t ^ "\""
+    | BsType.Date => "Date"
   );
 
 let rec show_decl =

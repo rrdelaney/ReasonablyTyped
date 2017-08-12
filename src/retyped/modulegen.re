@@ -80,7 +80,8 @@ module BsType = {
     | Named (list t) string
     | Optional t
     | StringLiteral string
-    | Promise t;
+    | Promise t
+    | Date;
 };
 
 let string_of_id (loc: Loc.t, id: string) => id;
@@ -287,6 +288,7 @@ and generic_type_to_bstype ctx g => {
 }
 and named_to_bstype ctx type_params (loc, id) =>
   switch id {
+  | "Date" => BsType.Date
   | "RegExp" => BsType.Regex
   | "Object" => BsType.AnyObject
   | "Array" =>
