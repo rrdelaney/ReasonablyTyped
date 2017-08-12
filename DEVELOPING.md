@@ -1,8 +1,6 @@
-# Contributing Guide
+# Development Guide
 
-## Developing
-
-### Building
+## Building
 
 There's a Makefile for the project, so compilation _should_ be easy. There's two targets right now,
 native and JS. Native is mostly used for testing and not distributed any where. The JS target is what
@@ -33,7 +31,7 @@ $ make js
 The JS target runs `refmt` against all output, and is what is distributed through npm. Make
 sure you test with this target before shipping a release!
 
-### How is the code structured?
+## How is the code structured?
 
 The main compiler is written in Reason, in the package `src/retyped`. This exports a compiler
 and a compile function that is used by the two entry points: `src/cli.re` and `src/retyped_node.re`.
@@ -61,7 +59,7 @@ both is glued together in `src/retyped.re`. Code snippets themselves are generat
                                                 *----------*
 ```
 
-### Testing
+## Testing
 
 To run tests:
 
