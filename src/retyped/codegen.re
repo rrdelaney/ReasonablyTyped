@@ -129,7 +129,17 @@ let rec bstype_to_code ::ctx=intctx =>
         switch param {
         | Union types =>
           Render.inlineUnion
-            types::(List.map (fun t => ("Union", "union")) types) ()
+            types::(
+              List.map
+                (
+                  fun t => (
+                    String.capitalize_ascii (bstype_name t),
+                    bstype_to_code t
+                  )
+                )
+                types
+            )
+            ()
         | t => bstype_to_code ::ctx t ^ (Genutils.is_optional param ? "?" : "")
         }
       );
