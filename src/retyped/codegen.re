@@ -126,7 +126,12 @@ let rec bstype_to_code ::ctx=intctx =>
       let ctx = {...ctx, type_params: type_params @ ctx.type_params};
       let print (name, param) => (
         name,
-        bstype_to_code ::ctx param ^ (Genutils.is_optional param ? "?" : "")
+        switch param {
+        | Union types =>
+          Render.inlineUnion
+            types::(List.map (fun t => ("Union", "union")) types) ()
+        | t => bstype_to_code ::ctx t ^ (Genutils.is_optional param ? "?" : "")
+        }
       );
       Render.functionType
         formal_params::(List.map print params)
@@ -171,7 +176,7 @@ let rec bstype_to_code ::ctx=intctx =>
           props;
       Render.classType types::class_types ()
     }
-    | Date => "Js.Date.t";
+  | Date => "Js.Date.t";
 
 module Precode = {
   let rec bstype_precode def =>

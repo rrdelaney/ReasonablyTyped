@@ -101,6 +101,13 @@ let unionType ::name ::types () =>
   " : union_of_" ^
   name ^ " => " ^ name ^ " = \"Array.prototype.shift.call\" [@@bs.val];\n";
 
+let inlineUnion ::types () =>
+  "([" ^
+  (
+    List.map (fun (type_name, type_of) => "`" ^ type_name ^ " " ^ type_of) types |>
+    String.concat " | "
+  ) ^ "] [@bs.unwrap])";
+
 let classType ::types () =>
   "Js.t {. " ^
   (
