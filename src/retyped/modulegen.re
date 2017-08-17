@@ -384,11 +384,16 @@ let declaration_to_jsdecl loc =>
         let bstype = type_annotation_to_bstype (Some typeAnnotation);
         BsDecl.FuncDecl (string_of_id id) bstype
       }
-    | Class (loc, {id, typeParameters, body: (_, interface)}) =>
+    | Class (loc, {id, typeParameters, body: (_, interface), extends}) =>
+    if (List.length extends === 0) {
       BsDecl.ClassDecl
         (string_of_id id)
         (extract_type_params intctx typeParameters)
         (BsType.Class (object_type_to_bstype interface))
+    }
+        else {  raise (ModulegenDeclError (
+         "Inheritance not supported: " ^ loc_to_msg loc))
+      }
     | _ =>
       raise (
         ModulegenDeclError (
