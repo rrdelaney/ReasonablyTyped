@@ -17,6 +17,12 @@
     "url": "https://github.com/rrdelaney/ReasonablyTyped/issues"
   },
   "homepage": "https://github.com/rrdelaney/ReasonablyTyped",
+  "files": [
+    "lib/cli.js",
+    "lib/index.js",
+    "lib/refmt_node.js",
+    "lib/retyped_node.js"
+  ],
   "dependencies": {
     "flowgen": "^1.2.0",
     "yargs": "^8.0.1"
