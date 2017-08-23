@@ -1,6 +1,6 @@
 {
   "name": "reasonably-typed",
-  "version": "0.10.0",
+  "version": "0.11.0-0",
   "description": "Converts flow definitions to Bucklescript definitions",
   "bin": {
     "retyped": "./lib/cli.js"
@@ -10,7 +10,12 @@
     "type": "git",
     "url": "https://github.com/rrdelaney/ReasonablyTyped"
   },
-  "keywords": ["Reason", "OCaml", "Bucklescript", "Flow"],
+  "keywords": [
+    "Reason",
+    "OCaml",
+    "Bucklescript",
+    "Flow"
+  ],
   "author": "Ryan Delaney <rrdelaney@outlook.com>",
   "license": "MIT",
   "bugs": {
@@ -43,7 +48,10 @@
     "prettier": "^1.5.3"
   },
   "lint-staged": {
-    "*.js": ["prettier --no-semi --single-quote --write", "git add"]
+    "*.js": [
+      "prettier --no-semi --single-quote --write",
+      "git add"
+    ]
   },
   "jest": {
     "testPathIgnorePatterns": [
@@ -54,7 +62,12 @@
       "/flow-typed/",
       "/definitely-typed/"
     ],
-    "modulePathIgnorePatterns": ["/flow/"],
-    "transformIgnorePatterns": ["/node_modules/", "/lib/"]
+    "modulePathIgnorePatterns": [
+      "/flow/"
+    ],
+    "transformIgnorePatterns": [
+      "/node_modules/",
+      "/lib/"
+    ]
   }
 }
