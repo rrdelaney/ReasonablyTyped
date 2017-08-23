@@ -47,6 +47,13 @@ let is_class t table =>
   | _ => false
   };
 
+let is_string_union =
+  List.for_all (
+    fun
+    | StringLiteral _ => true
+    | _ => false
+  );
+
 module Uid = {
   let get () => string_of_int 1;
   let uniq prefix => prefix ^ "_" ^ get ();

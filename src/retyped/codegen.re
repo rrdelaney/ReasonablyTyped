@@ -127,6 +127,18 @@ let rec bstype_to_code ::ctx=intctx =>
       let print (name, param) => (
         name,
         switch param {
+        | Union types when Genutils.is_string_union types =>
+          Render.unionTypeStrings
+            types::(
+              List.map
+                (
+                  fun
+                  | StringLiteral s => s
+                  | _ => ""
+                )
+                types
+            )
+            ()
         | Union types =>
           Render.inlineUnion
             types::(
@@ -219,16 +231,8 @@ module Precode = {
     | Dict t => bstype_precode t
     | _ => [""]
     }
-  and string_of_union_types t types => {
-    let is_string_union =
-      List.for_all
-        (
-          fun
-          | StringLiteral _ => true
-          | _ => false
-        )
-        types;
-    if is_string_union {
+  and string_of_union_types t types =>
+    if (Genutils.is_string_union types) {
       ""
     } else {
       let union_name = bstype_name t;
@@ -242,8 +246,7 @@ module Precode = {
           )
           types;
       Render.unionType name::union_name types::union_types ()
-    }
-  };
+    };
   let call_property_precode module_id var_name statements =>
     List.filter (fun (key, type_of) => key == "$$callProperty") statements |>
     List.map (
