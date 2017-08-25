@@ -1,4 +1,4 @@
-let node_compile name def => {
+/*let node_compile name def => {
   let (module_id, flow_code, bs_code) =
     Retyped.Compiler.compile (Js.to_string name) (Js.to_string def);
   let js_result = [|
@@ -10,3 +10,4 @@ let node_compile name def => {
 };
 
 Js.export "compile" node_compile;
+*/

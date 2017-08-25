@@ -25,7 +25,7 @@ let rec bstype_name =
   | Tuple types =>
     "tuple_of_" ^ (List.map bstype_name types |> String.concat "_")
   | Named type_params s =>
-    String.uncapitalize_ascii s |> Genutils.normalize_name
+    String.uncapitalize s |> Genutils.normalize_name
   | Union types => union_types_to_name types
   | Class props =>
     raise (CodegenTypeError "Unable to translate class into type name")
@@ -103,13 +103,13 @@ let rec bstype_to_code ::ctx=intctx =>
   | Named type_params s =>
     (
       if (Genutils.is_type_param ctx.type_params s) {
-        "'" ^ (String.uncapitalize_ascii s |> Genutils.normalize_name) ^ " "
+        "'" ^ (String.uncapitalize s |> Genutils.normalize_name) ^ " "
       } else if (
         Genutils.is_class s ctx.type_table
       ) {
         s ^ ".t "
       } else {
-        (String.uncapitalize_ascii s |> Genutils.normalize_name) ^ " "
+        (String.uncapitalize s |> Genutils.normalize_name) ^ " "
       }
     ) ^ (
       List.map (bstype_to_code ::ctx) type_params |> String.concat " "
@@ -145,7 +145,7 @@ let rec bstype_to_code ::ctx=intctx =>
               List.map
                 (
                   fun t => (
-                    String.capitalize_ascii (bstype_name t),
+                    String.capitalize (bstype_name t),
                     bstype_to_code t
                   )
                 )
@@ -240,7 +240,7 @@ module Precode = {
         List.map
           (
             fun type_of => (
-              String.capitalize_ascii (bstype_name type_of),
+              String.capitalize (bstype_name type_of),
               bstype_to_code type_of
             )
           )
@@ -278,7 +278,7 @@ module Precode = {
         let type_param_names = List.map Genutils.to_type_param type_params;
         let type_decl =
           Render.typeDeclaration
-            name::(String.uncapitalize_ascii id)
+            name::(String.uncapitalize id)
             type_of::(bstype_to_code ctx::{...intctx, type_params} type_of)
             type_params::(String.concat " " type_param_names)
             ();
@@ -399,7 +399,7 @@ let rec declaration_to_code module_id type_table =>
   | InterfaceDecl id type_params type_of => {
       let type_param_names = List.map Genutils.to_type_param type_params;
       Render.typeDeclaration
-        name::(String.uncapitalize_ascii id)
+        name::(String.uncapitalize id)
         type_of::(bstype_to_code ctx::{type_table, type_params} type_of)
         type_params::(String.concat " " type_param_names)
         ()
@@ -436,7 +436,7 @@ let program_to_code program typeof_table =>
       switch (split '/' id []) {
       | [_, x, ...xs] =>
         let module_name =
-          [x, ...xs] |> List.map String.capitalize_ascii |> String.concat "" |> (
+          [x, ...xs] |> List.map String.capitalize |> String.concat "" |> (
             /* drop the terminal ' from quotes */
             fun s =>
               String.sub s 0 (String.length s - 1)

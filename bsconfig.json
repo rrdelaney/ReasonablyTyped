@@ -1,0 +1,14 @@
+{
+  "name": "ReasonablyTyped",
+  "ocamlfind-dependencies": ["sedlex", "flow_parser"],
+  "sources": [{
+    "dir": "src",
+    "subdirs": [{
+      "dir": "retyped"
+    }]
+  }],
+  "entries": [{
+    "kind": "bytecode",
+    "main": "Cli"
+  }]
+}

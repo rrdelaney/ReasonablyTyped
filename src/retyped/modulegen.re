@@ -1,3 +1,5 @@
+module Ast = Parser_flow.Ast;
+
 open Ast.Statement.Block;
 
 open Ast.Literal;
@@ -451,6 +453,7 @@ let rec statement_to_program (loc, s) =>
           )
         )
       }
+        (type_to_bstype {...intctx, loc} t)
     | Ast.Statement.DeclareOpaqueType _ =>
       raise (
         ModulegenStatementError (not_supported "Opaque types" {...intctx, loc})
