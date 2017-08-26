@@ -181,10 +181,8 @@ and type_to_bstype (ctx: context) =>
     ]
   | Generic g => generic_type_to_bstype ctx g
   | StringLiteral {value} => BsType.StringLiteral value
-  | NumberLiteral _ =>
-    raise (ModulegenTypeError (not_supported "NumberLiteral" ctx))
-  | BooleanLiteral _ =>
-    raise (ModulegenTypeError (not_supported "BooleanLiteral" ctx))
+  | NumberLiteral _ => BsType.Number
+  | BooleanLiteral _ => BsType.Boolean
   | Typeof (loc, t) => BsType.Typeof (type_to_bstype {...ctx, loc} t)
   | Exists => raise (ModulegenTypeError (not_supported "Exists type" ctx))
   | Empty => raise (ModulegenTypeError (not_supported "Empty type" ctx))
@@ -434,12 +432,22 @@ let rec statement_to_program (loc, s) =>
         (string_of_id id)
         (extract_type_params intctx typeParameters)
         (type_to_bstype {...intctx, loc} t)
-    | Ast.Statement.ImportDeclaration _ =>
-      raise (
-        ModulegenStatementError (
-          not_supported "Import statements" {...intctx, loc}
+    | Ast.Statement.ImportDeclaration {source} =>
+      let importedModule =
+        switch source {
+        | (_, {value: Ast.Literal.String s}) => s
+        | (_, _) => ""
+        };
+      if (importedModule == "react") {
+        raise (          ModulegenStatementError
+          (not_supported "React components" {...intctx, loc}))
+      } else {
+        raise (
+          ModulegenStatementError (
+            not_supported "Import statements" {...intctx, loc}
+          )
         )
-      )
+      }
     | Ast.Statement.DeclareOpaqueType _ =>
       raise (
         ModulegenStatementError (not_supported "Opaque types" {...intctx, loc})
