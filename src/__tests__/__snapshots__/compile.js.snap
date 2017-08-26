@@ -102,8 +102,7 @@ external pOfVoid : unit => Js_promise.t unit = \\"\\" [@@bs.module \\"promise\\"
 
 external argPromise : p::Js_promise.t string => unit = \\"\\" [@@bs.module \\"promise\\"];
 
-external listOfPromises : unit => array (Js_promise.t string) =
-  \\"\\" [@@bs.module \\"promise\\"];
+external listOfPromises : unit => array (Js_promise.t string) = \\"\\" [@@bs.module \\"promise\\"];
 
 external somePromise : Js_promise.t (array float) = \\"\\" [@@bs.module \\"promise\\"];
 "
@@ -125,8 +124,7 @@ exports[`Compile simple-class.re 1`] = `
 exports[`Compile spread-args.re 1`] = `
 "external foo : bars::array float => unit = \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
 
-external optFoo : bars::array float => unit =
-  \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+external optFoo : bars::array float => unit = \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
 
 external bothFoo : anArg::string => bars::array float => unit =
   \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
@@ -148,8 +146,7 @@ external multipleLists : foos::array float => bars::array float => unit =
 exports[`Compile type-decl.re 1`] = `
 "type stringOptions = Js.t {.. value : string};
 
-external test : s::string => options::stringOptions => string =
-  \\"\\" [@@bs.module \\"type-decl\\"];
+external test : s::string => options::stringOptions => string = \\"\\" [@@bs.module \\"type-decl\\"];
 "
 `;
 

@@ -30,6 +30,7 @@
   ],
   "dependencies": {
     "flowgen": "^1.2.0",
+    "reasonable-flowgen": "^0.1.3",
     "refmt": "^1.13.7",
     "yargs": "^8.0.1"
   },
