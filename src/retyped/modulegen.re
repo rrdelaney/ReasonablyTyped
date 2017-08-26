@@ -439,8 +439,11 @@ let rec statement_to_program (loc, s) =>
         | (_, _) => ""
         };
       if (importedModule == "react") {
-        raise (          ModulegenStatementError
-          (not_supported "React components" {...intctx, loc}))
+        raise (
+          ModulegenStatementError (
+            not_supported "React components" {...intctx, loc}
+          )
+        )
       } else {
         raise (
           ModulegenStatementError (
