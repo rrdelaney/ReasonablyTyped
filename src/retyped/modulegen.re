@@ -349,7 +349,7 @@ and named_to_bstype ctx type_params (loc, id) =>
       };
     BsType.Promise (type_to_bstype {...ctx, loc} inner_type)
   | _ =>
-    if (String.length id > 0 && id.[0] == '$') {
+    if (String.length id > 0 && id.[0] == '$' && String.sub id 0 4 != "$npm") {
       raise (ModulegenTypeError (not_supported ("Built-in type " ^ id) ctx))
     } else {
       let type_params =
@@ -385,14 +385,15 @@ let declaration_to_jsdecl loc =>
         BsDecl.FuncDecl (string_of_id id) bstype
       }
     | Class (loc, {id, typeParameters, body: (_, interface), extends}) =>
-    if (List.length extends === 0) {
-      BsDecl.ClassDecl
-        (string_of_id id)
-        (extract_type_params intctx typeParameters)
-        (BsType.Class (object_type_to_bstype interface))
-    }
-        else {  raise (ModulegenDeclError (
-         "Inheritance not supported: " ^ loc_to_msg loc))
+      if (List.length extends === 0) {
+        BsDecl.ClassDecl
+          (string_of_id id)
+          (extract_type_params intctx typeParameters)
+          (BsType.Class (object_type_to_bstype interface))
+      } else {
+        raise (
+          ModulegenDeclError ("Inheritance not supported: " ^ loc_to_msg loc)
+        )
       }
     | _ =>
       raise (
