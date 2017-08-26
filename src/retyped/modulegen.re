@@ -438,6 +438,12 @@ let rec statement_to_program (loc, s) =>
         (string_of_id id)
         (extract_type_params intctx typeParameters)
         (type_to_bstype {...intctx, loc} t)
+    | Ast.Statement.ImportDeclaration _ =>
+      raise (
+        ModulegenStatementError (
+          not_supported "Import statements" {...intctx, loc}
+        )
+      )
     | _ =>
       raise (
         ModulegenStatementError (
