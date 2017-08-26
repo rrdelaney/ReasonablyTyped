@@ -186,13 +186,8 @@ and type_to_bstype (ctx: context) =>
   | BooleanLiteral _ =>
     raise (ModulegenTypeError (not_supported "BooleanLiteral" ctx))
   | Typeof (loc, t) => BsType.Typeof (type_to_bstype {...ctx, loc} t)
-  | _ =>
-    raise (
-      ModulegenTypeError (
-        "Unknown type when converting to Bucklescript type" ^
-        loc_to_msg ctx.loc
-      )
-    )
+  | Exists => raise (ModulegenTypeError (not_supported "NumberLiteral" ctx))
+  | Empty => raise (ModulegenTypeError (not_supported "Empty type" ctx))
 and function_type_to_bstype ctx f => {
   open Ast.Type.Function;
   open Ast.Type.Function.Param;
