@@ -371,7 +371,8 @@ module BsDecl = {
     | ExportsDecl BsType.t
     | TypeDecl string (list string) BsType.t
     | ClassDecl string (list string) BsType.t
-    | InterfaceDecl string (list string) BsType.t;
+    | InterfaceDecl string (list string) BsType.t
+    | Noop;
 };
 
 let declaration_to_jsdecl loc =>
@@ -442,6 +443,29 @@ let rec statement_to_program (loc, s) =>
       raise (
         ModulegenStatementError (
           not_supported "Import statements" {...intctx, loc}
+        )
+      )
+    | Ast.Statement.DeclareOpaqueType _ =>
+      raise (
+        ModulegenStatementError (not_supported "Opaque types" {...intctx, loc})
+      )
+    | Ast.Statement.ClassDeclaration _ =>
+      raise (
+        ModulegenStatementError (
+          not_supported "Class declatations" {...intctx, loc}
+        )
+      )
+    | Ast.Statement.Empty => BsDecl.Noop
+    | Ast.Statement.ExportDefaultDeclaration _ =>
+      raise (
+        ModulegenStatementError (
+          not_supported "ExportDefaultDeclaration" {...intctx, loc}
+        )
+      )
+    | Ast.Statement.ExportNamedDeclaration _ =>
+      raise (
+        ModulegenStatementError (
+          not_supported "ExportNamedDeclaration" {...intctx, loc}
         )
       )
     | _ =>

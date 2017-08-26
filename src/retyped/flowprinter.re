@@ -87,6 +87,7 @@ let rec show_type =
 let rec show_decl =
   Modulegen.(
     fun
+    | BsDecl.Noop => ""
     | BsDecl.ExportsDecl of_type =>
       "declare module.exports: " ^ show_type of_type
     | BsDecl.ModuleDecl name decls =>

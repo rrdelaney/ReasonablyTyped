@@ -264,6 +264,7 @@ module Precode = {
     ) |> List.flatten;
   let decl_to_precode module_id =>
     fun
+    | Noop => []
     | VarDecl id type_of =>
       bstype_precode type_of @ (
         switch type_of {
@@ -331,6 +332,7 @@ let constructor_type type_table =>
 
 let rec declaration_to_code module_id type_table =>
   fun
+  | Noop => ""
   | VarDecl id type_of =>
     Render.variableDeclaration
       name::(Genutils.normalize_name id)
