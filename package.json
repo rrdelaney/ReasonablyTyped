@@ -10,24 +10,14 @@
     "type": "git",
     "url": "https://github.com/rrdelaney/ReasonablyTyped"
   },
-  "keywords": [
-    "Reason",
-    "OCaml",
-    "Bucklescript",
-    "Flow"
-  ],
+  "keywords": ["Reason", "OCaml", "Bucklescript", "Flow"],
   "author": "Ryan Delaney <rrdelaney@outlook.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/rrdelaney/ReasonablyTyped/issues"
   },
   "homepage": "https://github.com/rrdelaney/ReasonablyTyped",
-  "files": [
-    "lib/cli.js",
-    "lib/index.js",
-    "lib/refmt_node.js",
-    "lib/retyped_node.js"
-  ],
+  "files": ["lib/cli.js", "lib/index.js", "lib/retyped_node.js"],
   "dependencies": {
     "flowgen": "^1.2.0",
     "reasonable-flowgen": "^0.1.3",
@@ -50,10 +40,7 @@
     "prettier": "^1.5.3"
   },
   "lint-staged": {
-    "*.js": [
-      "prettier --no-semi --single-quote --write",
-      "git add"
-    ]
+    "*.js": ["prettier --no-semi --single-quote --write", "git add"]
   },
   "jest": {
     "testPathIgnorePatterns": [
@@ -64,12 +51,7 @@
       "/flow-typed/",
       "/definitely-typed/"
     ],
-    "modulePathIgnorePatterns": [
-      "/flow/"
-    ],
-    "transformIgnorePatterns": [
-      "/node_modules/",
-      "/lib/"
-    ]
+    "modulePathIgnorePatterns": ["/flow/"],
+    "transformIgnorePatterns": ["/node_modules/", "/lib/"]
   }
 }
