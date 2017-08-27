@@ -428,12 +428,12 @@ let rec statement_to_program (loc, s) =>
           (string_of_id id) (type_annotation_to_bstype typeAnnotation)
       }
     | Ast.Statement.InterfaceDeclaration s => declare_interface_to_jsdecl loc s
-    | Ast.Statement.DeclareInterface s => declare_interface_to_jsdecl loc s
-    | Ast.Statement.DeclareTypeAlias {id, typeParameters, right: (loc, t)} =>
+    /*| Ast.Statement.DeclareInterface s => declare_interface_to_jsdecl loc s*/
+    /*| Ast.Statement.DeclareTypeAlias {id, typeParameters, right: (loc, t)} =>
       BsDecl.TypeDecl
         (string_of_id id)
         (extract_type_params intctx typeParameters)
-        (type_to_bstype {...intctx, loc} t)
+        (type_to_bstype {...intctx, loc} t)*/
     | Ast.Statement.ImportDeclaration {source} =>
       let importedModule =
         switch source {
@@ -453,11 +453,10 @@ let rec statement_to_program (loc, s) =>
           )
         )
       }
-        (type_to_bstype {...intctx, loc} t)
-    | Ast.Statement.DeclareOpaqueType _ =>
+    /*| Ast.Statement.DeclareOpaqueType _ =>
       raise (
         ModulegenStatementError (not_supported "Opaque types" {...intctx, loc})
-      )
+      )*/
     | Ast.Statement.ClassDeclaration _ =>
       raise (
         ModulegenStatementError (
