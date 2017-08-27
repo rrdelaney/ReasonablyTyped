@@ -1,4 +1,4 @@
-module Ast = Parser_flow.Ast;
+module Ast = Spider_monkey_ast;
 
 open Ast.Statement.Block;
 

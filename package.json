@@ -33,7 +33,8 @@
     "flowgen": "^1.2.0",
     "reasonable-flowgen": "^0.1.3",
     "refmt": "^1.13.7",
-    "yargs": "^8.0.1"
+    "yargs": "^8.0.1",
+    "flow-dev-tools": "bsansouci/flow#bsb-support"
   },
   "scripts": {
     "test": "jest compile format",
@@ -49,7 +50,8 @@
     "jest": "^20.0.4",
     "jest-cli": "^20.0.4",
     "lint-staged": "^4.0.2",
-    "prettier": "^1.5.3"
+    "prettier": "^1.5.3",
+    "bs-platform": "bsansouci/bsb-native"
   },
   "lint-staged": {
     "*.js": [

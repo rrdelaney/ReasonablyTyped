@@ -1,6 +1,7 @@
 {
   "name": "ReasonablyTyped",
-  "ocamlfind-dependencies": ["sedlex", "flow_parser"],
+  "bs-dependencies": ["flow-dev-tools"],
+  // "ocamlfind-dependencies": ["sedlex", "flow_parser"],
   "sources": [{
     "dir": "src",
     "subdirs": [{
