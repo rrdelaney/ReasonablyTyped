@@ -1,6 +1,6 @@
 const path = require('path')
 const { readdirSync, readFile } = require('fs')
-const { compile, format } = require('../../lib')
+const { compile, format } = require('../../jslib')
 
 const fixtures = path.join(__dirname, 'fixtures')
 const fixture = file => path.join(fixtures, file)

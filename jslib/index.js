@@ -1,6 +1,6 @@
 const refmt = require('refmt')
 const { default: flowgen } = require('reasonable-flowgen')
-const Retyped = require('./retyped_node')
+const Retyped = require('../lib/js/src/retyped_node.js')
 
 /**
  * Runs `refmt` on a string of Reason code
