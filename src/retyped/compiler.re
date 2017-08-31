@@ -37,7 +37,8 @@ let compile module_name module_def => {
   let statements = Stage.parse_source module_name module_def;
   let programs = List.map Modulegen.statement_to_program statements;
   let flow_code = String.concat "\n" (List.map Flowprinter.show_decl programs);
-  let optimized_programs = List.map Stage.optimize_program programs;
+  let linked_programs = Imports.link programs;
+  let optimized_programs = List.map Stage.optimize_program linked_programs;
   let rendered_programs = List.map Stage.render_program optimized_programs;
   let (module_id, bs_code) = Stage.combine_programs rendered_programs;
   (module_id, flow_code, bs_code)

@@ -365,6 +365,8 @@ module BsDecl = {
     | TypeDecl string (list string) BsType.t
     | ClassDecl string (list string) BsType.t
     | InterfaceDecl string (list string) BsType.t
+    /* import {names} from {module} */
+    | ImportDecl (list string) string
     | Noop;
 };
 
@@ -445,11 +447,7 @@ let rec statement_to_program (loc, s) =>
           )
         )
       } else {
-        raise (
-          ModulegenStatementError (
-            not_supported "Import statements" {...intctx, loc}
-          )
-        )
+        BsDecl.ImportDecl [] importedModule
       }
     | Ast.Statement.DeclareOpaqueType _ =>
       raise (
