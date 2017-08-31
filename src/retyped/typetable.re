@@ -30,14 +30,14 @@ let create statements =>
   List.filter (fun (key, _) => key != "");
 
 let show table => {
-  print_endline "Types:";
+  print_endline "=== Types ===";
   List.iter
     (
       fun (id, typeof) =>
         print_endline (
-          "| " ^
+          "typeof " ^
           id ^
-          " => " ^ (
+          " = " ^ (
             switch typeof {
             | Class => "Class"
             | None => "None"

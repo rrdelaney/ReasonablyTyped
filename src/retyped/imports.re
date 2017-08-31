@@ -1,6 +1,6 @@
 module ImportTable = {
-  type t = list (string, string);
-  let make () => [];
+  /* (local, (remote, source)) */
+  type t = list (string, (string, string));
   let add name from table => [(name, from), ...table];
   let get key table => {
     let lookup =
@@ -10,11 +10,21 @@ module ImportTable = {
     Some lookup
   };
   let show table => {
-    print_endline "Imports:";
+    print_endline "=== Imports ===";
     List.iter
       (
-        fun (import_name, module_name) =>
-          print_endline ("import " ^ import_name ^ " from " ^ module_name)
+        fun (local_name, (remote_name, module_name)) =>
+          print_endline (
+            "import type { " ^
+            (
+              if (remote_name == local_name) {
+                remote_name
+              } else {
+                remote_name ^ " as " ^ local_name
+              }
+            ) ^
+            " } from " ^ module_name
+          )
       )
       table;
     print_newline ()
@@ -32,10 +42,19 @@ let link program => {
       (
         fun {imports, statements} statement =>
           switch statement {
+          | Modulegen.BsDecl.ImportDecl names source => {
+              statements: statements @ [statement],
+              imports:
+                imports @
+                List.map
+                  (fun (remote, local) => (local, (remote, source))) names
+            }
           | _ => {statements: statements @ [statement], imports}
           }
       )
-      {imports: ImportTable.make (), statements: []}
+      {imports: [], statements: []}
       program;
+  /* DEBUG */
+  ImportTable.show linked_program.imports;
   linked_program.statements
 };

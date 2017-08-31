@@ -403,7 +403,8 @@ let rec declaration_to_code module_id type_table =>
         type_of::(bstype_to_code ctx::{type_table, type_params} type_of)
         type_params::(String.concat " " type_param_names)
         ()
-    };
+    }
+  | ImportDecl _ _ => "";
 
 
 /** Str is missing regex primitive implementations for the JS target.
@@ -431,6 +432,8 @@ let rec split sep str acc => {
 let program_to_code program typeof_table =>
   switch program {
   | ModuleDecl id statements =>
+    /* DEBUG */
+    Typetable.show typeof_table;
     /* is the module nested ? */
     let inner_module_name =
       switch (split '/' id []) {

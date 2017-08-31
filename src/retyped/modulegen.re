@@ -365,8 +365,8 @@ module BsDecl = {
     | TypeDecl string (list string) BsType.t
     | ClassDecl string (list string) BsType.t
     | InterfaceDecl string (list string) BsType.t
-    /* import {names} from {module} */
-    | ImportDecl (list string) string
+    /* import {names as name} from {module} */
+    | ImportDecl (list (string, string)) string
     | Noop;
 };
 
@@ -434,20 +434,44 @@ let rec statement_to_program (loc, s) =>
         (string_of_id id)
         (extract_type_params intctx typeParameters)
         (type_to_bstype {...intctx, loc} t)
-    | Ast.Statement.ImportDeclaration {source} =>
-      let importedModule =
+    | Ast.Statement.ImportDeclaration {importKind, source, specifiers} =>
+      let imported_module =
         switch source {
         | (_, {value: Ast.Literal.String s}) => s
         | (_, _) => ""
         };
-      if (importedModule == "react") {
+      switch importKind {
+      | ImportType =>
+        let import_names =
+          List.map
+            (
+              fun
+              | Ast.Statement.ImportDeclaration.ImportNamedSpecifier {
+                  remote,
+                  local
+                } => (
+                  string_of_id remote,
+                  switch local {
+                  | Some s => string_of_id s
+                  | None => string_of_id remote
+                  }
+                )
+              | _ => ("", "")
+            )
+            specifiers;
+        BsDecl.ImportDecl import_names imported_module
+      | ImportTypeof =>
         raise (
           ModulegenStatementError (
-            not_supported "React components" {...intctx, loc}
+            not_supported "'import typeof'" {...intctx, loc}
           )
         )
-      } else {
-        BsDecl.ImportDecl [] importedModule
+      | ImportValue =>
+        raise (
+          ModulegenStatementError (
+            not_supported "Importing values" {...intctx, loc}
+          )
+        )
       }
     | Ast.Statement.DeclareOpaqueType _ =>
       raise (
