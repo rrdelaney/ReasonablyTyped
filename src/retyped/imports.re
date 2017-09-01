@@ -2,12 +2,15 @@ module ImportTable = {
   /* (local, (remote, source)) */
   type t = list (string, (string, string));
   let add name from table => [(name, from), ...table];
-  let get key table => {
+  let get key table::(table: t) => {
     let lookup =
       try (List.assoc key table) {
-      | Not_found => None
+      | Not_found => ("NOT_FOUND", "NOT_FOUND")
       };
-    Some lookup
+    switch lookup {
+    | ("NOT_FOUND", "NOT_FOUND") => None
+    | s => Some s
+    }
   };
   let show table => {
     print_endline "=== Imports ===";
@@ -36,11 +39,19 @@ type renameImportReducer = {
   statements: list Modulegen.BsDecl.t
 };
 
-let process_module =
+let process_module imports::(imports: ImportTable.t) =>
   List.map (
     Genutils.walk (
       fun
-      | _ => None
+      | Named params name module_name =>
+        switch (ImportTable.get name imports) {
+        | Some (remote, source) =>
+          Some (
+            Named params remote (Some (Genutils.import_module_name source))
+          )
+        | _ => None
+        }
+      | s => None
     )
   );
 
@@ -61,7 +72,8 @@ let link program => {
               imports,
               statements:
                 statements @ [
-                  Modulegen.BsDecl.ModuleDecl name (process_module statements)
+                  Modulegen.BsDecl.ModuleDecl
+                    name (process_module imports statements)
                 ]
             }
           | _ => {statements: statements @ [statement], imports}

@@ -21,6 +21,8 @@ let normalize_keywords =
 
 let normalize_name name => normalize_chars name |> normalize_keywords;
 
+let import_module_name name => normalize_name name |> String.capitalize_ascii;
+
 let to_module_name str => normalize_name (unquote str);
 
 let to_type_param str => "'" ^ String.uncapitalize_ascii str |> normalize_name;
@@ -119,10 +121,10 @@ let walk replacer => {
       | Some new_t when recurse => walk_type recurse::false new_t
       | _ => Typeof (walk_type t)
       }
-    | Named types value as nt =>
+    | Named types value module_name as nt =>
       switch (replacer nt) {
       | Some new_t when recurse => walk_type recurse::false new_t
-      | _ => Named (List.map walk_type types) value
+      | _ => Named (List.map walk_type types) value module_name
       }
     | Optional t as ot =>
       switch (replacer ot) {

@@ -6,6 +6,11 @@ exception CodegenTypeError string;
 
 exception CodegenConstructorError string;
 
+let module_prefix =
+  fun
+  | Some s => s ^ "."
+  | None => "";
+
 let rec bstype_name =
   fun
   | Regex => "regex"
@@ -24,8 +29,10 @@ let rec bstype_name =
   | Array t => "array_" ^ bstype_name t
   | Tuple types =>
     "tuple_of_" ^ (List.map bstype_name types |> String.concat "_")
-  | Named type_params s =>
-    String.uncapitalize_ascii s |> Genutils.normalize_name
+  | Named type_params s module_name =>
+    module_prefix module_name ^ (
+      String.uncapitalize_ascii s |> Genutils.normalize_name
+    )
   | Union types => union_types_to_name types
   | Class props =>
     raise (CodegenTypeError "Unable to translate class into type name")
@@ -100,7 +107,8 @@ let rec bstype_to_code ::ctx=intctx =>
   | Number => "float"
   | String => "string"
   | Boolean => "Js.boolean"
-  | Named type_params s =>
+  | Named type_params s module_name =>
+    module_prefix module_name ^
     (
       if (Genutils.is_type_param ctx.type_params s) {
         "'" ^ (String.uncapitalize_ascii s |> Genutils.normalize_name) ^ " "
@@ -312,7 +320,7 @@ let constructor_type type_table =>
       if (List.length constructors == 0) {
         bstype_to_code
           ctx::{...intctx, type_table}
-          (Function [] [("_", Unit)] None (Named [] "t"))
+          (Function [] [("_", Unit)] None (Named [] "t" None))
       } else {
         let (_, cons_type) = List.hd constructors;
         let cons_type =
@@ -320,9 +328,12 @@ let constructor_type type_table =>
           | Function type_params params rest_param rt =>
             let new_params = List.map (fun (_, t) => ("", t)) params;
             let cons_type_params =
-              List.map (fun name => Named [] name) type_params;
+              List.map (fun name => Named [] name None) type_params;
             Function
-              type_params new_params rest_param (Named cons_type_params "t")
+              type_params
+              new_params
+              rest_param
+              (Named cons_type_params "t" None)
           | any => any
           };
         bstype_to_code ctx::{...intctx, type_table} cons_type
@@ -354,7 +365,7 @@ let rec declaration_to_code module_id type_table =>
       ()
   | ExportsDecl type_of =>
     switch type_of {
-    | Typeof (Named _ t) =>
+    | Typeof (Named _ t _) =>
       Typetable.(
         switch (Typetable.get t type_table) {
         | Class =>

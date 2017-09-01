@@ -76,8 +76,8 @@ module BsType = {
     | Unit
     | Any
     | Typeof t
-    /* type params, name */
-    | Named (list t) string
+    /* type params, name, module */
+    | Named (list t) string (option string)
     | Optional t
     | StringLiteral string
     | Promise t
@@ -275,7 +275,7 @@ and generic_type_to_bstype ctx g => {
   open Ast.Type.Generic.Identifier;
   let {id, typeParameters} = g;
   switch id {
-  | Qualified (_, q) => BsType.Named [] (string_of_id q.id)
+  | Qualified (_, q) => BsType.Named [] (string_of_id q.id) None
   | Unqualified q => named_to_bstype ctx typeParameters q
   }
 }
@@ -352,7 +352,7 @@ and named_to_bstype ctx type_params (loc, id) =>
           List.map
             (fun (loc, type_of) => type_to_bstype {...ctx, loc} type_of) params
         };
-      BsType.Named type_params id
+      BsType.Named type_params id None
     }
   };
 

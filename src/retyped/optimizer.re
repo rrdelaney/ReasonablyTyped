@@ -6,7 +6,7 @@ let inline_union_types types =>
   List.map (
     fun (name, t) =>
       switch t {
-      | Named type_params type_name when List.length type_params == 0 =>
+      | Named type_params type_name _ when List.length type_params == 0 =>
         Typetable.(
           switch (Typetable.get type_name types) {
           | Type inner_type =>
@@ -40,6 +40,7 @@ let optimize_statements types statements =>
 
 let optimize types::(types: list (string, Retyped.Typetable.t)) program =>
   switch program {
-  | ModuleDecl id statements => ModuleDecl id (optimize_statements types statements)
+  | ModuleDecl id statements =>
+    ModuleDecl id (optimize_statements types statements)
   | s => s
   };

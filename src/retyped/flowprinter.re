@@ -71,7 +71,7 @@ let rec show_type =
       "{ " ^
       String.concat
         "; " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
-    | BsType.Named type_params s =>
+    | BsType.Named type_params s _ =>
       s ^ (
         if (List.length type_params > 0) {
           "<" ^ (List.map show_type type_params |> String.concat ", ") ^ ">"
