@@ -36,6 +36,14 @@ type renameImportReducer = {
   statements: list Modulegen.BsDecl.t
 };
 
+let process_module =
+  List.map (
+    Genutils.walk (
+      fun
+      | _ => None
+    )
+  );
+
 let link program => {
   let linked_program =
     List.fold_left
@@ -48,6 +56,13 @@ let link program => {
                 imports @
                 List.map
                   (fun (remote, local) => (local, (remote, source))) names
+            }
+          | Modulegen.BsDecl.ModuleDecl name statements => {
+              imports,
+              statements:
+                statements @ [
+                  Modulegen.BsDecl.ModuleDecl name (process_module statements)
+                ]
             }
           | _ => {statements: statements @ [statement], imports}
           }
