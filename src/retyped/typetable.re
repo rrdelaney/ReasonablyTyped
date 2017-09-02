@@ -30,7 +30,6 @@ let create statements =>
   List.filter (fun (key, _) => key != "");
 
 let show table => {
-  print_endline "=== Types ===";
   List.iter
     (
       fun (id, typeof) =>

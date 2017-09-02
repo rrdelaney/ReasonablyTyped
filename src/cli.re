@@ -8,11 +8,8 @@ let load_file fname => {
 };
 
 let run_compile fname module_name module_def => {
-  let (module_id, bs_code) =
-    Retyped.Compiler.compile debug::true module_name module_def;
-  print_endline "=== Bucklescript Definition ===";
-  print_endline ("/* Module " ^ module_id ^ " */");
-  print_endline bs_code
+  let (_, _) = Retyped.Compiler.compile debug::true module_name module_def;
+  ()
 };
 
 let cmd fname => {

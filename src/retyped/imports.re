@@ -13,7 +13,6 @@ module ImportTable = {
     }
   };
   let show table => {
-    print_endline "=== Imports ===";
     List.iter
       (
         fun (local_name, (remote_name, module_name)) =>
