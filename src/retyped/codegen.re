@@ -443,8 +443,6 @@ let rec split sep str acc => {
 let program_to_code program typeof_table =>
   switch program {
   | ModuleDecl id statements =>
-    /* DEBUG */
-    Typetable.show typeof_table;
     /* is the module nested ? */
     let inner_module_name =
       switch (split '/' id []) {

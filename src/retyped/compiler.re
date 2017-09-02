@@ -31,9 +31,20 @@ module Stage = {
           }
       )
       ("Unknown ID", "");
+  module Debug = {
+    open Modulegen.BsDecl;
+    let show_imports = Imports.show_imports;
+    let show_types =
+      List.iter (
+        fun
+        | ModuleDecl name statements as md =>
+          Typetable.show (make_typetable md)
+        | _ => ()
+      );
+  };
 };
 
-let compile module_name module_def => {
+let compile ::debug=false module_name module_def => {
   let statements = Stage.parse_source module_name module_def;
   let programs = List.map Modulegen.statement_to_program statements;
   let flow_code = String.concat "\n" (List.map Flowprinter.show_decl programs);
@@ -41,5 +52,11 @@ let compile module_name module_def => {
   let optimized_programs = List.map Stage.optimize_program linked_programs;
   let rendered_programs = List.map Stage.render_program optimized_programs;
   let (module_id, bs_code) = Stage.combine_programs rendered_programs;
+  if debug {
+    Stage.Debug.show_imports programs;
+    Stage.Debug.show_types optimized_programs
+  } else {
+    ()
+  };
   (module_id, flow_code, bs_code)
 };

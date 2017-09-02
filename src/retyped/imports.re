@@ -55,33 +55,36 @@ let process_module imports::(imports: ImportTable.t) =>
     )
   );
 
-let link program => {
-  let linked_program =
-    List.fold_left
-      (
-        fun {imports, statements} statement =>
-          switch statement {
-          | Modulegen.BsDecl.ImportDecl names source => {
-              statements: statements @ [statement],
-              imports:
-                imports @
-                List.map
-                  (fun (remote, local) => (local, (remote, source))) names
-            }
-          | Modulegen.BsDecl.ModuleDecl name statements => {
-              imports,
-              statements:
-                statements @ [
-                  Modulegen.BsDecl.ModuleDecl
-                    name (process_module imports statements)
-                ]
-            }
-          | _ => {statements: statements @ [statement], imports}
+let linker =
+  List.fold_left
+    (
+      fun {imports, statements} statement =>
+        switch statement {
+        | Modulegen.BsDecl.ImportDecl names source => {
+            statements: statements @ [statement],
+            imports:
+              imports @
+              List.map (fun (remote, local) => (local, (remote, source))) names
           }
-      )
-      {imports: [], statements: []}
-      program;
-  /* DEBUG */
-  ImportTable.show linked_program.imports;
+        | Modulegen.BsDecl.ModuleDecl name statements => {
+            imports,
+            statements:
+              statements @ [
+                Modulegen.BsDecl.ModuleDecl
+                  name (process_module imports statements)
+              ]
+          }
+        | _ => {statements: statements @ [statement], imports}
+        }
+    )
+    {imports: [], statements: []};
+
+let show_imports program => {
+  let linked_program = linker program;
+  ImportTable.show linked_program.imports
+};
+
+let link program => {
+  let linked_program = linker program;
   linked_program.statements
 };
