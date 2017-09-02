@@ -41,22 +41,29 @@ module Stage = {
           Typetable.show (make_typetable md)
         | _ => ()
       );
+    let show_flow programs => {
+      let flow_code =
+        List.map Flowprinter.show_decl programs |> String.concat "\n";
+      print_endline "=== Flow Definition ===";
+      print_endline flow_code;
+      print_newline ()
+    };
   };
 };
 
 let compile ::debug=false module_name module_def => {
-  let statements = Stage.parse_source module_name module_def;
-  let programs = List.map Modulegen.statement_to_program statements;
-  let flow_code = String.concat "\n" (List.map Flowprinter.show_decl programs);
-  let linked_programs = Imports.link programs;
-  let optimized_programs = List.map Stage.optimize_program linked_programs;
-  let rendered_programs = List.map Stage.render_program optimized_programs;
-  let (module_id, bs_code) = Stage.combine_programs rendered_programs;
   if debug {
-    Stage.Debug.show_imports programs;
-    Stage.Debug.show_types optimized_programs
+    let debug_programs =
+      Stage.parse_source module_name module_def |>
+      List.map Modulegen.statement_to_program;
+    Stage.Debug.show_imports debug_programs;
+    Stage.Debug.show_types debug_programs;
+    Stage.Debug.show_flow debug_programs
   } else {
     ()
   };
-  (module_id, flow_code, bs_code)
+  Stage.parse_source module_name module_def |>
+  List.map Modulegen.statement_to_program |> Imports.link |>
+  List.map Stage.optimize_program |>
+  List.map Stage.render_program |> Stage.combine_programs
 };
