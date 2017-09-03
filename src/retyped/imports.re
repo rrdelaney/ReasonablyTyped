@@ -39,7 +39,7 @@ type renameImportReducer = {
   statements: list Modulegen.BsDecl.t
 };
 
-let process_module imports::(imports: ImportTable.t) =>
+let process_module imports =>
   List.map (
     Genutils.walk (
       fun
