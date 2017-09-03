@@ -43,12 +43,16 @@ let loc_to_msg ({source, start, _end}: Loc.t) =>
     | Some fname => " [in " ^ Loc.string_of_filename fname ^ " "
     | None => " ["
     }
-  ) ^
-  "from " ^
-  string_of_int start.line ^
-  ":" ^
-  string_of_int start.column ^
-  " to " ^ string_of_int _end.line ^ ":" ^ string_of_int _end.column ^ "]";
+  )
+  ^ "from "
+  ^ string_of_int start.line
+  ^ ":"
+  ^ string_of_int start.column
+  ^ " to "
+  ^ string_of_int _end.line
+  ^ ":"
+  ^ string_of_int _end.column
+  ^ "]";
 
 let not_supported interface (context: context) =>
   interface ^ " is not currently supported" ^ loc_to_msg context.loc;
@@ -317,8 +321,9 @@ and named_to_bstype ctx type_params (loc, id) =>
       | Some (_, {params}) =>
         raise (
           ModulegenTypeError (
-            "Class must have exactly one type parameter. Got: " ^
-            string_of_int @@ List.length params
+            "Class must have exactly one type parameter. Got: "
+            ^ string_of_int
+            @@ List.length params
           )
         )
       };
@@ -335,8 +340,9 @@ and named_to_bstype ctx type_params (loc, id) =>
       | Some (_, {params}) =>
         raise (
           ModulegenTypeError (
-            "Promise must have exactly one type parameter. Got: " ^
-            string_of_int @@ List.length params
+            "Promise must have exactly one type parameter. Got: "
+            ^ string_of_int
+            @@ List.length params
           )
         )
       };
@@ -394,8 +400,8 @@ let declaration_to_jsdecl loc =>
     | _ =>
       raise (
         ModulegenDeclError (
-          "Unknown declaration when converting a module property declaration" ^
-          loc_to_msg loc
+          "Unknown declaration when converting a module property declaration"
+          ^ loc_to_msg loc
         )
       )
   );
@@ -513,8 +519,8 @@ and declare_module_to_jsdecl loc s => {
   | _ =>
     raise (
       ModulegenDeclError (
-        "Unknown declaration type when converting a module declaration" ^
-        loc_to_msg loc
+        "Unknown declaration type when converting a module declaration"
+        ^ loc_to_msg loc
       )
     )
   }

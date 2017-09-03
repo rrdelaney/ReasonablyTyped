@@ -30,9 +30,8 @@ let rec bstype_name =
   | Tuple types =>
     "tuple_of_" ^ (List.map bstype_name types |> String.concat "_")
   | Named type_params s module_name =>
-    module_prefix module_name ^ (
-      String.uncapitalize_ascii s |> Genutils.normalize_name
-    )
+    module_prefix module_name
+    ^ (String.uncapitalize_ascii s |> Genutils.normalize_name)
   | Union types => union_types_to_name types
   | Class props =>
     raise (CodegenTypeError "Unable to translate class into type name")
@@ -108,8 +107,8 @@ let rec bstype_to_code ::ctx=intctx =>
   | String => "string"
   | Boolean => "Js.boolean"
   | Named type_params s module_name =>
-    module_prefix module_name ^
-    (
+    module_prefix module_name
+    ^ (
       if (Genutils.is_type_param ctx.type_params s) {
         "'" ^ (String.uncapitalize_ascii s |> Genutils.normalize_name) ^ " "
       } else if (
@@ -119,9 +118,8 @@ let rec bstype_to_code ::ctx=intctx =>
       } else {
         (String.uncapitalize_ascii s |> Genutils.normalize_name) ^ " "
       }
-    ) ^ (
-      List.map (bstype_to_code ::ctx) type_params |> String.concat " "
     )
+    ^ (List.map (bstype_to_code ::ctx) type_params |> String.concat " ")
   | Union types => union_types_to_name types
   | Typeof t =>
     raise (CodegenTypeError "Typeof can only operate on variable declarations")
@@ -223,17 +221,20 @@ module Precode = {
             | type_of => bstype_precode type_of
             }
         )
-        params |>
-      List.append (
-        switch rest_param {
-        | Some (_, t) => [bstype_precode t]
-        | None => []
-        }
-      ) |> List.flatten
+        params
+      |> List.append (
+           switch rest_param {
+           | Some (_, t) => [bstype_precode t]
+           | None => []
+           }
+         )
+      |> List.flatten
     | Object types =>
-      List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
+      List.map (fun (id, type_of) => bstype_precode type_of) types
+      |> List.flatten
     | Class types =>
-      List.map (fun (id, type_of) => bstype_precode type_of) types |> List.flatten
+      List.map (fun (id, type_of) => bstype_precode type_of) types
+      |> List.flatten
     | Optional t => bstype_precode t
     | Array t => bstype_precode t
     | Dict t => bstype_precode t
@@ -256,25 +257,31 @@ module Precode = {
       Render.unionType name::union_name types::union_types ()
     };
   let call_property_precode module_id var_name statements =>
-    List.filter (fun (key, type_of) => key == "$$callProperty") statements |>
-    List.map (
-      fun (key, type_of) =>
-        bstype_precode type_of @ [
-          Render.variableDeclaration
-            name::(
-              (var_name == "" ? Genutils.to_module_name module_id : var_name) ^ "_apply"
-            )
-            module_id::(Genutils.to_module_name module_id)
-            type_of::(bstype_to_code type_of)
-            code::var_name
-            ()
-        ]
-    ) |> List.flatten;
+    List.filter (fun (key, type_of) => key == "$$callProperty") statements
+    |> List.map (
+         fun (key, type_of) =>
+           bstype_precode type_of
+           @ [
+             Render.variableDeclaration
+               name::(
+                 (
+                   var_name == "" ? Genutils.to_module_name module_id : var_name
+                 )
+                 ^ "_apply"
+               )
+               module_id::(Genutils.to_module_name module_id)
+               type_of::(bstype_to_code type_of)
+               code::var_name
+               ()
+           ]
+       )
+    |> List.flatten;
   let decl_to_precode module_id =>
     fun
     | Noop => []
     | VarDecl id type_of =>
-      bstype_precode type_of @ (
+      bstype_precode type_of
+      @ (
         switch type_of {
         | Object types => call_property_precode module_id id types
         | _ => []
@@ -295,7 +302,8 @@ module Precode = {
     | ClassDecl _ _ type_of => bstype_precode type_of
     | InterfaceDecl _ _ type_of => bstype_precode type_of
     | ExportsDecl type_of =>
-      bstype_precode type_of @ (
+      bstype_precode type_of
+      @ (
         switch type_of {
         | Object types => call_property_precode module_id "" types
         | _ => []
@@ -305,8 +313,10 @@ module Precode = {
   let from_program program =>
     switch program {
     | ModuleDecl id statements =>
-      List.map (decl_to_precode id) statements |> List.flatten |> Genutils.uniq |>
-      String.concat "\n"
+      List.map (decl_to_precode id) statements
+      |> List.flatten
+      |> Genutils.uniq
+      |> String.concat "\n"
     | TypeDecl _ _ _ => decl_to_precode "" program |> String.concat "\n"
     | _ => ""
     };
@@ -448,7 +458,10 @@ let program_to_code program typeof_table =>
       switch (split '/' id []) {
       | [_, x, ...xs] =>
         let module_name =
-          [x, ...xs] |> List.map String.capitalize_ascii |> String.concat "" |> (
+          [x, ...xs]
+          |> List.map String.capitalize_ascii
+          |> String.concat ""
+          |> (
             /* drop the terminal ' from quotes */
             fun s =>
               String.sub s 0 (String.length s - 1)
@@ -463,10 +476,11 @@ let program_to_code program typeof_table =>
       };
     Some (
       Genutils.to_module_name id,
-      module_prefix ^
-      Precode.from_program program ^
-      String.concat
-        "\n" (List.map (declaration_to_code id typeof_table) statements) ^ module_postfix
+      module_prefix
+      ^ Precode.from_program program
+      ^ String.concat
+          "\n" (List.map (declaration_to_code id typeof_table) statements)
+      ^ module_postfix
     )
   | TypeDecl _ _ _ =>
     Some ("", Precode.from_program program ^ declaration_to_code "" [] program)

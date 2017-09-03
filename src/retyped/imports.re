@@ -17,15 +17,16 @@ module ImportTable = {
       (
         fun (local_name, (remote_name, module_name)) =>
           print_endline (
-            "import type { " ^
-            (
+            "import type { "
+            ^ (
               if (remote_name == local_name) {
                 remote_name
               } else {
                 remote_name ^ " as " ^ local_name
               }
-            ) ^
-            " } from " ^ module_name
+            )
+            ^ " } from "
+            ^ module_name
           )
       )
       table;
@@ -62,13 +63,15 @@ let linker =
         | Modulegen.BsDecl.ImportDecl names source => {
             statements: statements @ [statement],
             imports:
-              imports @
-              List.map (fun (remote, local) => (local, (remote, source))) names
+              imports
+              @ List.map
+                  (fun (remote, local) => (local, (remote, source))) names
           }
         | Modulegen.BsDecl.ModuleDecl name statements => {
             imports,
             statements:
-              statements @ [
+              statements
+              @ [
                 Modulegen.BsDecl.ModuleDecl
                   name (process_module imports statements)
               ]

@@ -66,14 +66,16 @@ module Stage = {
 
 let compile ::debug=false module_name module_def => {
   let result =
-    Stage.parse_source module_name module_def |>
-    List.map Modulegen.statement_to_program |> Imports.link |>
-    List.map Stage.optimize_program |>
-    List.map Stage.render_program |> Stage.combine_programs;
+    Stage.parse_source module_name module_def
+    |> List.map Modulegen.statement_to_program
+    |> Imports.link
+    |> List.map Stage.optimize_program
+    |> List.map Stage.render_program
+    |> Stage.combine_programs;
   if debug {
     let debug_programs =
-      Stage.parse_source module_name module_def |>
-      List.map Modulegen.statement_to_program;
+      Stage.parse_source module_name module_def
+      |> List.map Modulegen.statement_to_program;
     Stage.Debug.show_imports debug_programs;
     Stage.Debug.show_types debug_programs;
     Stage.Debug.show_flow debug_programs;
