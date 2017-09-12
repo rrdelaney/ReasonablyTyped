@@ -1,7 +1,11 @@
 const { writeFileSync } = require('fs')
 const alltests = require('./test-results')
+const includeTs = process.argv.includes('--include-ts')
 
-const results = alltests.testResults[0].assertionResults
+const results = [
+  ...alltests.testResults[0].assertionResults,
+  ...(includeTs ? alltests.testResults[1].assertionResults : [])
+]
   .filter(_ => _.failureMessages.length === 1)
   .map(_ => _.failureMessages[0])
   .map(_ => _.split('[')[0])

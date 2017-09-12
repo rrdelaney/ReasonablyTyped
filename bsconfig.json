@@ -1,0 +1,28 @@
+{
+  "name": "ReasonablyTyped",
+  "bs-dependencies": ["flow-dev-tools"],
+  "sources": [{
+    "dir": "src",
+    "subdirs": [{
+      "dir": "retyped"
+    }, {
+      "dir": "js",
+      "kind": "js"
+    }, {
+      "dir": "native",
+      "kind": ["native", "bytecode"]
+    }]
+  }],
+  "entries": [{
+    "kind": "bytecode",
+    "main": "Native_cli"
+  }, {
+    "kind": "native",
+    "main": "Native_cli"
+  }, {
+    "kind": "js",
+    "main": "Js_cli"
+  }],
+  // This will fail if you have a global ocaml compiler. If you want super errors, kill opam O_O
+  // "bs-super-errors": true
+}

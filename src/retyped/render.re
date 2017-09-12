@@ -47,7 +47,7 @@ let typeDeclaration ::name ::type_of ::type_params () =>
   "type " ^ name ^ " " ^ type_params ^ " = " ^ type_of ^ ";";
 
 let objectType ::statements () =>
-  "Js.t {. " ^
+  "Js.t {.. " ^
   (
     List.filter (fun (key, type_of) => key != "__callProperty") statements |>
     List.map (fun (key, type_of) => key ^ ": " ^ type_of) |>
@@ -100,6 +100,13 @@ let unionType ::name ::types () =>
   name ^
   " : union_of_" ^
   name ^ " => " ^ name ^ " = \"Array.prototype.shift.call\" [@@bs.val];\n";
+
+let inlineUnion ::types () =>
+  "([" ^
+  (
+    List.map (fun (type_name, type_of) => "`" ^ type_name ^ " " ^ type_of) types |>
+    String.concat " | "
+  ) ^ "] [@bs.unwrap])";
 
 let classType ::types () =>
   "Js.t {. " ^

@@ -1,6 +1,6 @@
 {
   "name": "reasonably-typed",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Converts flow definitions to Bucklescript definitions",
   "bin": {
     "retyped": "./lib/cli.js"
@@ -22,19 +22,42 @@
     "url": "https://github.com/rrdelaney/ReasonablyTyped/issues"
   },
   "homepage": "https://github.com/rrdelaney/ReasonablyTyped",
+  "files": [
+    "lib/cli.js",
+    "lib/index.js",
+    "lib/retyped_node.js"
+  ],
   "dependencies": {
+    "babel-code-frame": "^6.26.0",
+    "chalk": "^2.1.0",
     "flowgen": "^1.2.0",
-    "yargs": "^8.0.1"
+    "reasonable-flowgen": "^0.1.3",
+    "refmt": "^1.13.7",
+    "yargs": "^8.0.1",
+    "flow-dev-tools": "bsansouci/flow#bsb-support"
   },
   "scripts": {
     "test": "jest compile format",
-    "test:flow-typed": "jest flow-typed --noStackTrace",
+    "test:flow-typed": "jest flow-typed --noStackTrace --silent",
+    "test:definitely-typed": "jest definitely-typed --noStackTrace --silent",
     "test:all": "jest",
-    "test:collect": "jest flow-typed --noStackTrace --json --outputFile=docs/test-results.json"
+    "test:collect": "jest flow-typed --noStackTrace --json --outputFile=docs/test-results.json",
+    "precommit": "lint-staged"
   },
   "devDependencies": {
     "glob": "^7.1.2",
-    "jest": "^20.0.4"
+    "husky": "^0.14.3",
+    "jest": "^20.0.4",
+    "jest-cli": "^20.0.4",
+    "lint-staged": "^4.0.2",
+    "prettier": "^1.5.3",
+    "bs-platform": "bsansouci/bsb-native"
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --no-semi --single-quote --write",
+      "git add"
+    ]
   },
   "jest": {
     "testPathIgnorePatterns": [
@@ -42,7 +65,8 @@
       "/flow/",
       "/reason-tools/",
       "/fixtures/",
-      "/flow-typed/"
+      "/flow-typed/",
+      "/definitely-typed/"
     ],
     "modulePathIgnorePatterns": [
       "/flow/"

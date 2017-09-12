@@ -1,3 +1,5 @@
+module Ast = Spider_monkey_ast;
+
 open Ast.Statement.Block;
 
 open Ast.Literal;
@@ -80,7 +82,8 @@ module BsType = {
     | Named (list t) string
     | Optional t
     | StringLiteral string
-    | Promise t;
+    | Promise t
+    | Date;
 };
 
 let string_of_id (loc: Loc.t, id: string) => id;
@@ -179,26 +182,12 @@ and type_to_bstype (ctx: context) =>
       ...List.map (fun (_, t) => type_to_bstype ctx t) rest
     ]
   | Generic g => generic_type_to_bstype ctx g
-  | StringLiteral {value} =>
-    raise (
-      ModulegenTypeError (
-        not_supported
-          "StringLiteral"
-          ctx /* BsType.StringLiteral value */
-      )
-    )
-  | NumberLiteral _ =>
-    raise (ModulegenTypeError (not_supported "NumberLiteral" ctx))
-  | BooleanLiteral _ =>
-    raise (ModulegenTypeError (not_supported "BooleanLiteral" ctx))
+  | StringLiteral {value} => BsType.StringLiteral value
+  | NumberLiteral _ => BsType.Number
+  | BooleanLiteral _ => BsType.Boolean
   | Typeof (loc, t) => BsType.Typeof (type_to_bstype {...ctx, loc} t)
-  | _ =>
-    raise (
-      ModulegenTypeError (
-        "Unknown type when converting to Bucklescript type" ^
-        loc_to_msg ctx.loc
-      )
-    )
+  | Exists => raise (ModulegenTypeError (not_supported "Exists type" ctx))
+  | Empty => raise (ModulegenTypeError (not_supported "Empty type" ctx))
 and function_type_to_bstype ctx f => {
   open Ast.Type.Function;
   open Ast.Type.Function.Param;
@@ -294,6 +283,7 @@ and generic_type_to_bstype ctx g => {
 }
 and named_to_bstype ctx type_params (loc, id) =>
   switch id {
+  | "Date" => BsType.Date
   | "RegExp" => BsType.Regex
   | "Object" => BsType.AnyObject
   | "Array" =>
@@ -354,7 +344,7 @@ and named_to_bstype ctx type_params (loc, id) =>
       };
     BsType.Promise (type_to_bstype {...ctx, loc} inner_type)
   | _ =>
-    if (String.length id > 0 && id.[0] == '$') {
+    if (String.length id > 0 && id.[0] == '$' && String.sub id 0 4 != "$npm") {
       raise (ModulegenTypeError (not_supported ("Built-in type " ^ id) ctx))
     } else {
       let type_params =
@@ -376,7 +366,8 @@ module BsDecl = {
     | ExportsDecl BsType.t
     | TypeDecl string (list string) BsType.t
     | ClassDecl string (list string) BsType.t
-    | InterfaceDecl string (list string) BsType.t;
+    | InterfaceDecl string (list string) BsType.t
+    | Noop;
 };
 
 let declaration_to_jsdecl loc =>
@@ -389,11 +380,17 @@ let declaration_to_jsdecl loc =>
         let bstype = type_annotation_to_bstype (Some typeAnnotation);
         BsDecl.FuncDecl (string_of_id id) bstype
       }
-    | Class (loc, {id, typeParameters, body: (_, interface)}) =>
-      BsDecl.ClassDecl
-        (string_of_id id)
-        (extract_type_params intctx typeParameters)
-        (BsType.Class (object_type_to_bstype interface))
+    | Class (loc, {id, typeParameters, body: (_, interface), extends}) =>
+      if (List.length extends === 0) {
+        BsDecl.ClassDecl
+          (string_of_id id)
+          (extract_type_params intctx typeParameters)
+          (BsType.Class (object_type_to_bstype interface))
+      } else {
+        raise (
+          ModulegenDeclError ("Inheritance not supported: " ^ loc_to_msg loc)
+        )
+      }
     | _ =>
       raise (
         ModulegenDeclError (
@@ -431,6 +428,54 @@ let rec statement_to_program (loc, s) =>
           (string_of_id id) (type_annotation_to_bstype typeAnnotation)
       }
     | Ast.Statement.InterfaceDeclaration s => declare_interface_to_jsdecl loc s
+    /*| Ast.Statement.DeclareInterface s => declare_interface_to_jsdecl loc s*/
+    /*| Ast.Statement.DeclareTypeAlias {id, typeParameters, right: (loc, t)} =>
+      BsDecl.TypeDecl
+        (string_of_id id)
+        (extract_type_params intctx typeParameters)
+        (type_to_bstype {...intctx, loc} t)*/
+    | Ast.Statement.ImportDeclaration {source} =>
+      let importedModule =
+        switch source {
+        | (_, {value: Ast.Literal.String s}) => s
+        | (_, _) => ""
+        };
+      if (importedModule == "react") {
+        raise (
+          ModulegenStatementError (
+            not_supported "React components" {...intctx, loc}
+          )
+        )
+      } else {
+        raise (
+          ModulegenStatementError (
+            not_supported "Import statements" {...intctx, loc}
+          )
+        )
+      }
+    /*| Ast.Statement.DeclareOpaqueType _ =>
+      raise (
+        ModulegenStatementError (not_supported "Opaque types" {...intctx, loc})
+      )*/
+    | Ast.Statement.ClassDeclaration _ =>
+      raise (
+        ModulegenStatementError (
+          not_supported "Class declatations" {...intctx, loc}
+        )
+      )
+    | Ast.Statement.Empty => BsDecl.Noop
+    | Ast.Statement.ExportDefaultDeclaration _ =>
+      raise (
+        ModulegenStatementError (
+          not_supported "ExportDefaultDeclaration" {...intctx, loc}
+        )
+      )
+    | Ast.Statement.ExportNamedDeclaration _ =>
+      raise (
+        ModulegenStatementError (
+          not_supported "ExportNamedDeclaration" {...intctx, loc}
+        )
+      )
     | _ =>
       raise (
         ModulegenStatementError (

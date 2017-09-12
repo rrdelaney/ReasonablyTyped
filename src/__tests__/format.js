@@ -1,4 +1,4 @@
-const { format } = require('../../lib')
+const { format } = require('../../jslib')
 
 test('Formatted code should equal itself', () => {
   const testCode = `

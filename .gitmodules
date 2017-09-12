@@ -2,3 +2,6 @@
 [submodule "src/__tests__/flow-typed"]
 	path = src/__tests__/flow-typed
 	url = https://github.com/flowtype/flow-typed
+[submodule "src/__tests__/definitely-typed"]
+	path = src/__tests__/definitely-typed
+	url = https://github.com/DefinitelyTyped/DefinitelyTyped

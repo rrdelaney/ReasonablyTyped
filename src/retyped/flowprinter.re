@@ -31,16 +31,19 @@ let rec show_type =
                 }
             )
             params;
-        let restArg =
-          switch rest_param {
-          | Some (name, type_of) => "..." ^ name ^ ": " ^ show_type type_of
-          | _ => ""
-          };
         (List.length type_params > 0 ? "<" : "") ^
         String.concat ", " type_params ^
         (List.length type_params > 0 ? ">" : "") ^
         "(" ^
-        String.concat ", " (List.concat [paramList, [restArg]]) ^
+        String.concat ", " paramList ^
+        (
+          switch rest_param {
+          | Some (name, type_of) =>
+            (List.length paramList > 0 ? ", " : "") ^
+            "..." ^ name ^ ": " ^ show_type type_of
+          | _ => ""
+          }
+        ) ^
         "): " ^ show_type return
       }
     | BsType.Null => "null"
@@ -78,11 +81,13 @@ let rec show_type =
       )
     | BsType.Promise t => "Promise<" ^ show_type t ^ ">"
     | BsType.StringLiteral t => "\"" ^ t ^ "\""
+    | BsType.Date => "Date"
   );
 
 let rec show_decl =
   Modulegen.(
     fun
+    | BsDecl.Noop => ""
     | BsDecl.ExportsDecl of_type =>
       "declare module.exports: " ^ show_type of_type
     | BsDecl.ModuleDecl name decls =>

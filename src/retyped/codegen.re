@@ -25,12 +25,13 @@ let rec bstype_name =
   | Tuple types =>
     "tuple_of_" ^ (List.map bstype_name types |> String.concat "_")
   | Named type_params s =>
-    String.uncapitalize_ascii s |> Genutils.normalize_name
+    String.uncapitalize s |> Genutils.normalize_name
   | Union types => union_types_to_name types
   | Class props =>
     raise (CodegenTypeError "Unable to translate class into type name")
   | Optional t => bstype_name t
   | Promise t => "promise_" ^ bstype_name t
+  | Date => "date"
   | StringLiteral _ =>
     raise (
       CodegenTypeError "Cannot use string literal outside the context of a union type"
@@ -102,13 +103,13 @@ let rec bstype_to_code ::ctx=intctx =>
   | Named type_params s =>
     (
       if (Genutils.is_type_param ctx.type_params s) {
-        "'" ^ (String.uncapitalize_ascii s |> Genutils.normalize_name) ^ " "
+        "'" ^ (String.uncapitalize s |> Genutils.normalize_name) ^ " "
       } else if (
         Genutils.is_class s ctx.type_table
       ) {
         s ^ ".t "
       } else {
-        (String.uncapitalize_ascii s |> Genutils.normalize_name) ^ " "
+        (String.uncapitalize s |> Genutils.normalize_name) ^ " "
       }
     ) ^ (
       List.map (bstype_to_code ::ctx) type_params |> String.concat " "
@@ -125,7 +126,34 @@ let rec bstype_to_code ::ctx=intctx =>
       let ctx = {...ctx, type_params: type_params @ ctx.type_params};
       let print (name, param) => (
         name,
-        bstype_to_code ::ctx param ^ (Genutils.is_optional param ? "?" : "")
+        switch param {
+        | Union types when Genutils.is_string_union types =>
+          Render.unionTypeStrings
+            types::(
+              List.map
+                (
+                  fun
+                  | StringLiteral s => s
+                  | _ => ""
+                )
+                types
+            )
+            ()
+        | Union types =>
+          Render.inlineUnion
+            types::(
+              List.map
+                (
+                  fun t => (
+                    String.capitalize (bstype_name t),
+                    bstype_to_code t
+                  )
+                )
+                types
+            )
+            ()
+        | t => bstype_to_code ::ctx t ^ (Genutils.is_optional param ? "?" : "")
+        }
       );
       Render.functionType
         formal_params::(List.map print params)
@@ -169,7 +197,8 @@ let rec bstype_to_code ::ctx=intctx =>
           )
           props;
       Render.classType types::class_types ()
-    };
+    }
+  | Date => "Js.Date.t";
 
 module Precode = {
   let rec bstype_precode def =>
@@ -178,7 +207,15 @@ module Precode = {
       let types_precode = List.map bstype_precode types |> List.flatten;
       types_precode @ [string_of_union_types def types]
     | Function type_params params rest_param rt =>
-      List.map (fun (id, t) => bstype_precode t) params |>
+      List.map
+        (
+          fun (id, t) =>
+            switch t {
+            | Union _ => []
+            | type_of => bstype_precode type_of
+            }
+        )
+        params |>
       List.append (
         switch rest_param {
         | Some (_, t) => [bstype_precode t]
@@ -194,16 +231,8 @@ module Precode = {
     | Dict t => bstype_precode t
     | _ => [""]
     }
-  and string_of_union_types t types => {
-    let is_string_union =
-      List.for_all
-        (
-          fun
-          | StringLiteral _ => true
-          | _ => false
-        )
-        types;
-    if is_string_union {
+  and string_of_union_types t types =>
+    if (Genutils.is_string_union types) {
       ""
     } else {
       let union_name = bstype_name t;
@@ -211,14 +240,13 @@ module Precode = {
         List.map
           (
             fun type_of => (
-              String.capitalize_ascii (bstype_name type_of),
+              String.capitalize (bstype_name type_of),
               bstype_to_code type_of
             )
           )
           types;
       Render.unionType name::union_name types::union_types ()
-    }
-  };
+    };
   let call_property_precode module_id var_name statements =>
     List.filter (fun (key, type_of) => key == "$$callProperty") statements |>
     List.map (
@@ -236,6 +264,7 @@ module Precode = {
     ) |> List.flatten;
   let decl_to_precode module_id =>
     fun
+    | Noop => []
     | VarDecl id type_of =>
       bstype_precode type_of @ (
         switch type_of {
@@ -249,7 +278,7 @@ module Precode = {
         let type_param_names = List.map Genutils.to_type_param type_params;
         let type_decl =
           Render.typeDeclaration
-            name::(String.uncapitalize_ascii id)
+            name::(String.uncapitalize id)
             type_of::(bstype_to_code ctx::{...intctx, type_params} type_of)
             type_params::(String.concat " " type_param_names)
             ();
@@ -303,6 +332,7 @@ let constructor_type type_table =>
 
 let rec declaration_to_code module_id type_table =>
   fun
+  | Noop => ""
   | VarDecl id type_of =>
     Render.variableDeclaration
       name::(Genutils.normalize_name id)
@@ -369,7 +399,7 @@ let rec declaration_to_code module_id type_table =>
   | InterfaceDecl id type_params type_of => {
       let type_param_names = List.map Genutils.to_type_param type_params;
       Render.typeDeclaration
-        name::(String.uncapitalize_ascii id)
+        name::(String.uncapitalize id)
         type_of::(bstype_to_code ctx::{type_table, type_params} type_of)
         type_params::(String.concat " " type_param_names)
         ()
@@ -398,16 +428,15 @@ let rec split sep str acc => {
   }
 };
 
-let program_to_code program =>
+let program_to_code program typeof_table =>
   switch program {
   | ModuleDecl id statements =>
-    let typeof_table = Typetable.create statements;
     /* is the module nested ? */
     let inner_module_name =
       switch (split '/' id []) {
       | [_, x, ...xs] =>
         let module_name =
-          [x, ...xs] |> List.map String.capitalize_ascii |> String.concat "" |> (
+          [x, ...xs] |> List.map String.capitalize |> String.concat "" |> (
             /* drop the terminal ' from quotes */
             fun s =>
               String.sub s 0 (String.length s - 1)

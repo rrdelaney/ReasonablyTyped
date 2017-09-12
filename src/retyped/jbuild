@@ -1,5 +1,0 @@
-(jbuild_version 1)
-
-(library
-  ((name retyped)
-    (libraries (sedlex flow_parser))))

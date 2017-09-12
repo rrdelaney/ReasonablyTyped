@@ -39,10 +39,10 @@ $ retyped compile class.js
 
 type state = Js.t {. id : float, storeName : string};
 
-type store = Js.t {. state : state, update : nextState::state => unit [@bs.meth]};
-
-external create_store : initialState::state => store =
-  "Store" [@@bs.new] [@@bs.module "classes"];
+module Store = {
+  type t = Js.t {. state : state, update : (state => unit) [@bs.meth]};
+  external make : state => t = "Store" [@@bs.new] [@@bs.module "classes"];
+};
 ```
 
 ## Docs
@@ -108,8 +108,12 @@ Formats a block of code using `refmt`
 Compiles a libdef, formats the result, and handles errors cleanly
 </details></p>
 
-<p><details>
-<summary><b>Roadmap</b></summary>
+## Status
+
+[![CircleCI](https://circleci.com/gh/rrdelaney/ReasonablyTyped.svg?style=svg)](https://circleci.com/gh/rrdelaney/ReasonablyTyped)
+
+## Roadmap
+
 - [x] Basic types like `string`
 - [x] Function types
 - [x] Record types
@@ -119,10 +123,6 @@ Compiles a libdef, formats the result, and handles errors cleanly
 - [x] Named types
 - [x] Optional parameters
 - [x] Classes
-- [ ] Generics
-- [ ] Built-ins like Promises and React
-</details></p>
-
-## Status
-
-[![CircleCI](https://circleci.com/gh/rrdelaney/ReasonablyTyped.svg?style=svg)](https://circleci.com/gh/rrdelaney/ReasonablyTyped)
+- [x] Generics
+- [x] Built-ins like Promises
+- [ ] React components

@@ -3,16 +3,22 @@ open Parser_flow;
 let combine_programs =
   List.fold_left
     (
-      fun (current_id, all_code) program =>
-        switch (Codegen.program_to_code program) {
-        | Some (program_id, program_code) =>
-          if (program_id !== "") {
-            (program_id, all_code ^ "\n" ^ program_code)
-          } else {
-            (current_id, all_code ^ "\n" ^ program_code)
-          }
+      fun (current_id, all_code) program => {
+        let typeof_table =
+          switch program {
+          | Modulegen.BsDecl.ModuleDecl _ statements => Typetable.create statements
+          | _ => []
+          };
+        let program = Optimizer.optimize typeof_table program;
+        switch (Codegen.program_to_code program typeof_table) {
+        | Some (program_id, program_code) when program_id !== "" => (
+            program_id,
+            all_code ^ "\n" ^ program_code
+          )
+        | Some (program_id, program_code) => (current_id, all_code ^ "\n" ^ program_code)
         | None => (current_id, all_code)
         }
+      }
     )
     ("Unknown ID", "");
 

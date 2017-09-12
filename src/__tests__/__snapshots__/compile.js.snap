@@ -1,50 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Compile duplicate-type.re 1`] = `
-"type union_of_number_or_string =
-  | Number float
-  | String string;
+"external add : x::[ | \`Number float | \`String string] [@bs.unwrap] => float =
+  \\"\\" [@@bs.module \\"duplicate-type\\"];
 
-type number_or_string;
-
-external number_or_string : union_of_number_or_string => number_or_string =
-  \\"Array.prototype.shift.call\\" [@@bs.val];
-
-external add : x::number_or_string => float = \\"\\" [@@bs.module \\"duplicate-type\\"];
-
-external sub : x::number_or_string => float = \\"\\" [@@bs.module \\"duplicate-type\\"];
+external sub : x::[ | \`Number float | \`String string] [@bs.unwrap] => float =
+  \\"\\" [@@bs.module \\"duplicate-type\\"];
 "
 `;
 
 exports[`Compile duplicate-type-param.re 1`] = `
-"type union_of_number_or_string =
-  | Number float
-  | String string;
-
-type number_or_string;
-
-external number_or_string : union_of_number_or_string => number_or_string =
-  \\"Array.prototype.shift.call\\" [@@bs.val];
-
-external add : x::number_or_string => y::number_or_string => float =
+"external add :
+  x::[ | \`Number float | \`String string] [@bs.unwrap] =>
+  y::[ | \`Number float | \`String string] [@bs.unwrap] =>
+  float =
   \\"\\" [@@bs.module \\"duplicate-type-param\\"];
 "
 `;
 
 exports[`Compile generics.re 1`] = `
-"type thing 'x = Js.t {. lst : array 'x};
+"type thing 'x = Js.t {.. lst : array 'x};
 
 module Adder = {
   type t 'x = Js.t {. add : ('x => 'x) [@bs.meth]};
   external make : 'x => t 'x = \\"Adder\\" [@@bs.new] [@@bs.module \\"generics\\"];
 };
 
-type subOpts 'm 'n = Js.t {. m : 'm, n : Adder.t 'n};
+type subOpts 'm 'n = Js.t {.. m : 'm, n : Adder.t 'n};
 "
 `;
 
 exports[`Compile interface.re 1`] = `
-"type options = Js.t {. op : string};
+"type options = Js.t {.. op : string};
 
 external apply : x::float => y::float => options::options? => unit => float =
   \\"\\" [@@bs.module \\"interface\\"];
@@ -91,9 +78,9 @@ external add : a::float => b::float => float = \\"\\" [@@bs.module \\"numbers\\"
 `;
 
 exports[`Compile object-type.re 1`] = `
-"type subscribeOptions = Js.t {. start : float, stop : float};
+"type subscribeOptions = Js.t {.. start : float, stop : float};
 
-type testOptions = Js.t {. method : string, subscribe : subscribeOptions};
+type testOptions = Js.t {.. method : string, subscribe : subscribeOptions};
 
 external test : options::testOptions => string = \\"\\" [@@bs.module \\"object-type\\"];
 "
@@ -115,8 +102,7 @@ external pOfVoid : unit => Js_promise.t unit = \\"\\" [@@bs.module \\"promise\\"
 
 external argPromise : p::Js_promise.t string => unit = \\"\\" [@@bs.module \\"promise\\"];
 
-external listOfPromises : unit => array (Js_promise.t string) =
-  \\"\\" [@@bs.module \\"promise\\"];
+external listOfPromises : unit => array (Js_promise.t string) = \\"\\" [@@bs.module \\"promise\\"];
 
 external somePromise : Js_promise.t (array float) = \\"\\" [@@bs.module \\"promise\\"];
 "
@@ -138,8 +124,7 @@ exports[`Compile simple-class.re 1`] = `
 exports[`Compile spread-args.re 1`] = `
 "external foo : bars::array float => unit = \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
 
-external optFoo : bars::array float => unit =
-  \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+external optFoo : bars::array float => unit = \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
 
 external bothFoo : anArg::string => bars::array float => unit =
   \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
@@ -159,24 +144,15 @@ external multipleLists : foos::array float => bars::array float => unit =
 `;
 
 exports[`Compile type-decl.re 1`] = `
-"type stringOptions = Js.t {. value : string};
+"type stringOptions = Js.t {.. value : string};
 
-external test : s::string => options::stringOptions => string =
-  \\"\\" [@@bs.module \\"type-decl\\"];
+external test : s::string => options::stringOptions => string = \\"\\" [@@bs.module \\"type-decl\\"];
 "
 `;
 
 exports[`Compile union-type.re 1`] = `
-"type union_of_number_or_string =
-  | Number float
-  | String string;
-
-type number_or_string;
-
-external number_or_string : union_of_number_or_string => number_or_string =
-  \\"Array.prototype.shift.call\\" [@@bs.val];
-
-external double : x::number_or_string => float = \\"\\" [@@bs.module \\"union-type\\"];
+"external double : x::[ | \`Number float | \`String string] [@bs.unwrap] => float =
+  \\"\\" [@@bs.module \\"union-type\\"];
 "
 `;
 

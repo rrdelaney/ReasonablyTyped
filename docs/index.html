@@ -10,8 +10,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/prism.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/components/prism-javascript.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/components/prism-reason.min.js"></script>
-  <script src="https://unpkg.com/reasonably-typed@0.8.0/lib/retyped_node.js"></script>
-  <script src="https://unpkg.com/reasonably-typed@0.8.0/lib/refmt_node.js"></script>
+  <script src="https://unpkg.com/reasonably-typed@0.10.0/lib/retyped_node.js"></script>
+  <script src="https://unpkg.com/reasonably-typed@0.10.0/lib/refmt_node.js"></script>
 
   <style>
     .header {
@@ -446,7 +446,8 @@ const compileText = str => {
 
     return `/* Module ${moduleId} */\n\n${fmtCode}`
   } catch (e) {
-    const err = (e[1] && (e[1].c || (e[1][1] && e[1][1].c))) + (e[2] ? ' ' + e[2].c : '')
+    const err =
+      (e[1] && (e[1].c || (e[1][1] && e[1][1].c))) + (e[2] ? ' ' + e[2].c : '')
     if (err === 'Parse_error.Error') throw new SyntaxError(e)
     throw new Error(err)
   }
@@ -469,9 +470,10 @@ $('#libdef-input').on('change keyup paste ', function() {
     $('#libdef-output').removeClass('error')
     $('#libdef-output ').val(output)
   } catch (e) {
-    const errorText = e instanceof SyntaxError
-      ? 'Error parsing JS code O_o'
-      : 'Unable to generate code :('
+    const errorText =
+      e instanceof SyntaxError
+        ? 'Error parsing JS code O_o'
+        : 'Unable to generate code :('
 
     $('#libdef-output').addClass('error')
     $('#libdef-output').val(errorText)
@@ -489,19 +491,27 @@ $.getJSON('test-results.json', data => {
     $('#is-it-ready-message').text('Woohoo!')
   } else {
     $('#is-it-ready').text('No')
-    $('#is-it-ready-message').text(`But it passes ${passedTests} / ${allTests} tests`)
+    $('#is-it-ready-message').text(
+      `But it passes ${passedTests} / ${allTests} tests`
+    )
   }
 
-  $('#is-it-ready-table').append(results.map(result => {
-    const title = result.title.replace('Library ', '')
-    const isFailing = result.status === 'failed'
-    const message = result.failureMessages[0]
+  $('#is-it-ready-table').append(
+    results.map(result => {
+      const title = result.title.replace('Library ', '')
+      const isFailing = result.status === 'failed'
+      const message = result.failureMessages[0]
 
-    const classes = [isFailing ? 'failing' : 'passing', 'test-box'].join(' ')
-    const tooltip = isFailing ? message.replace(/"/g, '&quot;').split('at compile')[0] : ''
+      const classes = [isFailing ? 'failing' : 'passing', 'test-box'].join(' ')
+      const tooltip = isFailing
+        ? message.replace(/"/g, '&quot;').split('at compile')[0]
+        : ''
 
-    return $(`<div class="${classes}" data-title="${title}" data-content="${tooltip}"></div>`)
-  }))
+      return $(
+        `<div class="${classes}" data-title="${title}" data-content="${tooltip}"></div>`
+      )
+    })
+  )
 
   $('.test-box').popup()
 })
