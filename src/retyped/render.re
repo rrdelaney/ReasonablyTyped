@@ -108,6 +108,13 @@ let inlineUnion ::types () =>
     String.concat " | "
   ) ^ "] [@bs.unwrap])";
 
+let inlineUnion ::types () =>
+  "([" ^
+  (
+    List.map (fun (type_name, type_of) => "`" ^ type_name ^ " " ^ type_of) types |>
+    String.concat " | "
+  ) ^ "] [@bs.unwrap])";
+
 let classType ::types () =>
   "Js.t {. " ^
   (

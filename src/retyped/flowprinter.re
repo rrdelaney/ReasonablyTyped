@@ -71,7 +71,7 @@ let rec show_type =
       "{ " ^
       String.concat
         "; " (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props) ^ " }"
-    | BsType.Named type_params s =>
+    | BsType.Named type_params s _ =>
       s ^ (
         if (List.length type_params > 0) {
           "<" ^ (List.map show_type type_params |> String.concat ", ") ^ ">"
@@ -108,4 +108,21 @@ let rec show_decl =
       (List.length type_params > 0 ? ">" : "") ^ show_type of_type
     | BsDecl.InterfaceDecl name type_params of_type =>
       "declare interface " ^ name ^ " " ^ show_type of_type
+    | BsDecl.ImportDecl import_names module_name =>
+      "import type { " ^
+      String.concat
+        ", "
+        (
+          List.map
+            (
+              fun (remote, local) =>
+                if (remote == local) {
+                  remote
+                } else {
+                  remote ^ " as " ^ local
+                }
+            )
+            import_names
+        ) ^
+      " } from '" ^ module_name ^ "'\n"
   );

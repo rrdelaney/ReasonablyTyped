@@ -26,18 +26,18 @@ let create statements =>
       | FuncDecl id type_of => (id, Type type_of)
       | _ => ("", None)
     )
-    statements |>
-  List.filter (fun (key, _) => key != "");
+    statements
+  |> List.filter (fun (key, _) => key != "");
 
 let show table => {
-  print_endline "Types:";
   List.iter
     (
       fun (id, typeof) =>
         print_endline (
-          "| " ^
-          id ^
-          " => " ^ (
+          "typeof "
+          ^ id
+          ^ " = "
+          ^ (
             switch typeof {
             | Class => "Class"
             | None => "None"
