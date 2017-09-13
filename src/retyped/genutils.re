@@ -56,11 +56,6 @@ let is_string_union =
     | _ => false
   );
 
-module Uid = {
-  let get () => string_of_int 1;
-  let uniq prefix => prefix ^ "_" ^ get ();
-};
-
 let walk replacer => {
   open Modulegen.BsDecl;
   open Modulegen.BsType;
