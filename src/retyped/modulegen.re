@@ -72,7 +72,7 @@ module BsType = {
     | Object (list (string, t))
     | AnyObject
     /* inherited class, class properties */
-    | Class (option string) (list (string, t))
+    | Class (option t) (list (string, t))
     | Union (list t)
     | Array t
     | Dict t
@@ -432,9 +432,13 @@ let declare_class_to_jsdecl loc s => {
   let inheritedClasses =
     switch extends {
     | [] => None
+    | [(loc, parent)] =>
+      Some (type_to_bstype {...intctx, loc} (Ast.Type.Generic parent))
     | _ =>
       raise (
-        ModulegenDeclError ("Inheritance not supported: " ^ loc_to_msg loc)
+        ModulegenStatementError (
+          not_supported "Inheriting from multiple types" {...intctx, loc}
+        )
       )
     };
   BsDecl.ClassDecl

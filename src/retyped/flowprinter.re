@@ -76,7 +76,7 @@ let rec show_type =
       (
         switch extends {
         | None => ""
-        | Some parent => " extends " ^ parent
+        | Some parent => " extends " ^ show_type parent
         }
       )
       ^ "{ "
