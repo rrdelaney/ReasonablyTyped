@@ -2,14 +2,14 @@
 
 ## Building
 
-There's a Makefile for the project, so compilation _should_ be easy. There's two targets right now,
+There's some `package.json` scripts for the project, so compilation _should_ be easy. There's two targets right now,
 native and JS. Native is mostly used for testing and not distributed any where. The JS target is what
-is distributed on NPM and is interfaced by `yargs`.
+is distributed on NPM and is interfaced by `meow`.
 
 To build for native:
 
 ```
-$ make native
+$ npm run build:native
 ```
 
 The native target is great for testing because it compiles super fast! However, it does not run `refmt`
@@ -25,7 +25,7 @@ the result of compiling.
 To build the JS target, run:
 
 ```
-$ make js
+$ npm run build:js
 ```
 
 The JS target runs `refmt` against all output, and is what is distributed through npm. Make
@@ -42,10 +42,10 @@ point when compiling with JSOO.
 Reason-based code. `lib/cli.js` is the entry point for the JS-based CLI tool.
 
 The compiler is split into three parts, the module-definition generator, the code generator, and the
-renderer. The module-definition generator is found in `src/modulegen.re` and the code generator is found in
-`src/codegen.re`. The module-definition generator extracts an AST-like object from a Flow AST. This
+renderer. The module-definition generator is found in `src/retyped/modulegen.re` and the code generator is found in
+`src/retyped/codegen.re`. The module-definition generator extracts an AST-like object from a Flow AST. This
 is then passed to the code generator, which spits out Reason code as a string. The functionality from
-both is glued together in `src/retyped.re`. Code snippets themselves are generated from `src/render.re`.
+both is glued together in `src/retyped.re`. Code snippets themselves are generated from `src/retyped/render.re`.
 
 ```
 *-------------*     *------------------*     *----------------*

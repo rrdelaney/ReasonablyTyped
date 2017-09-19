@@ -3,6 +3,7 @@ _build/
 *.native
 *.byte
 *.install
+*.log
 _test.js
 _test.d.ts
 _test.re

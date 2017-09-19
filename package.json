@@ -30,12 +30,15 @@
     "build:native": "jbuilder build src/cli.exe",
     "build:js":
       "jbuilder build src/retyped_node.bc.js && cp _build/default/src/retyped_node.bc.js lib/retyped_node.js",
+    "ctp":
+      "jbuilder build src/cli.exe && ./_build/default/src/cli.exe _test.js",
     "test": "jest compile format",
-    "test:flow-typed": "jest flow-typed --noStackTrace --silent",
-    "test:definitely-typed": "jest definitely-typed --noStackTrace --silent",
+    "test:flow-typed":
+      "jest flow-typed --noStackTrace --silent --outputFile=docs/test-results.json",
+    "posttest:flow-typed": "node docs/find-error.js",
+    "test:definitely-typed":
+      "jest definitely-typed --noStackTrace --silent--outputFile=docs/test-results.json",
     "test:all": "jest",
-    "test:collect":
-      "jest flow-typed --noStackTrace --json --outputFile=docs/test-results.json",
     "precommit": "lint-staged"
   },
   "devDependencies": {
