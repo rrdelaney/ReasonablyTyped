@@ -72,8 +72,14 @@ let rec show_type =
               props
           )
       ^ " }"
-    | BsType.Class props =>
-      "{ "
+    | BsType.Class extends props =>
+      (
+        switch extends {
+        | None => ""
+        | Some parent => " extends " ^ parent
+        }
+      )
+      ^ "{ "
       ^ String.concat
           "; "
           (List.map (fun (key, prop) => key ^ ": " ^ show_type prop) props)

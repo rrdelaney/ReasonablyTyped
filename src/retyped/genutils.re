@@ -27,6 +27,24 @@ let to_module_name str => normalize_name (unquote str);
 
 let to_type_param str => "'" ^ String.uncapitalize_ascii str |> normalize_name;
 
+let rec split sep str acc => {
+  open String;
+  let len = length str;
+  let first_index =
+    try (Some (index str sep)) {
+    | Not_found => None
+    };
+  switch first_index {
+  | None => List.append acc [str]
+  | Some i =>
+    let beginning = min len (i + 1);
+    split
+      sep
+      (sub str beginning (len - beginning))
+      (List.append acc [sub str 0 (max 0 (beginning - 1))])
+  }
+};
+
 let rec uniq =
   fun
   | [] => []
@@ -35,26 +53,33 @@ let rec uniq =
       [h, ...no_dups]
     };
 
-let is_optional type_of =>
-  switch type_of {
-  | Optional _ => true
-  | _ => false
-  };
-
-let is_type_param params t => List.exists (fun p => p == t) params;
-
-let is_class t table =>
-  switch (Typetable.get t table) {
-  | Class => true
-  | _ => false
-  };
-
-let is_string_union =
-  List.for_all (
-    fun
-    | StringLiteral _ => true
+module Is = {
+  let optional type_of =>
+    switch type_of {
+    | Optional _ => true
     | _ => false
-  );
+    };
+  let type_param params t => List.exists (fun p => p == t) params;
+  let class_type t table =>
+    switch (Typetable.get t table) {
+    | Class => true
+    | _ => false
+    };
+  let string_union =
+    List.for_all (
+      fun
+      | StringLiteral _ => true
+      | _ => false
+    );
+  let react_component =
+    fun
+    | Class extends _props => true
+    | _ => false;
+};
+
+module React = {
+  let extract_props component => {};
+};
 
 let walk replacer => {
   open Modulegen.BsDecl;
@@ -86,10 +111,11 @@ let walk replacer => {
       | Some new_t when recurse => walk_type recurse::false new_t
       | _ => Object (List.map (fun (name, t) => (name, walk_type t)) fields)
       }
-    | Class fields as ct =>
+    | Class extends fields as ct =>
       switch (replacer ct) {
       | Some new_t when recurse => walk_type recurse::false new_t
-      | _ => Class (List.map (fun (name, t) => (name, walk_type t)) fields)
+      | _ =>
+        Class extends (List.map (fun (name, t) => (name, walk_type t)) fields)
       }
     | Dict t as dt =>
       switch (replacer dt) {

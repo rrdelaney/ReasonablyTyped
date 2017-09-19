@@ -33,7 +33,7 @@ let rec bstype_name =
     module_prefix module_name
     ^ (String.uncapitalize_ascii s |> Genutils.normalize_name)
   | Union types => union_types_to_name types
-  | Class props =>
+  | Class _extends props =>
     raise (CodegenTypeError "Unable to translate class into type name")
   | Optional t => bstype_name t
   | Promise t => "promise_" ^ bstype_name t
@@ -109,10 +109,10 @@ let rec bstype_to_code ::ctx=intctx =>
   | Named type_params s module_name =>
     module_prefix module_name
     ^ (
-      if (Genutils.is_type_param ctx.type_params s) {
+      if (Genutils.Is.type_param ctx.type_params s) {
         "'" ^ (String.uncapitalize_ascii s |> Genutils.normalize_name) ^ " "
       } else if (
-        Genutils.is_class s ctx.type_table
+        Genutils.Is.class_type s ctx.type_table
       ) {
         s ^ ".t "
       } else {
@@ -133,7 +133,7 @@ let rec bstype_to_code ::ctx=intctx =>
       let print (name, param) => (
         name,
         switch param {
-        | Union types when Genutils.is_string_union types =>
+        | Union types when Genutils.Is.string_union types =>
           Render.unionTypeStrings
             types::(
               List.map
@@ -158,7 +158,7 @@ let rec bstype_to_code ::ctx=intctx =>
                 types
             )
             ()
-        | t => bstype_to_code ::ctx t ^ (Genutils.is_optional param ? "?" : "")
+        | t => bstype_to_code ::ctx t ^ (Genutils.Is.optional param ? "?" : "")
         }
       );
       Render.functionType
@@ -170,12 +170,14 @@ let rec bstype_to_code ::ctx=intctx =>
           }
         )
         has_optional::(
-          List.exists (fun (name, t) => Genutils.is_optional t) params
+          List.exists (fun (name, t) => Genutils.Is.optional t) params
         )
         return_type::(bstype_to_code ::ctx rt)
         ()
     }
-  | Class props => {
+  | Class (Some _extends) _props =>
+    raise (CodegenTypeError "Class inheritence is not supported")
+  | Class _extends props => {
       let class_types =
         List.map
           (
@@ -232,7 +234,7 @@ module Precode = {
     | Object types =>
       List.map (fun (id, type_of) => bstype_precode type_of) types
       |> List.flatten
-    | Class types =>
+    | Class _extends types =>
       List.map (fun (id, type_of) => bstype_precode type_of) types
       |> List.flatten
     | Optional t => bstype_precode t
@@ -241,7 +243,7 @@ module Precode = {
     | _ => [""]
     }
   and string_of_union_types t types =>
-    if (Genutils.is_string_union types) {
+    if (Genutils.Is.string_union types) {
       ""
     } else {
       let union_name = bstype_name t;
@@ -324,7 +326,7 @@ module Precode = {
 
 let constructor_type type_table =>
   fun
-  | Class props => {
+  | Class _extends props => {
       let constructors =
         List.find_all (fun (id, _) => id == "constructor") props;
       if (List.length constructors == 0) {
@@ -427,35 +429,12 @@ let rec declaration_to_code module_id type_table =>
     }
   | ImportDecl _ _ => "";
 
-
-/** Str is missing regex primitive implementations for the JS target.
- *  js_of_ocaml Regexp isn't available native.
- *  The use case was simple enough to just make this.
- */
-let rec split sep str acc => {
-  open String;
-  let len = length str;
-  let first_index =
-    try (Some (index str sep)) {
-    | Not_found => None
-    };
-  switch first_index {
-  | None => List.append acc [str]
-  | Some i =>
-    let beginning = min len (i + 1);
-    split
-      sep
-      (sub str beginning (len - beginning))
-      (List.append acc [sub str 0 (max 0 (beginning - 1))])
-  }
-};
-
 let program_to_code program typeof_table =>
   switch program {
   | ModuleDecl id statements =>
     /* is the module nested ? */
     let inner_module_name =
-      switch (split '/' id []) {
+      switch (Genutils.split '/' id []) {
       | [_, x, ...xs] =>
         let module_name =
           [x, ...xs]

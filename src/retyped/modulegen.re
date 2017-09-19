@@ -71,7 +71,8 @@ module BsType = {
     | AnyFunction
     | Object (list (string, t))
     | AnyObject
-    | Class (list (string, t))
+    /* inherited class, class properties */
+    | Class (option string) (list (string, t))
     | Union (list t)
     | Array t
     | Dict t
@@ -364,15 +365,23 @@ and named_to_bstype ctx type_params (loc, id) =>
 
 module BsDecl = {
   type t =
+    /* variable name, variable type */
     | VarDecl string BsType.t
+    /* function name, function type */
     | FuncDecl string BsType.t
+    /* module name, declarations */
     | ModuleDecl string (list t)
+    /* Type of exports */
     | ExportsDecl BsType.t
+    /* Type alias name, type params, inner type */
     | TypeDecl string (list string) BsType.t
+    /* class name, type params, inner type */
     | ClassDecl string (list string) BsType.t
+    /* interface name, type params, inner type */
     | InterfaceDecl string (list string) BsType.t
     /* import {names as name} from {module} */
     | ImportDecl (list (string, string)) string
+    /* Nothing */
     | Noop;
 };
 
@@ -386,17 +395,6 @@ let declaration_to_jsdecl loc =>
         let bstype = type_annotation_to_bstype (Some typeAnnotation);
         BsDecl.FuncDecl (string_of_id id) bstype
       }
-    | Class (loc, {id, typeParameters, body: (_, interface), extends}) =>
-      if (List.length extends === 0) {
-        BsDecl.ClassDecl
-          (string_of_id id)
-          (extract_type_params intctx typeParameters)
-          (BsType.Class (object_type_to_bstype interface))
-      } else {
-        raise (
-          ModulegenDeclError ("Inheritance not supported: " ^ loc_to_msg loc)
-        )
-      }
     | _ =>
       raise (
         ModulegenDeclError (
@@ -405,6 +403,88 @@ let declaration_to_jsdecl loc =>
         )
       )
   );
+
+let declare_interface_to_jsdecl loc s => {
+  open Ast.Statement.Interface;
+  open Ast.Type;
+  let {id, body, typeParameters, extends} = s;
+  switch extends {
+  | [(loc, _extends), ...t] =>
+    raise (
+      ModulegenStatementError (
+        not_supported "Inheriting in interfaces" {...intctx, loc}
+      )
+    )
+  | _ => ()
+  };
+  let (body_loc, obj_type) = body;
+  let body_type = Object obj_type;
+  BsDecl.InterfaceDecl
+    (string_of_id id)
+    (extract_type_params intctx typeParameters)
+    (type_to_bstype {...intctx, loc: body_loc} body_type)
+};
+
+let declare_class_to_jsdecl loc s => {
+  open Ast.Statement.Interface;
+  open Ast.Type;
+  let {id, typeParameters, body: (_, interface), extends} = s;
+  let inheritedClasses =
+    switch extends {
+    | [] => None
+    | _ =>
+      raise (
+        ModulegenDeclError ("Inheritance not supported: " ^ loc_to_msg loc)
+      )
+    };
+  BsDecl.ClassDecl
+    (string_of_id id)
+    (extract_type_params intctx typeParameters)
+    (BsType.Class inheritedClasses (object_type_to_bstype interface))
+};
+
+let import_decl_to_jsdecl loc s => {
+  open Ast.Statement.ImportDeclaration;
+  let {importKind, source, specifiers} = s;
+  let imported_module =
+    switch source {
+    | (_, {value: Ast.Literal.String s}) => s
+    | (_, _) => ""
+    };
+  switch importKind {
+  | ImportType =>
+    let import_names =
+      List.map
+        (
+          fun
+          | Ast.Statement.ImportDeclaration.ImportNamedSpecifier {
+              remote,
+              local
+            } => (
+              string_of_id remote,
+              switch local {
+              | Some s => string_of_id s
+              | None => string_of_id remote
+              }
+            )
+          | _ => ("", "")
+        )
+        specifiers;
+    BsDecl.ImportDecl import_names imported_module
+  | ImportTypeof =>
+    raise (
+      ModulegenStatementError (
+        not_supported "'import typeof'" {...intctx, loc}
+      )
+    )
+  | ImportValue =>
+    raise (
+      ModulegenStatementError (
+        not_supported "Importing values" {...intctx, loc}
+      )
+    )
+  }
+};
 
 let rec statement_to_program (loc, s) =>
   Ast.Statement.Interface.(
@@ -415,11 +495,7 @@ let rec statement_to_program (loc, s) =>
       declaration_to_jsdecl loc declaration
     | Ast.Statement.DeclareFunction declare_function =>
       declaration_to_jsdecl loc (Function (loc, declare_function))
-    | Ast.Statement.DeclareClass {id, typeParameters, body: (_, interface)} =>
-      BsDecl.ClassDecl
-        (string_of_id id)
-        (extract_type_params intctx typeParameters)
-        (BsType.Class (object_type_to_bstype interface))
+    | Ast.Statement.DeclareClass s => declare_class_to_jsdecl loc s
     | Ast.Statement.TypeAlias {id, typeParameters, right: (loc, t)} =>
       BsDecl.TypeDecl
         (string_of_id id)
@@ -440,45 +516,7 @@ let rec statement_to_program (loc, s) =>
         (string_of_id id)
         (extract_type_params intctx typeParameters)
         (type_to_bstype {...intctx, loc} t)
-    | Ast.Statement.ImportDeclaration {importKind, source, specifiers} =>
-      let imported_module =
-        switch source {
-        | (_, {value: Ast.Literal.String s}) => s
-        | (_, _) => ""
-        };
-      switch importKind {
-      | ImportType =>
-        let import_names =
-          List.map
-            (
-              fun
-              | Ast.Statement.ImportDeclaration.ImportNamedSpecifier {
-                  remote,
-                  local
-                } => (
-                  string_of_id remote,
-                  switch local {
-                  | Some s => string_of_id s
-                  | None => string_of_id remote
-                  }
-                )
-              | _ => ("", "")
-            )
-            specifiers;
-        BsDecl.ImportDecl import_names imported_module
-      | ImportTypeof =>
-        raise (
-          ModulegenStatementError (
-            not_supported "'import typeof'" {...intctx, loc}
-          )
-        )
-      | ImportValue =>
-        raise (
-          ModulegenStatementError (
-            not_supported "Importing values" {...intctx, loc}
-          )
-        )
-      }
+    | Ast.Statement.ImportDeclaration s => import_decl_to_jsdecl loc s
     | Ast.Statement.DeclareOpaqueType _ =>
       raise (
         ModulegenStatementError (not_supported "Opaque types" {...intctx, loc})
@@ -524,24 +562,4 @@ and declare_module_to_jsdecl loc s => {
       )
     )
   }
-}
-and declare_interface_to_jsdecl loc s => {
-  open Ast.Statement.Interface;
-  open Ast.Type;
-  let {id, body, typeParameters, extends} = s;
-  switch extends {
-  | [(loc, _extends), ...t] =>
-    raise (
-      ModulegenStatementError (
-        not_supported "Inheriting in interfaces" {...intctx, loc}
-      )
-    )
-  | _ => ()
-  };
-  let (body_loc, obj_type) = body;
-  let body_type = Object obj_type;
-  BsDecl.InterfaceDecl
-    (string_of_id id)
-    (extract_type_params intctx typeParameters)
-    (type_to_bstype {...intctx, loc: body_loc} body_type)
 };
