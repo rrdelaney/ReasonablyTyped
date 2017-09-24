@@ -73,12 +73,8 @@ module Is = {
     );
   let react_component =
     fun
-    | Class None _props => false
-    | Class (Some extends) _props =>
-      switch extends {
-      | Named _params "React$Component" _module_name => true
-      | _ => false
-      }
+    | Class (Some (Named _params "React$Component" _module_name)) _props =>
+      true
     | _ => false;
 };
 
