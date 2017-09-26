@@ -25,8 +25,9 @@ module ImportTable = {
                 remote_name ^ " as " ^ local_name
               }
             )
-            ^ " } from "
+            ^ " } from '"
             ^ module_name
+            ^ "'"
           )
       )
       table;
