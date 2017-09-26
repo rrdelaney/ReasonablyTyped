@@ -177,8 +177,8 @@ let rec bstype_to_code ::ctx=intctx =>
     }
   | Class (Some _extends) _props as comp when Genutils.Is.react_component comp =>
     raise (CodegenTypeError "React components are not supported")
-  | Class (Some _extends) _props =>
-    raise (CodegenTypeError "Class inheritence is not supported")
+  /* | Class (Some _extends) _props =>
+    raise (CodegenTypeError "Class inheritence is not supported") */
   | Class _extends props => {
       let class_types =
         List.map

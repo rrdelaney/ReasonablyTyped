@@ -75,11 +75,11 @@ module Is = {
     fun
     | Class (Some (Named _params "React$Component" None)) _props => true
     | Class (Some (Named _params "React.Component" None)) _props => true
-    | Class (Some (Named _params "Component" (Some "React"))) _props => true
+    | Class (Some (Named _params "Component" (Some "react"))) _props => true
     | Named _params "React.ComponentType" None => true
-    | Named _params "ComponentType" (Some "React") => true
+    | Named _params "ComponentType" (Some "react") => true
     | Named _params "React.StatelessFunctionalComponent" None => true
-    | Named _params "StatelessFunctionalComponent" (Some "React") => true
+    | Named _params "StatelessFunctionalComponent" (Some "react") => true
     | Function
         _type_params _params _rest (Named _ntype_params "React.Element" None) =>
       true
@@ -87,7 +87,7 @@ module Is = {
         _type_params
         _params
         _rest
-        (Named _ntype_params "Element" (Some "React")) =>
+        (Named _ntype_params "Element" (Some "react")) =>
       true
     | _ => false;
 };
