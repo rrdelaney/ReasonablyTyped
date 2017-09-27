@@ -93,7 +93,38 @@ module Is = {
 };
 
 module React = {
-  let extract_props component => {};
+  let extract_props type_table component => {
+    let component_props =
+      switch component {
+      | Class (Some (Named [props, ..._params] "React$Component" None)) _props => props
+      | Class (Some (Named [props, ..._params] "React.Component" None)) _props => props
+      | Class
+          (Some (Named [props, ..._params] "Component" (Some "React"))) _props => props
+      | Named [props, ..._params] "React.ComponentType" None => props
+      | Named [props, ..._params] "ComponentType" (Some "React") => props
+      | Named [props, ..._params] "React.StatelessFunctionalComponent" None => props
+      | Named [props, ..._params] "StatelessFunctionalComponent" (Some "React") => props
+      | Function
+          _type_params
+          [(_param_name, props), ..._params]
+          _rest
+          (Named _ntype_params "React.Element" None) => props
+      | Function
+          _type_params
+          [(_param_name, props), ..._params]
+          _rest
+          (Named _ntype_params "Element" (Some "React")) => props
+      | _ => Unit
+      };
+    switch component_props {
+    | Named _ type_name _ =>
+      switch (Typetable.get type_name type_table) {
+      | Type t => t
+      | _ => component_props
+      }
+    | _ => component_props
+    }
+  };
 };
 
 let walk replacer => {

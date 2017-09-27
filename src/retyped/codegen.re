@@ -175,8 +175,12 @@ let rec bstype_to_code ::ctx=intctx =>
         return_type::(bstype_to_code ::ctx rt)
         ()
     }
-  | Class (Some _extends) _props as comp when Genutils.Is.react_component comp =>
-    raise (CodegenTypeError "React components are not supported")
+  | Class (Some _extends) _props as comp when Genutils.Is.react_component comp => {
+      Genutils.React.extract_props ctx.type_table comp
+      |> Flowprinter.show_type
+      |> print_endline;
+      raise (CodegenTypeError "React components are not supported")
+    }
   | Class (Some _extends) _props =>
     raise (CodegenTypeError "Class inheritence is not supported")
   | Class _extends props => {
