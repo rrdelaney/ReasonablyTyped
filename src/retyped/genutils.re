@@ -74,14 +74,13 @@ module Is = {
   let react_component =
     fun
     | Class (Some (Named _params "React$Component" None)) _props => true
-    | Class (Some (Named _params "React.Component" None)) _props => true
     | Class (Some (Named _params "Component" (Some "React"))) _props => true
-    | Named _params "React.ComponentType" None => true
+    | Named _params "React$ComponentType" None => true
     | Named _params "ComponentType" (Some "React") => true
-    | Named _params "React.StatelessFunctionalComponent" None => true
+    | Named _params "React$StatelessFunctionalComponent" None => true
     | Named _params "StatelessFunctionalComponent" (Some "React") => true
     | Function
-        _type_params _params _rest (Named _ntype_params "React.Element" None) =>
+        _type_params _params _rest (Named _ntype_params "React$Element" None) =>
       true
     | Function
         _type_params
@@ -97,18 +96,17 @@ module React = {
     let component_props =
       switch component {
       | Class (Some (Named [props, ..._params] "React$Component" None)) _props => props
-      | Class (Some (Named [props, ..._params] "React.Component" None)) _props => props
       | Class
           (Some (Named [props, ..._params] "Component" (Some "React"))) _props => props
-      | Named [props, ..._params] "React.ComponentType" None => props
+      | Named [props, ..._params] "React$ComponentType" None => props
       | Named [props, ..._params] "ComponentType" (Some "React") => props
-      | Named [props, ..._params] "React.StatelessFunctionalComponent" None => props
+      | Named [props, ..._params] "React$StatelessFunctionalComponent" None => props
       | Named [props, ..._params] "StatelessFunctionalComponent" (Some "React") => props
       | Function
           _type_params
           [(_param_name, props), ..._params]
           _rest
-          (Named _ntype_params "React.Element" None) => props
+          (Named _ntype_params "React$Element" None) => props
       | Function
           _type_params
           [(_param_name, props), ..._params]

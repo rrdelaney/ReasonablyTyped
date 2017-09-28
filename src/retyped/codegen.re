@@ -175,12 +175,6 @@ let rec bstype_to_code ::ctx=intctx =>
         return_type::(bstype_to_code ::ctx rt)
         ()
     }
-  | Class (Some _extends) _props as comp when Genutils.Is.react_component comp => {
-      Genutils.React.extract_props ctx.type_table comp
-      |> Flowprinter.show_type
-      |> print_endline;
-      raise (CodegenTypeError "React components are not supported")
-    }
   | Class (Some _extends) _props =>
     raise (CodegenTypeError "Class inheritence is not supported")
   | Class _extends props => {
@@ -359,15 +353,28 @@ let constructor_type type_table =>
     }
   | _ => raise (CodegenConstructorError "Type has no constructor");
 
+let render_react_component module_id name type_table component => {
+  let prop_types = Genutils.React.extract_props type_table component;
+  let module_name = Genutils.unquote module_id;
+  let component_name =
+    name |> Genutils.normalize_name |> String.capitalize_ascii;
+  Render.react_component
+    ::module_name ::component_name js_name::name props::prop_types ()
+};
+
 let rec declaration_to_code module_id type_table =>
   fun
   | Noop => ""
+  | VarDecl id component when Genutils.Is.react_component component =>
+    render_react_component module_id id type_table component
   | VarDecl id type_of =>
     Render.variableDeclaration
       name::(Genutils.normalize_name id)
       module_id::(Genutils.unquote module_id)
       type_of::(bstype_to_code ctx::{...intctx, type_table} type_of)
       ()
+  | FuncDecl id component when Genutils.Is.react_component component =>
+    render_react_component module_id id type_table component
   | FuncDecl id type_of =>
     Render.variableDeclaration
       name::(Genutils.normalize_name id)
@@ -411,6 +418,9 @@ let rec declaration_to_code module_id type_table =>
       statements::(List.map (declaration_to_code id type_table) statements)
       ()
   | TypeDecl id type_params type_of => ""
+  | ClassDecl id _type_params component
+      when Genutils.Is.react_component component =>
+    render_react_component module_id id type_table component
   | ClassDecl id type_params type_of => {
       let type_param_names = List.map Genutils.to_type_param type_params;
       let class_name = id;

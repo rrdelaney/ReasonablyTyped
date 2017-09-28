@@ -152,3 +152,16 @@ let classType ::types () =>
   ^ "}";
 
 let alias ::name ::value () => "let " ^ name ^ " = " ^ value ^ ";\n";
+
+let react_component ::module_name ::component_name ::js_name ::props () =>
+  "\nmodule "
+  ^ component_name
+  ^ " = {\n  external "
+  ^ String.lowercase_ascii component_name
+  ^ "_reactComponent : ReasonReact.reactClass = \""
+  ^ js_name
+  ^ "\" [@@bs.module \""
+  ^ module_name
+  ^ "\"];\n  let make "
+  ^ "FILL_IN_PROPS"
+  ^ "\n};";
