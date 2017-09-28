@@ -163,5 +163,9 @@ let react_component ::module_name ::component_name ::js_name ::props () =>
   ^ "\" [@@bs.module \""
   ^ module_name
   ^ "\"];\n  let make "
-  ^ "FILL_IN_PROPS"
+  ^ "children =>\n    ReasonReact.wrapJsForReason\n      reactClass::"
+  ^ String.lowercase_ascii component_name
+  ^ "_reactComponent\n      props::("
+  ^ props
+  ^ ")\n      children;"
   ^ "\n};";

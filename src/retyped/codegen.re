@@ -354,7 +354,9 @@ let constructor_type type_table =>
   | _ => raise (CodegenConstructorError "Type has no constructor");
 
 let render_react_component module_id name type_table component => {
-  let prop_types = Genutils.React.extract_props type_table component;
+  let prop_types =
+    Genutils.React.extract_props type_table component
+    |> bstype_to_code ctx::{...intctx, type_table};
   let module_name = Genutils.unquote module_id;
   let component_name =
     name |> Genutils.normalize_name |> String.capitalize_ascii;
