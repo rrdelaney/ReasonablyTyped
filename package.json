@@ -3,8 +3,9 @@
   "version": "0.11.0",
   "description": "Converts flow definitions to Bucklescript definitions",
   "bin": {
-    "retyped": "./cli.js"
+    "retyped": "./lib/cli.js"
   },
+  "main": "lib/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/rrdelaney/ReasonablyTyped"
@@ -16,11 +17,7 @@
     "url": "https://github.com/rrdelaney/ReasonablyTyped/issues"
   },
   "homepage": "https://github.com/rrdelaney/ReasonablyTyped",
-  "files": [
-    "cli.js",
-    "index.js",
-    "retyped_node.js"
-  ],
+  "files": ["lib/cli.js", "lib/index.js", "lib/retyped_node.js"],
   "dependencies": {
     "babel-code-frame": "^6.26.0",
     "chalk": "^2.1.0",
@@ -31,16 +28,29 @@
   },
   "scripts": {
     "build:native": "jbuilder build src/cli.exe",
-    "build:js": "jbuilder build src/retyped_node.bc.js && cp _build/default/src/retyped_node.bc.js lib/retyped_node.js",
-    "ctp": "jbuilder build src/cli.exe && ./_build/default/src/cli.exe _test.js",
-    "test": "jest"
+    "build:js":
+      "jbuilder build src/retyped_node.bc.js && cp _build/default/src/retyped_node.bc.js lib/retyped_node.js",
+    "ctp":
+      "jbuilder build src/cli.exe && ./_build/default/src/cli.exe _test.js",
+    "test": "jest compile format",
+    "test:flow-typed":
+      "jest flow-typed --noStackTrace --silent --outputFile=docs/test-results.json",
+    "posttest:flow-typed": "node docs/find-error.js",
+    "test:definitely-typed":
+      "jest definitely-typed --noStackTrace --silent--outputFile=docs/test-results.json",
+    "test:all": "jest",
+    "precommit": "lint-staged"
   },
   "devDependencies": {
     "glob": "^7.1.2",
+    "husky": "^0.14.3",
     "jest": "^20.0.4",
     "jest-cli": "^20.0.4",
     "lint-staged": "^4.0.2",
     "prettier": "^1.5.3"
+  },
+  "lint-staged": {
+    "*.js": ["prettier --no-semi --single-quote --write", "git add"]
   },
   "jest": {
     "testPathIgnorePatterns": [
