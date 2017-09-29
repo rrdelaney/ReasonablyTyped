@@ -10,14 +10,23 @@
     "type": "git",
     "url": "https://github.com/rrdelaney/ReasonablyTyped"
   },
-  "keywords": ["Reason", "OCaml", "Bucklescript", "Flow"],
+  "keywords": [
+    "Reason",
+    "OCaml",
+    "Bucklescript",
+    "Flow"
+  ],
   "author": "Ryan Delaney <rrdelaney@outlook.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/rrdelaney/ReasonablyTyped/issues"
   },
   "homepage": "https://github.com/rrdelaney/ReasonablyTyped",
-  "files": ["lib/cli.js", "lib/index.js", "lib/retyped_node.js"],
+  "files": [
+    "lib/cli.js",
+    "lib/index.js",
+    "lib/retyped_node.js"
+  ],
   "dependencies": {
     "babel-code-frame": "^6.26.0",
     "chalk": "^2.1.0",
@@ -28,17 +37,10 @@
   },
   "scripts": {
     "build:native": "jbuilder build src/cli.exe",
-    "build:js":
-      "jbuilder build src/retyped_node.bc.js && cp _build/default/src/retyped_node.bc.js lib/retyped_node.js",
-    "ctp":
-      "jbuilder build src/cli.exe && ./_build/default/src/cli.exe _test.js",
-    "test": "jest compile format",
-    "test:flow-typed":
-      "jest flow-typed --noStackTrace --silent --outputFile=docs/test-results.json",
-    "posttest:flow-typed": "node docs/find-error.js",
-    "test:definitely-typed":
-      "jest definitely-typed --noStackTrace --silent--outputFile=docs/test-results.json",
-    "test:all": "jest",
+    "build:js": "jbuilder build src/retyped_node.bc.js && cp _build/default/src/retyped_node.bc.js lib/retyped_node.js",
+    "ctp": "jbuilder build src/cli.exe && ./_build/default/src/cli.exe _test.js",
+    "pretest": "jbuilder clean && jbuilder build src/test.exe src/retyped_node.bc.js && cp _build/default/src/retyped_node.bc.js lib/retyped_node.js",
+    "test": "jest && ./build/default/src/test.exe",
     "precommit": "lint-staged"
   },
   "devDependencies": {
@@ -50,7 +52,10 @@
     "prettier": "^1.5.3"
   },
   "lint-staged": {
-    "*.js": ["prettier --no-semi --single-quote --write", "git add"]
+    "*.js": [
+      "prettier --no-semi --single-quote --write",
+      "git add"
+    ]
   },
   "jest": {
     "testPathIgnorePatterns": [
@@ -61,7 +66,12 @@
       "/flow-typed/",
       "/definitely-typed/"
     ],
-    "modulePathIgnorePatterns": ["/flow/"],
-    "transformIgnorePatterns": ["/node_modules/", "/lib/"]
+    "modulePathIgnorePatterns": [
+      "/flow/"
+    ],
+    "transformIgnorePatterns": [
+      "/node_modules/",
+      "/lib/"
+    ]
   }
 }

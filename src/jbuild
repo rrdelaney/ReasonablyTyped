@@ -11,3 +11,13 @@
     (modules (retyped_node))
     (js_of_ocaml ((flags (--pretty))))
     (libraries (retyped js_of_ocaml))))
+
+(executable
+  ((name test)
+    (modules (test))
+    (libraries (retyped coverall))))
+
+(alias
+ ((name runtest)
+  (deps (test.exe))
+  (action (run ${<}))))
