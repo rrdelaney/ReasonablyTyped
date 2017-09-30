@@ -1,10 +1,8 @@
-let t1 =
-  Coverall.Test.t
-    "Genutils.unquote - Remove quotes from a string" (fun () => {});
+let t = Coverall.Test.m "Genutils";
 
-let t2 =
-  Coverall.Test.t
-    "Genutils.unquote - Don't unquote a string with quotes"
-    (fun () => assert false);
+t#test "unquote should remove quotes from a string" (fun () => ());
 
-let all = [t1, t2];
+t#test
+  "unquote shouldn't unquote a string with quotes" (fun () => assert false);
+
+let all = t#all ();
