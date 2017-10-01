@@ -81,7 +81,7 @@ let rec bstype_to_code ::ctx=intctx =>
   fun
   | Regex => "Js.Re.t"
   | Dict t => "Js.Dict.t (" ^ bstype_to_code ::ctx t ^ ")"
-  | Optional t => bstype_to_code ::ctx t
+  | Optional t => "Js.null_undefined (" ^ bstype_to_code ::ctx t ^ ")"
   | Unit => "unit"
   | Null => "null"
   | Array t => "array (" ^ bstype_to_code ::ctx t ^ ")"
