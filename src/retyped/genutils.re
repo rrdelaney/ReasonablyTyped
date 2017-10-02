@@ -1,6 +1,15 @@
 open Modulegen.BsType;
 
-let unquote str => String.sub str 1 (String.length str - 2);
+let unquote str => {
+  let has_start_quote = str.[0] == '"' || str.[0] == '\'';
+  let has_end_quote =
+    str.[String.length str - 1] == '"' || str.[String.length str - 1] == '\'';
+  if (has_start_quote && has_end_quote) {
+    String.sub str 1 (String.length str - 2)
+  } else {
+    str
+  }
+};
 
 let normalize_chars =
   String.map (
