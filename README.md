@@ -29,7 +29,7 @@ declare module 'classes' {
 <h3 align="center">Run retyped</h3>
 
 <pre align="center">
-$ retyped compile class.js
+$ retyped class.js
 </pre>
 
 <h3 align="center">Get Reason</h3>
@@ -57,17 +57,7 @@ module Store = {
 TypeScript has a similar workflow. Compile your TypeScript file with:
 
 ```
-$ retyped compile my-definition.d.ts
-```
-</details></p>
-
-<p><details>
-<summary><b>FlowTyped</b></summary>
-
-ReasonablyTyped can automatically compile all FlowTyped definitions in your repo. Run
-
-```
-$ retyped compile --flow-typed
+$ retyped my-definition.d.ts
 ```
 </details></p>
 
@@ -78,12 +68,11 @@ $ retyped compile --flow-typed
 retyped
 
 Commands:
-  compile [files...]  Generate BuckleScript interfaces from a file
+  [files...]  Generate BuckleScript interfaces from a file
 
 Options:
   --version     Show version number                                    [boolean]
   --help        Show help                                              [boolean]
-
 ```
 </details></p>
 
@@ -110,7 +99,7 @@ Compiles a libdef, formats the result, and handles errors cleanly
 
 ## Status
 
-[![CircleCI](https://circleci.com/gh/rrdelaney/ReasonablyTyped.svg?style=svg)](https://circleci.com/gh/rrdelaney/ReasonablyTyped)
+[![CircleCI](https://circleci.com/gh/ReasonablyTyped/ReasonablyTyped.svg?style=svg)](https://circleci.com/gh/ReasonablyTyped/ReasonablyTyped)
 
 ## Roadmap
 
