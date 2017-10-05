@@ -65,14 +65,11 @@ $ retyped my-definition.d.ts
 <summary><b>Command-line Usage</b></summary>
 
 ```
-retyped
+Usage:
+  $ retyped ...files
 
-Commands:
-  [files...]  Generate BuckleScript interfaces from a file
-
-Options:
-  --version     Show version number                                    [boolean]
-  --help        Show help                                              [boolean]
+Examples:
+  $ retyped file1.js file2.js file3.d.ts                                           [boolean]
 ```
 </details></p>
 

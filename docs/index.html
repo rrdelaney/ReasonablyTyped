@@ -284,12 +284,11 @@
       <code>
         retyped
 
-        Commands:
-          compile [files...]  Generate BuckleScript interfaces from a file
+        Usage:
+          $ retyped ...files
 
-        Options:
-          --version     Show version number                                    [boolean]
-          --help        Show help                                              [boolean]
+        Examples:
+          $ retyped file1.js file2.js file3.d.ts                                        [boolean]
       </code>
     </p>
     <h1 class="ui horizontal divider header">
@@ -456,7 +455,10 @@ const compileText = str => {
 $('.code.column').each(function() {
   const $this = $(this)
   const libdef = compileText($this.text())
-  const outputBlock = $this.siblings().first().find('code')
+  const outputBlock = $this
+    .siblings()
+    .first()
+    .find('code')
   outputBlock.text(libdef)
 })
 
