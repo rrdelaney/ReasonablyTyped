@@ -163,9 +163,17 @@ let react_component ::module_name ::component_name ::js_name ::props () =>
   ^ "\" [@@bs.module \""
   ^ module_name
   ^ "\"];\n  let make "
+  ^ (
+    List.map
+      (fun (name, _, t, optional) => name ^ "::(" ^ name ^ ": " ^ t ^ ")") props
+    |> String.concat " "
+  )
   ^ "children =>\n    ReasonReact.wrapJsForReason\n      reactClass::"
   ^ String.lowercase_ascii component_name
-  ^ "_reactComponent\n      props::("
-  ^ props
-  ^ ")\n      children;"
+  ^ "_reactComponent\n      props::({"
+  ^ (
+    List.map (fun (name, js, t, optional) => "\"" ^ js ^ "\": " ^ name) props
+    |> String.concat ", "
+  )
+  ^ "})\n      children;"
   ^ "\n};";

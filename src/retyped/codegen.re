@@ -356,7 +356,24 @@ let constructor_type type_table =>
 let render_react_component module_id name type_table component => {
   let prop_types =
     Genutils.React.extract_props type_table component
-    |> bstype_to_code ctx::{...intctx, type_table};
+    |> (
+      fun
+      | Object o => o
+      | _ => []
+    )
+    |> List.map (
+         fun (name, t) => {
+           let prop_name = Genutils.normalize_name name;
+           let code = bstype_to_code ctx::{...intctx, type_table} t;
+           let is_optional =
+             switch t {
+             | Optional _ => true
+             | _ => false
+             };
+           /* prop name, js_name, prop type, optional */
+           (prop_name, name, code, is_optional)
+         }
+       );
   let module_name = Genutils.unquote module_id;
   let component_name =
     name |> Genutils.normalize_name |> String.capitalize_ascii;
