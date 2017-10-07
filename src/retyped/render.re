@@ -165,7 +165,8 @@ let react_component ::module_name ::component_name ::js_name ::props () =>
   ^ "\"];\n  let make "
   ^ (
     List.map
-      (fun (name, _, t, optional) => name ^ "::(" ^ name ^ ": " ^ t ^ ")") props
+      (fun (name, _, t, optional) => name ^ "::(" ^ name ^ ": " ^ t ^ ")")
+      props
     |> String.concat " "
   )
   ^ "children =>\n    ReasonReact.wrapJsForReason\n      reactClass::"
