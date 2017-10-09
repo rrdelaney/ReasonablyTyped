@@ -364,14 +364,16 @@ let render_react_component module_id name type_table component => {
     |> List.map (
          fun (name, t) => {
            let prop_name = Genutils.normalize_name name;
-           let code = bstype_to_code ctx::{...intctx, type_table} t;
-           let is_optional =
+           let (prop_type, is_optional, is_boolean) =
              switch t {
-             | Optional _ => true
-             | _ => false
+             | Optional Boolean => (Boolean, true, true)
+             | Optional t => (t, true, false)
+             | Boolean => (Boolean, false, true)
+             | _ => (t, false, false)
              };
+           let code = bstype_to_code ctx::{...intctx, type_table} prop_type;
            /* prop name, js_name, prop type, optional */
-           (prop_name, name, code, is_optional)
+           (prop_name, name, code, is_optional, is_boolean)
          }
        );
   let module_name = Genutils.unquote module_id;
