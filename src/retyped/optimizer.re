@@ -38,9 +38,8 @@ let optimize_statements types statements =>
     )
     statements;
 
-let optimize types::(types: list (string, Retyped.Typetable.t)) program =>
+let optimize types::(types: list (string, Typetable.t)) program =>
   switch program {
-  | ModuleDecl id statements =>
-    ModuleDecl id (optimize_statements types statements)
+  | ModuleDecl id statements => ModuleDecl id (optimize_statements types statements)
   | s => s
   };
