@@ -16,6 +16,8 @@ If you already have [Reason](https://reasonml.github.io) installed (for example,
 $ opam install jbuilder reason sedlex js_of_ocaml flow_parser
 ```
 
+Then, in the root of the project, install JS dependencies with `yarn` or `npm install`.
+
 To build for native:
 
 ```
