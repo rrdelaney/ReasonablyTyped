@@ -6,6 +6,16 @@ There's some `package.json` scripts for the project, so compilation _should_ be 
 native and JS. Native is mostly used for testing and not distributed any where. The JS target is what
 is distributed on NPM and is interfaced by `meow`.
 
+Currently, OCaml >= 4.03 is required.
+
+Building requires some packages from [OPAM](https://opam.ocaml.org).
+The following command will install them.
+If you already have [Reason](https://reasonml.github.io) installed (for example, through NPM) you can omit it.
+
+```
+$ opam install jbuilder reason sedlex js_of_ocaml flow_parser
+```
+
 To build for native:
 
 ```
