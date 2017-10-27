@@ -94,6 +94,10 @@ Formats a block of code using `refmt`
 Compiles a libdef, formats the result, and handles errors cleanly
 </details></p>
 
+## Development
+
+See [DEVELOPING](DEVELOPING.md) and [CONTRIBUTING](CONTRIBUTING.md).
+
 ## Status
 
 [![CircleCI](https://circleci.com/gh/ReasonablyTyped/ReasonablyTyped.svg?style=svg)](https://circleci.com/gh/ReasonablyTyped/ReasonablyTyped)
