@@ -68,13 +68,13 @@ let linker =
               @ List.map
                   (fun (remote, local) => (local, (remote, source))) names
           }
-        | Modulegen.BsDecl.ModuleDecl name statements => {
+        | Modulegen.BsDecl.ModuleDecl name module_statements => {
             imports,
             statements:
               statements
               @ [
                 Modulegen.BsDecl.ModuleDecl
-                  name (process_module imports statements)
+                  name (process_module imports module_statements)
               ]
           }
         | _ => {statements: statements @ [statement], imports}
