@@ -1,1 +1,1 @@
-Coverall.Suite.run Retyped.Genutils_test.all;
+Coverall.Suite.run(Retyped.Genutils_test.all);
