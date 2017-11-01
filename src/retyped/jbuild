@@ -2,4 +2,4 @@
 
 (library
   ((name retyped)
-    (libraries (sedlex flow_parser coverall))))
+    (libraries (sedlex flow_parser))))

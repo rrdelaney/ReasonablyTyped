@@ -1,6 +1,6 @@
 {
   "name": "reasonably-typed",
-  "version": "0.12.0-beta1",
+  "version": "0.12.0-beta2",
   "description": "Converts flow definitions to Bucklescript definitions",
   "bin": {
     "retyped": "./lib/cli.js"
@@ -39,8 +39,8 @@
     "build:native": "jbuilder build src/cli.exe",
     "build:js": "jbuilder build src/retyped_node.bc.js && cp _build/default/src/retyped_node.bc.js lib/retyped_node.js",
     "ctp": "jbuilder build src/cli.exe && ./_build/default/src/cli.exe _test.js",
-    "pretest": "jbuilder clean && jbuilder build src/test.exe src/retyped_node.bc.js && cp _build/default/src/retyped_node.bc.js lib/retyped_node.js",
-    "test": "jest && ./build/default/src/test.exe",
+    "pretest": "jbuilder clean && jbuilder build src/retyped_node.bc.js && cp _build/default/src/retyped_node.bc.js lib/retyped_node.js",
+    "test": "jest",
     "precommit": "lint-staged"
   },
   "devDependencies": {
