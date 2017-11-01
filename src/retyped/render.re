@@ -1,8 +1,21 @@
 let variableDeclaration =
-    (~name, ~module_id, ~type_of, ~is_exports=false, ~splice=false, ~code="", ()) =>
+    (
+      ~name,
+      ~module_id,
+      ~type_of,
+      ~is_exports=false,
+      ~splice=false,
+      ~code="",
+      ()
+    ) =>
   if (is_exports) {
     "external "
-    ++ (name ++ (" : " ++ (type_of ++ (" = \"" ++ (module_id ++ "\" [@@bs.module];\n")))))
+    ++ (
+      name
+      ++ (
+        " : " ++ (type_of ++ (" = \"" ++ (module_id ++ "\" [@@bs.module];\n")))
+      )
+    )
   } else {
     "external "
     ++ (
@@ -17,7 +30,10 @@ let variableDeclaration =
               code
               ++ (
                 "\" [@@bs.module \""
-                ++ (module_id ++ ("\"]" ++ ((splice ? "[@@bs.splice]" : "") ++ ";\n")))
+                ++ (
+                  module_id
+                  ++ ("\"]" ++ ((splice ? "[@@bs.splice]" : "") ++ ";\n"))
+                )
               )
             )
           )
@@ -27,9 +43,19 @@ let variableDeclaration =
   };
 
 let moduleDeclaration = (~name, ~statements, ()) =>
-  "module " ++ (name ++ (" = {\n" ++ (String.concat("\n  ", statements) ++ "\n};")));
+  "module "
+  ++ (name ++ (" = {\n" ++ (String.concat("\n  ", statements) ++ "\n};")));
 
-let classDeclaration = (~name, ~exported_as, ~module_id, ~class_type, ~ctor_type, ~type_params, ()) =>
+let classDeclaration =
+    (
+      ~name,
+      ~exported_as,
+      ~module_id,
+      ~class_type,
+      ~ctor_type,
+      ~type_params,
+      ()
+    ) =>
   "module "
   ++ (
     name
@@ -50,7 +76,11 @@ let classDeclaration = (~name, ~exported_as, ~module_id, ~class_type, ~ctor_type
                   ++ (
                     " = \""
                     ++ (
-                      exported_as ++ ("\" [@@bs.new] [@@bs.module \"" ++ (module_id ++ "\"];\n};"))
+                      exported_as
+                      ++ (
+                        "\" [@@bs.new] [@@bs.module \""
+                        ++ (module_id ++ "\"];\n};")
+                      )
                     )
                   )
                 )
@@ -66,7 +96,7 @@ let typeDeclaration = (~name, ~type_of, ~type_params, ()) =>
   "type " ++ (name ++ (" " ++ (type_params ++ (" = " ++ (type_of ++ ";")))));
 
 let objectType = (~statements, ()) =>
-  "Js.t {.. "
+  "Js.t {. "
   ++ (
     (
       List.filter(((key, type_of)) => key != "__callProperty", statements)
@@ -76,7 +106,8 @@ let objectType = (~statements, ()) =>
     ++ " }"
   );
 
-let functionType = (~formal_params, ~rest_param, ~has_optional, ~return_type, ()) => {
+let functionType =
+    (~formal_params, ~rest_param, ~has_optional, ~return_type, ()) => {
   let print = ((name, param_type)) =>
     if (name != "") {
       name ++ ("::" ++ param_type)
@@ -107,7 +138,8 @@ let tupleType = (~types, ()) => "(" ++ (String.concat(", ", types) ++ ")");
 let unionTypeStrings = (~types, ()) =>
   "(["
   ++ (
-    (List.map((type_name) => "`" ++ type_name, types) |> String.concat(" | ")) ++ "] [@bs.string])"
+    (List.map((type_name) => "`" ++ type_name, types) |> String.concat(" | "))
+    ++ "] [@bs.string])"
   );
 
 let unionType = (~name, ~types, ()) =>
@@ -119,7 +151,8 @@ let unionType = (~name, ~types, ()) =>
       ++ (
         (
           List.map(
-            ((type_name, type_of)) => "\n| " ++ (type_name ++ (" (" ++ (type_of ++ ")"))),
+            ((type_name, type_of)) =>
+              "\n| " ++ (type_name ++ (" (" ++ (type_of ++ ")"))),
             types
           )
           |> String.concat("")
@@ -135,7 +168,14 @@ let unionType = (~name, ~types, ()) =>
                 ++ (
                   " : union_of_"
                   ++ (
-                    name ++ (" => " ++ (name ++ " = \"Array.prototype.shift.call\" [@@bs.val];\n"))
+                    name
+                    ++ (
+                      " => "
+                      ++ (
+                        name
+                        ++ " = \"Array.prototype.shift.call\" [@@bs.val];\n"
+                      )
+                    )
                   )
                 )
               )
@@ -150,7 +190,10 @@ let inlineUnion = (~types, ()) =>
   "(["
   ++ (
     (
-      List.map(((type_name, type_of)) => "`" ++ (type_name ++ (" " ++ type_of)), types)
+      List.map(
+        ((type_name, type_of)) => "`" ++ (type_name ++ (" " ++ type_of)),
+        types
+      )
       |> String.concat(" | ")
     )
     ++ "] [@bs.unwrap])"
@@ -173,7 +216,9 @@ let classType = (~types, ()) =>
                    | p => String.concat(" ", p) ++ " . "
                    }
                  )
-                 ++ ("(" ++ (type_of ++ (")" ++ (is_meth ? " [@bs.meth]" : ""))))
+                 ++ (
+                   "(" ++ (type_of ++ (")" ++ (is_meth ? " [@bs.meth]" : "")))
+                 )
                )
              )
          )
@@ -182,7 +227,8 @@ let classType = (~types, ()) =>
     ++ "}"
   );
 
-let alias = (~name, ~value, ()) => "let " ++ (name ++ (" = " ++ (value ++ ";\n")));
+let alias = (~name, ~value, ()) =>
+  "let " ++ (name ++ (" = " ++ (value ++ ";\n")));
 
 let react_component = (~module_name, ~component_name, ~js_name, ~props, ()) =>
   "\nmodule "
@@ -226,7 +272,13 @@ let react_component = (~module_name, ~component_name, ~js_name, ~props, ()) =>
                                     js
                                     ++ (
                                       "\": "
-                                      ++ ((is_bool ? "Js.Boolean.to_js_boolean " : "") ++ name)
+                                      ++ (
+                                        (
+                                          is_bool ?
+                                            "Js.Boolean.to_js_boolean " : ""
+                                        )
+                                        ++ name
+                                      )
                                     )
                                   ),
                                 props
