@@ -10,13 +10,10 @@
       "dir": "vendor/flow_parser"
     },
     {
-      "dir": "vendor/ppx_tools"
-    },
-    {
       "dir": "vendor/sedlex/lib"
     },
     {
-      "dir": "vendor/gen"
+      "dir": "vendor/gen/"
     }
   ],
   "warnings": {
