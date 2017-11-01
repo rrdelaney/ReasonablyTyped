@@ -1,0 +1,28 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: rrdelaney/circleci2-jbuilder
+        environment:
+          TERM: xterm
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - opam-deps-{{ checksum "ReasonablyTyped.opam" }}-2
+      - run:
+          name: 'Install OCaml dependencies'
+          command: 'eval $(opam config env) && opam update && opam install -y reason sedlex js_of_ocaml flow_parser'
+      - save_cache:
+          key: opam-deps-{{ checksum "ReasonablyTyped.opam" }}-2
+          paths:
+            - ~/.opam
+      - run:
+          name: 'Build JS files'
+          command: 'eval $(opam config env) && jbuilder build src/retyped_node.bc.js && cp _build/default/src/retyped_node.bc.js lib/retyped_node.js'
+      - run:
+          name: 'Install JS dependencies'
+          command: 'npm install'
+      - run:
+          name: 'Run tests'
+          command: 'npm test'

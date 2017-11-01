@@ -8,4 +8,4 @@ _test.js
 _test.d.ts
 _test.re
 .merlin
-lib/
+lib/retyped_node.js
