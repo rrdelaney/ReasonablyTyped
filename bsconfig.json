@@ -3,31 +3,36 @@
   "version": "0.11.0",
   "refmt": 3,
   "sources": [
-    {
+    /*{
       "dir": "src"
-    },
-    {
+    },*/
+    /*{
       "dir": "vendor/flow_parser"
-    },
+    },*/
     {
       "dir": "vendor/ppx_tools"
     },
-    {
+    /*{
       "dir": "vendor/sedlex/lib"
     },
     {
       "dir": "vendor/sedlex/syntax"
-    },
+    },*/
     {
       "dir": "vendor/gen"
     }
   ],
   "entries": [
+    /*{
+      "kind": "native",
+      "main": "Ppx_sedlex"
+    },*/
     {
       "kind": "native",
-      "main": "ppx_sedlex"
+      "main": "Ppx_metaquot"
     }
   ],
+  "ocamlfind-dependencies": ["compiler-libs"],
   "warnings": {
     "number": "-all"
   }
