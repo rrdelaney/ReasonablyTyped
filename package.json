@@ -33,7 +33,7 @@
     "flowgen": "^1.2.0",
     "meow": "^3.7.0",
     "reasonable-flowgen": "^0.1.3",
-    "refmt": "^1.13.7"
+    "reason": "^3.0.0"
   },
   "scripts": {
     "build:native": "jbuilder build src/cli.exe",

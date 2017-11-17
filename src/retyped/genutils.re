@@ -10,15 +10,7 @@ let unquote = (str) => {
   }
 };
 
-let normalize_chars =
-  String.map(
-    (ch) =>
-      if (ch == '-' || ch == '$') {
-        '_'
-      } else {
-        ch
-      }
-  );
+let normalize_chars = String.map((ch) => ch == '-' || ch == '$' ? '_' : ch);
 
 let normalize_keywords =
   fun
@@ -156,7 +148,7 @@ let walk = (replacer) => {
     | Object(fields) as ot =>
       switch (replacer(ot)) {
       | Some(new_t) when recurse => walk_type(~recurse=false, new_t)
-      | _ => Object(List.map(((name, t)) => (name, walk_type(t)), fields))
+      | _ => Object(List.map(((name, t, optional)) => (name, walk_type(t), optional), fields))
       }
     | Class(extends, fields) as ct =>
       switch (replacer(ct)) {

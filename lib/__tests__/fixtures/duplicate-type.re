@@ -1,5 +1,7 @@
-external add : x::[ | `Number float | `String string] [@bs.unwrap] => float =
-  "" [@@bs.module "duplicate-type"];
+[@bs.module "duplicate-type"]
+external add : (~x: [@bs.unwrap] [ | `Number(float) | `String(string)]) => float =
+  "";
 
-external sub : x::[ | `Number float | `String string] [@bs.unwrap] => float =
-  "" [@@bs.module "duplicate-type"];
+[@bs.module "duplicate-type"]
+external sub : (~x: [@bs.unwrap] [ | `Number(float) | `String(string)]) => float =
+  "";

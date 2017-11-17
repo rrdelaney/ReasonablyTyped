@@ -9,7 +9,7 @@ let rec show_type =
   Modulegen.(
     fun
     | BsType.Regex => "RegExp"
-    | BsType.Optional(t) => show_type(t) ++ "?"
+    | BsType.Optional(t) => "?" ++ show_type(t)
     | BsType.Any => "any"
     | BsType.AnyObject => "Object"
     | BsType.AnyFunction => "Function"
@@ -65,11 +65,11 @@ let rec show_type =
         String.concat(
           ", ",
           List.map(
-            ((key, prop)) =>
+            ((key, prop, optional)) =>
               if (key == "$$callProperty") {
                 show_type(prop)
               } else {
-                format_obj_key(key) ++ (": " ++ show_type(prop))
+                format_obj_key(key) ++ (optional ? "?" : "") ++ ": " ++ show_type(prop)
               },
             props
           )

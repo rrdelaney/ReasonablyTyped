@@ -1,3 +1,3 @@
-type stringOptions = Js.t {. value : string};
+type stringOptions = {. "value": string};
 
-external test : s::string => options::stringOptions => string = "" [@@bs.module "type-decl"];
+[@bs.module "type-decl"] external test : (~s: string, ~options: stringOptions) => string = "";

@@ -1,4 +1,5 @@
-type options = Js.t {. op : string};
+type options = {. "op": string};
 
-external apply : x::float => y::float => options::options? => unit => float =
-  "" [@@bs.module "interface"];
+[@bs.module "interface"]
+external apply : (~x: float, ~y: float, ~options: options=?, unit) => float =
+  "";

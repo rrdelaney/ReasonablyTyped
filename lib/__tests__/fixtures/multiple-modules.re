@@ -1,21 +1,21 @@
-external someTopLevel : unit => unit = "" [@@bs.module "multiple-modules"];
+[@bs.module "multiple-modules"] external someTopLevel : unit => unit = "";
 
 module First = {
-  external first : unit => float = "" [@@bs.module "multiple-modules/first"];
-  external second : unit => unit = "" [@@bs.module "multiple-modules/first"];
+  [@bs.module "multiple-modules/first"] external first : unit => float = "";
+  [@bs.module "multiple-modules/first"] external second : unit => unit = "";
 };
 
 module Second = {
-  external second : unit => string = "" [@@bs.module "multiple-modules/second"];
-  external third : unit => unit = "" [@@bs.module "multiple-modules/second"];
+  [@bs.module "multiple-modules/second"] external second : unit => string = "";
+  [@bs.module "multiple-modules/second"] external third : unit => unit = "";
 };
 
 module Third = {
-  external third : unit => string = "" [@@bs.module "multiple-modules/third"];
-  external fourth : unit => unit = "" [@@bs.module "multiple-modules/third"];
+  [@bs.module "multiple-modules/third"] external third : unit => string = "";
+  [@bs.module "multiple-modules/third"] external fourth : unit => unit = "";
 };
 
 module ThirdInner = {
-  external third : unit => string = "" [@@bs.module "multiple-modules/third/inner"];
-  external fourth : unit => unit = "" [@@bs.module "multiple-modules/third/inner"];
+  [@bs.module "multiple-modules/third/inner"] external third : unit => string = "";
+  [@bs.module "multiple-modules/third/inner"] external fourth : unit => unit = "";
 };
