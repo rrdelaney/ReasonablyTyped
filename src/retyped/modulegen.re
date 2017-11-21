@@ -79,7 +79,7 @@ module BsType = {
     /* type params, formal params, rest param, return type */
     | Function(list(string), list((string, t)), option((string, t)), t)
     | AnyFunction
-    | Object(list((string, t)))
+    | Object(list((string, t, bool)))
     | AnyObject
     /* inherited class, class properties */
     | Class(option(t), list((string, t)))
@@ -160,15 +160,7 @@ let rec type_annotation_to_bstype = (annotation: option(Ast.Type.annotation)) =>
   }
 and type_to_bstype = (ctx: context) =>
   fun
-  | Void => BsType.Unit
-  | Mixed => BsType.Any
-  | Any => BsType.Any
-  | Null => BsType.Null
-  | Number => BsType.Number
   | String => BsType.String
-  | Boolean => BsType.Boolean
-  | Function(f) => function_type_to_bstype(ctx, f)
-  | Nullable((loc, t)) => BsType.Optional(type_to_bstype({...ctx, loc}, t))
   | Object(o) =>
     if (List.length(o.properties) == 0) {
       BsType.Object([])
@@ -181,6 +173,14 @@ and type_to_bstype = (ctx: context) =>
       | _ => BsType.Object(object_type_to_bstype(o))
       }
     }
+  | Nullable((loc, t)) => BsType.Optional(type_to_bstype({...ctx, loc}, t))
+  | Void => BsType.Unit
+  | Mixed => BsType.Any
+  | Any => BsType.Any
+  | Null => BsType.Null
+  | Number => BsType.Number
+  | Boolean => BsType.Boolean
+  | Function(f) => function_type_to_bstype(ctx, f)
   | Array((loc, t)) => BsType.Array(type_to_bstype({...ctx, loc}, t))
   | Tuple(types) =>
     BsType.Tuple(
@@ -253,9 +253,10 @@ and value_to_bstype = (value: Ast.Type.Object.Property.value) =>
 and object_type_to_bstype = ({properties}) =>
   List.map(
     fun
-    | Property((loc, {key, value})) => (
+    | Property((loc, {key, value, optional})) => (
         string_of_key(key),
-        value_to_bstype(value)
+        value_to_bstype(value),
+        optional
       )
     | CallProperty((_loc, props)) => {
         open Ast.Type;
@@ -271,7 +272,7 @@ and object_type_to_bstype = ({properties}) =>
             )
           )
         };
-        ("$$callProperty", type_to_bstype({...intctx, loc}, Function(value)))
+        ("$$callProperty", type_to_bstype({...intctx, loc}, Function(value)), false)
       }
     | Indexer((loc, _)) =>
       raise(
@@ -461,10 +462,12 @@ and declare_class_to_jsdecl = (loc, s) => {
         )
       )
     };
+  let properties = object_type_to_bstype(interface);
+  let properties = List.map (((x,y,z)) => (x,y), properties);
   BsDecl.ClassDecl(
     string_of_id(id),
     extract_type_params(intctx, typeParameters),
-    BsType.Class(inheritedClasses, object_type_to_bstype(interface))
+    BsType.Class(inheritedClasses, properties)
   )
 };
 

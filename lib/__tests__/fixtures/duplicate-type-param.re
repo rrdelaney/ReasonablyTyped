@@ -1,5 +1,8 @@
+[@bs.module "duplicate-type-param"]
 external add :
-  x::[ | `Number float | `String string] [@bs.unwrap] =>
-  y::[ | `Number float | `String string] [@bs.unwrap] =>
+  (
+    ~x: [@bs.unwrap] [ | `Number(float) | `String(string)],
+    ~y: [@bs.unwrap] [ | `Number(float) | `String(string)]
+  ) =>
   float =
-  "" [@@bs.module "duplicate-type-param"];
+  "";

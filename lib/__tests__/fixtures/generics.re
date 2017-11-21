@@ -1,8 +1,8 @@
-type thing 'x = Js.t {. lst : array 'x};
+type thing('x) = {. "lst": array('x)};
 
 module Adder = {
-  type t 'x = Js.t {. add : ('x => 'x) [@bs.meth]};
-  external make : 'x => t 'x = "Adder" [@@bs.new] [@@bs.module "generics"];
+  type t('x) = {. "add": [@bs.meth] ('x => 'x)};
+  [@bs.new] [@bs.module "generics"] external make : 'x => t('x) = "Adder";
 };
 
-type subOpts 'm 'n = Js.t {. m : 'm, n : Adder.t 'n};
+type subOpts('m, 'n) = {. "m": 'm, "n": Adder.t('n)};

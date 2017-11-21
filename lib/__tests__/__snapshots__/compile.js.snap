@@ -1,162 +1,191 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Compile duplicate-type.re 1`] = `
-"external add : x::[ | \`Number float | \`String string] [@bs.unwrap] => float =
-  \\"\\" [@@bs.module \\"duplicate-type\\"];
+exports[`Compile component.re 1`] = `
+"type props = {. \\"input\\": Js.Nullable.t(string), \\"b\\": Js.Nullable.t(Js.boolean)};
 
-external sub : x::[ | \`Number float | \`String string] [@bs.unwrap] => float =
-  \\"\\" [@@bs.module \\"duplicate-type\\"];
+module ReactComponent = {
+  [@bs.module \\"react-component\\"] external reactcomponent_reactComponent : ReasonReact.reactClass =
+    \\"ReactComponent\\";
+  let make = (~input=?, ~b=?, children) => {
+    let props: props = {
+      \\"input\\": Js.Nullable.from_opt(input),
+      \\"b\\": Js.Nullable.bind(Js.Nullable.from_opt(b), [@bs] ((x) => Js.Boolean.to_js_boolean(x)))
+    };
+    ReasonReact.wrapJsForReason(~reactClass=reactcomponent_reactComponent, ~props, children)
+  };
+};
+"
+`;
+
+exports[`Compile duplicate-type.re 1`] = `
+"[@bs.module \\"duplicate-type\\"]
+external add : (~x: [@bs.unwrap] [ | \`Number(float) | \`String(string)]) => float =
+  \\"\\";
+
+[@bs.module \\"duplicate-type\\"]
+external sub : (~x: [@bs.unwrap] [ | \`Number(float) | \`String(string)]) => float =
+  \\"\\";
 "
 `;
 
 exports[`Compile duplicate-type-param.re 1`] = `
-"external add :
-  x::[ | \`Number float | \`String string] [@bs.unwrap] =>
-  y::[ | \`Number float | \`String string] [@bs.unwrap] =>
+"[@bs.module \\"duplicate-type-param\\"]
+external add :
+  (
+    ~x: [@bs.unwrap] [ | \`Number(float) | \`String(string)],
+    ~y: [@bs.unwrap] [ | \`Number(float) | \`String(string)]
+  ) =>
   float =
-  \\"\\" [@@bs.module \\"duplicate-type-param\\"];
+  \\"\\";
 "
 `;
 
 exports[`Compile generics.re 1`] = `
-"type thing 'x = Js.t {. lst : array 'x};
+"type thing('x) = {. \\"lst\\": array('x)};
 
 module Adder = {
-  type t 'x = Js.t {. add : ('x => 'x) [@bs.meth]};
-  external make : 'x => t 'x = \\"Adder\\" [@@bs.new] [@@bs.module \\"generics\\"];
+  type t('x) = {. \\"add\\": [@bs.meth] ('x => 'x)};
+  [@bs.new] [@bs.module \\"generics\\"] external make : 'x => t('x) = \\"Adder\\";
 };
 
-type subOpts 'm 'n = Js.t {. m : 'm, n : Adder.t 'n};
+type subOpts('m, 'n) = {. \\"m\\": 'm, \\"n\\": Adder.t('n)};
 "
 `;
 
 exports[`Compile interface.re 1`] = `
-"type options = Js.t {. op : string};
+"type options = {. \\"op\\": string};
 
-external apply : x::float => y::float => options::options? => unit => float =
-  \\"\\" [@@bs.module \\"interface\\"];
+[@bs.module \\"interface\\"]
+external apply : (~x: float, ~y: float, ~options: options=?, unit) => float =
+  \\"\\";
 "
 `;
 
 exports[`Compile multiple-modules.re 1`] = `
-"external someTopLevel : unit => unit = \\"\\" [@@bs.module \\"multiple-modules\\"];
+"[@bs.module \\"multiple-modules\\"] external someTopLevel : unit => unit = \\"\\";
 
 module First = {
-  external first : unit => float = \\"\\" [@@bs.module \\"multiple-modules/first\\"];
-  external second : unit => unit = \\"\\" [@@bs.module \\"multiple-modules/first\\"];
+  [@bs.module \\"multiple-modules/first\\"] external first : unit => float = \\"\\";
+  [@bs.module \\"multiple-modules/first\\"] external second : unit => unit = \\"\\";
 };
 
 module Second = {
-  external second : unit => string = \\"\\" [@@bs.module \\"multiple-modules/second\\"];
-  external third : unit => unit = \\"\\" [@@bs.module \\"multiple-modules/second\\"];
+  [@bs.module \\"multiple-modules/second\\"] external second : unit => string = \\"\\";
+  [@bs.module \\"multiple-modules/second\\"] external third : unit => unit = \\"\\";
 };
 
 module Third = {
-  external third : unit => string = \\"\\" [@@bs.module \\"multiple-modules/third\\"];
-  external fourth : unit => unit = \\"\\" [@@bs.module \\"multiple-modules/third\\"];
+  [@bs.module \\"multiple-modules/third\\"] external third : unit => string = \\"\\";
+  [@bs.module \\"multiple-modules/third\\"] external fourth : unit => unit = \\"\\";
 };
 
 module ThirdInner = {
-  external third : unit => string = \\"\\" [@@bs.module \\"multiple-modules/third/inner\\"];
-  external fourth : unit => unit = \\"\\" [@@bs.module \\"multiple-modules/third/inner\\"];
+  [@bs.module \\"multiple-modules/third/inner\\"] external third : unit => string = \\"\\";
+  [@bs.module \\"multiple-modules/third/inner\\"] external fourth : unit => unit = \\"\\";
 };
 "
 `;
 
 exports[`Compile numbers.re 1`] = `
-"external xfg : float = \\"\\" [@@bs.module \\"numbers\\"];
+"[@bs.module \\"numbers\\"] external xfg : float = \\"\\";
 
-external add : a::float => b::float => float = \\"\\" [@@bs.module \\"numbers\\"];
+[@bs.module \\"numbers\\"] external add : (~a: float, ~b: float) => float = \\"\\";
 "
 `;
 
 exports[`Compile numbers.re 2`] = `
-"external xfg : float = \\"\\" [@@bs.module \\"numbers\\"];
+"[@bs.module \\"numbers\\"] external xfg : float = \\"\\";
 
-external add : a::float => b::float => float = \\"\\" [@@bs.module \\"numbers\\"];
+[@bs.module \\"numbers\\"] external add : (~a: float, ~b: float) => float = \\"\\";
 "
 `;
 
 exports[`Compile object-type.re 1`] = `
-"type subscribeOptions = Js.t {. start : float, stop : float};
+"type subscribeOptions = {. \\"start\\": float, \\"stop\\": float};
 
-type testOptions = Js.t {. method : string, subscribe : subscribeOptions};
+type testOptions = {. \\"method\\": string, \\"subscribe\\": subscribeOptions};
 
-external test : options::testOptions => string = \\"\\" [@@bs.module \\"object-type\\"];
+[@bs.module \\"object-type\\"] external test : (~options: testOptions) => string = \\"\\";
 "
 `;
 
 exports[`Compile optional-param.re 1`] = `
-"external add : x::float => y::float? => unit => float = \\"\\" [@@bs.module \\"optional\\"];
+"[@bs.module \\"optional\\"] external add : (~x: float, ~y: float=?, unit) => float = \\"\\";
 "
 `;
 
 exports[`Compile promise.re 1`] = `
-"external pOfString : unit => Js_promise.t string = \\"\\" [@@bs.module \\"promise\\"];
+"[@bs.module \\"promise\\"] external pOfString : unit => Js_promise.t(string) = \\"\\";
 
-external pOfNumber : unit => Js_promise.t float = \\"\\" [@@bs.module \\"promise\\"];
+[@bs.module \\"promise\\"] external pOfNumber : unit => Js_promise.t(float) = \\"\\";
 
-external pOfArray : unit => Js_promise.t (array string) = \\"\\" [@@bs.module \\"promise\\"];
+[@bs.module \\"promise\\"] external pOfArray : unit => Js_promise.t(array(string)) = \\"\\";
 
-external pOfVoid : unit => Js_promise.t unit = \\"\\" [@@bs.module \\"promise\\"];
+[@bs.module \\"promise\\"] external pOfVoid : unit => Js_promise.t(unit) = \\"\\";
 
-external argPromise : p::Js_promise.t string => unit = \\"\\" [@@bs.module \\"promise\\"];
+[@bs.module \\"promise\\"] external argPromise : (~p: Js_promise.t(string)) => unit = \\"\\";
 
-external listOfPromises : unit => array (Js_promise.t string) = \\"\\" [@@bs.module \\"promise\\"];
+[@bs.module \\"promise\\"] external listOfPromises : unit => array(Js_promise.t(string)) = \\"\\";
 
-external somePromise : Js_promise.t (array float) = \\"\\" [@@bs.module \\"promise\\"];
+[@bs.module \\"promise\\"] external somePromise : Js_promise.t(array(float)) = \\"\\";
 "
 `;
 
 exports[`Compile simple.re 1`] = `
-"external add : x::float => y::float => float = \\"\\" [@@bs.module \\"simple\\"];
+"[@bs.module \\"simple\\"] external add : (~x: float, ~y: float) => float = \\"\\";
 "
 `;
 
 exports[`Compile simple-class.re 1`] = `
 "module Test = {
-  type t = Js.t {. action : (float => string) [@bs.meth]};
-  external make : string => t = \\"Test\\" [@@bs.new] [@@bs.module \\"simple-class\\"];
+  type t = {. \\"action\\": 't 's .[@bs.meth] (float => string)};
+  [@bs.new] [@bs.module \\"simple-class\\"] external make : string => t = \\"Test\\";
 };
 "
 `;
 
 exports[`Compile spread-args.re 1`] = `
-"external foo : bars::array float => unit = \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+"[@bs.module \\"spread-args\\"] [@bs.splice] external foo : (~bars: array(float)) => unit = \\"\\";
 
-external optFoo : bars::array float => unit = \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+[@bs.module \\"spread-args\\"] [@bs.splice] external optFoo : (~bars: array(float)) => unit = \\"\\";
 
-external bothFoo : anArg::string => bars::array float => unit =
-  \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+[@bs.module \\"spread-args\\"] [@bs.splice]
+external bothFoo : (~anArg: string, ~bars: array(float)) => unit =
+  \\"\\";
 
-external bothOptFoo : anArg::string => bars::array float => unit =
-  \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+[@bs.module \\"spread-args\\"] [@bs.splice]
+external bothOptFoo : (~anArg: string, ~bars: array(float)) => unit =
+  \\"\\";
 
-external soManyOpts : anArg::string? => unit => bars::array float => unit =
-  \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+[@bs.module \\"spread-args\\"] [@bs.splice]
+external soManyOpts : (~anArg: string=?, unit, ~bars: array(float)) => unit =
+  \\"\\";
 
-external returns : anArg::string => bars::array float => float =
-  \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+[@bs.module \\"spread-args\\"] [@bs.splice]
+external returns : (~anArg: string, ~bars: array(float)) => float =
+  \\"\\";
 
-external multipleLists : foos::array float => bars::array float => unit =
-  \\"\\" [@@bs.module \\"spread-args\\"] [@@bs.splice];
+[@bs.module \\"spread-args\\"] [@bs.splice]
+external multipleLists : (~foos: array(float), ~bars: array(float)) => unit =
+  \\"\\";
 "
 `;
 
 exports[`Compile type-decl.re 1`] = `
-"type stringOptions = Js.t {. value : string};
+"type stringOptions = {. \\"value\\": string};
 
-external test : s::string => options::stringOptions => string = \\"\\" [@@bs.module \\"type-decl\\"];
+[@bs.module \\"type-decl\\"] external test : (~s: string, ~options: stringOptions) => string = \\"\\";
 "
 `;
 
 exports[`Compile union-type.re 1`] = `
-"external double : x::[ | \`Number float | \`String string] [@bs.unwrap] => float =
-  \\"\\" [@@bs.module \\"union-type\\"];
+"[@bs.module \\"union-type\\"]
+external double : (~x: [@bs.unwrap] [ | \`Number(float) | \`String(string)]) => float =
+  \\"\\";
 "
 `;
 
 exports[`Compile void-func.re 1`] = `
-"external voidFunc : unit => unit = \\"\\" [@@bs.module \\"void-func\\"];
+"[@bs.module \\"void-func\\"] external voidFunc : unit => unit = \\"\\";
 "
 `;

@@ -1,5 +1,5 @@
-type subscribeOptions = Js.t {. start : float, stop : float};
+type subscribeOptions = {. "start": float, "stop": float};
 
-type testOptions = Js.t {. method : string, subscribe : subscribeOptions};
+type testOptions = {. "method": string, "subscribe": subscribeOptions};
 
-external test : options::testOptions => string = "" [@@bs.module "object-type"];
+[@bs.module "object-type"] external test : (~options: testOptions) => string = "";

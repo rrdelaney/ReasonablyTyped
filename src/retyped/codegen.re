@@ -32,7 +32,7 @@ let rec bstype_name =
     module_prefix(module_name) ++ (String.uncapitalize_ascii(s) |> Genutils.normalize_name)
   | Union(types) => union_types_to_name(types)
   | Class(_extends, props) => raise(CodegenTypeError("Unable to translate class into type name"))
-  | Optional(t) => bstype_name(t)
+  | Optional(t) => "option " ++ bstype_name(t)
   | Promise(t) => "promise_" ++ bstype_name(t)
   | Date => "date"
   | StringLiteral(_) =>
@@ -71,7 +71,7 @@ let rec bstype_to_code = (~ctx=intctx) =>
   fun
   | Regex => "Js.Re.t"
   | Dict(t) => "Js.Dict.t (" ++ (bstype_to_code(~ctx, t) ++ ")")
-  | Optional(t) => bstype_to_code(~ctx, t)
+  | Optional(t) => /* "option " ++ */ bstype_to_code(~ctx, t)
   | Unit => "unit"
   | Null => "null"
   | Array(t) => "array (" ++ (bstype_to_code(~ctx, t) ++ ")")
@@ -83,7 +83,11 @@ let rec bstype_to_code = (~ctx=intctx) =>
     Render.objectType(
       ~statements=
         List.map(
-          ((key, type_of)) => (Genutils.normalize_name(key), bstype_to_code(~ctx, type_of)),
+          ((key, type_of, optional)) => (
+            Genutils.normalize_name(key),
+            bstype_to_code(~ctx, type_of),
+            optional
+          ),
           props
         ),
       ()
@@ -92,22 +96,22 @@ let rec bstype_to_code = (~ctx=intctx) =>
   | String => "string"
   | Boolean => "Js.boolean"
   | Named(type_params, s, module_name) =>
-    module_prefix(module_name)
-    ++ (
-      (
+    Render.applyArgs(
+      module_prefix(module_name)
+      ++ (
         if (Genutils.Is.type_param(ctx.type_params, s)) {
-          "'" ++ ((String.uncapitalize_ascii(s) |> Genutils.normalize_name) ++ " ")
+          "'" ++ (String.uncapitalize_ascii(s) |> Genutils.normalize_name)
         } else if (Genutils.Is.class_type(s, ctx.type_table)) {
-          s ++ ".t "
+          s ++ ".t"
         } else {
-          (String.uncapitalize_ascii(s) |> Genutils.normalize_name) ++ " "
+          String.uncapitalize_ascii(s) |> Genutils.normalize_name
         }
-      )
-      ++ (List.map(bstype_to_code(~ctx), type_params) |> String.concat(" "))
+      ),
+      List.map(bstype_to_code(~ctx), type_params)
     )
   | Union(types) => union_types_to_name(types)
   | Typeof(t) => raise(CodegenTypeError("Typeof can only operate on variable declarations"))
-  | Promise(t) => "Js_promise.t (" ++ (bstype_to_code(~ctx, t) ++ ")")
+  | Promise(t) => Render.applyArgs("Js_promise.t", [bstype_to_code(~ctx, t)])
   | StringLiteral(_) =>
     raise(CodegenTypeError("Cannot use string literal outside the context of a union type"))
   | Function(type_params, params, rest_param, rt) => {
@@ -132,7 +136,7 @@ let rec bstype_to_code = (~ctx=intctx) =>
               List.map((t) => (String.capitalize_ascii(bstype_name(t)), bstype_to_code(t)), types),
             ()
           )
-        | t => bstype_to_code(~ctx, t) ++ (Genutils.Is.optional(param) ? "?" : "")
+        | t => bstype_to_code(~ctx, t) ++ (Genutils.Is.optional(param) ? "=?" : "")
         }
       );
       Render.functionType(
@@ -148,7 +152,7 @@ let rec bstype_to_code = (~ctx=intctx) =>
       )
     }
   | Class(Some(_extends), _props) => raise(CodegenTypeError("Class inheritence is not supported"))
-  | Class(_extends, props) => {
+  | Class(None, props) => {
       let class_types =
         List.map(
           ((key, type_of)) => {
@@ -199,7 +203,8 @@ module Precode = {
            }
          )
       |> List.flatten
-    | Object(types) => List.map(((id, type_of)) => bstype_precode(type_of), types) |> List.flatten
+    | Object(types) =>
+      List.map(((id, type_of, _optional)) => bstype_precode(type_of), types) |> List.flatten
     | Class(_extends, types) =>
       List.map(((id, type_of)) => bstype_precode(type_of), types) |> List.flatten
     | Optional(t) => bstype_precode(t)
@@ -220,9 +225,9 @@ module Precode = {
       Render.unionType(~name=union_name, ~types=union_types, ())
     };
   let call_property_precode = (module_id, var_name, statements) =>
-    List.filter(((key, type_of)) => key == "$$callProperty", statements)
+    List.filter(((key, type_of, _optional)) => key == "$$callProperty", statements)
     |> List.map(
-         ((key, type_of)) =>
+         ((key, type_of, optional)) =>
            bstype_precode(type_of)
            @ [
              Render.variableDeclaration(
@@ -254,7 +259,7 @@ module Precode = {
           Render.typeDeclaration(
             ~name=String.uncapitalize_ascii(id),
             ~type_of=bstype_to_code(~ctx={...intctx, type_params}, type_of),
-            ~type_params=String.concat(" ", type_param_names),
+            ~type_params=type_param_names,
             ()
           );
         List.append(precode, [type_decl])
@@ -315,7 +320,7 @@ let render_react_component = (module_id, name, type_table, component) => {
       | _ => []
     )
     |> List.map(
-         ((name, t)) => {
+         ((name, t, optional_prop)) => {
            let prop_name = Genutils.normalize_name(name);
            let (prop_type, is_optional, is_boolean) =
              switch t {
@@ -326,7 +331,7 @@ let render_react_component = (module_id, name, type_table, component) => {
              };
            let code = bstype_to_code(~ctx={...intctx, type_table}, prop_type);
            /* prop name, js_name, prop type, optional */
-           (prop_name, name, code, is_optional, is_boolean)
+           (prop_name, name, code, is_optional || optional_prop, is_boolean)
          }
        );
   let module_name = Genutils.unquote(module_id);
@@ -367,7 +372,7 @@ let rec declaration_to_code = (module_id, type_table) =>
     | Typeof(Named(_, t, _)) =>
       Typetable.(
         switch (Typetable.get(t, type_table)) {
-        | Class => Render.alias(~name=Genutils.to_module_name(module_id), ~value=t ++ ".make", ())
+        | Class => Render.alias(~name=Genutils.to_module_name(module_id), ~value=t ++ ".make")
         | None => raise(CodegenTypeError("typeof can only operate on classes"))
         | NotFound => raise(CodegenTypeError("Unknown identifier: " ++ t))
         | Variable(s) => raise(CodegenTypeError("Cannot use typeof with variable: " ++ s))
@@ -403,7 +408,7 @@ let rec declaration_to_code = (module_id, type_table) =>
         ~module_id=Genutils.unquote(module_id),
         ~class_type,
         ~ctor_type,
-        ~type_params=String.concat(" ", type_param_names),
+        ~type_params=type_param_names,
         ()
       )
     }
@@ -412,7 +417,7 @@ let rec declaration_to_code = (module_id, type_table) =>
       Render.typeDeclaration(
         ~name=String.uncapitalize_ascii(id),
         ~type_of=bstype_to_code(~ctx={type_table, type_params}, type_of),
-        ~type_params=String.concat(" ", type_param_names),
+        ~type_params=type_param_names,
         ()
       )
     }
