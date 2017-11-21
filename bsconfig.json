@@ -16,19 +16,11 @@
       "dir": "vendor/sedlex/lib"
     },
     {
-      "dir": "vendor/sedlex/syntax"
-    },
-    {
       "dir": "vendor/gen"
-    }
-  ],
-  "entries": [
-    {
-      "kind": "native",
-      "main": "ppx_sedlex"
     }
   ],
   "warnings": {
     "number": "-all"
-  }
+  },
+  "ppx-flags": ["./vendor/sedlex/syntax/ppx_sedlex.ml"]
 }
