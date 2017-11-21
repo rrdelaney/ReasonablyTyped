@@ -1,0 +1,18 @@
+(jbuild_version 1)
+
+(executable
+  ((name cli)
+    (modules (cli))
+    (public_name retyped)
+    (libraries (retyped))))
+
+(executable
+  ((name retyped_node)
+    (modules (retyped_node))
+    (js_of_ocaml ((flags (--pretty))))
+    (libraries (retyped js_of_ocaml))))
+
+(alias
+ ((name runtest)
+  (deps (test.exe))
+  (action (run ${<}))))
