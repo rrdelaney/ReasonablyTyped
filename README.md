@@ -115,4 +115,4 @@ See [DEVELOPING](DEVELOPING.md) and [CONTRIBUTING](CONTRIBUTING.md).
 - [x] Classes
 - [x] Generics
 - [x] Built-ins like Promises
-- [ ] React components
+- [x] React components
