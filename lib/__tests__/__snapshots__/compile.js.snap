@@ -1,17 +1,53 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Compile ReactNamePicker.re 1`] = `
+"type myProps = {
+  .
+  \\"width\\": float,
+  \\"height\\": float
+};
+
+[@bs.module] external reactNamePicker : ReasonReact.reactClass = \\"ReactNamePicker.react\\";
+
+let make = (~width, ~height, children) => {
+  let props: myProps = {\\"width\\": width, \\"height\\": height};
+  ReasonReact.wrapJsForReason(~reactClass=reactNamePicker, ~props, children);
+};
+"
+`;
+
+exports[`Compile ReactNamePickerInlinedProps.re 1`] = `
+"[@bs.module]
+external reactNamePickerInlinedProps : ReasonReact.reactClass =
+  \\"ReactNamePickerInlinedProps.react\\";
+
+let make = (~width, ~height, children) => {
+  let props: {
+    .
+    \\"width\\": float,
+    \\"height\\": float
+  } = {\\"width\\": width, \\"height\\": height};
+  ReasonReact.wrapJsForReason(~reactClass=reactNamePickerInlinedProps, ~props, children);
+};
+"
+`;
+
 exports[`Compile component.re 1`] = `
-"type props = {. \\"input\\": Js.Nullable.t(string), \\"b\\": Js.Nullable.t(Js.boolean)};
+"type props = {
+  .
+  \\"input\\": Js.Nullable.t(string),
+  \\"b\\": Js.Nullable.t(Js.boolean)
+};
 
 module ReactComponent = {
-  [@bs.module \\"react-component\\"] external reactcomponent_reactComponent : ReasonReact.reactClass =
-    \\"ReactComponent\\";
+  [@bs.module \\"react-component\\"]
+  external reactComponent : ReasonReact.reactClass = \\"ReactComponent\\";
   let make = (~input=?, ~b=?, children) => {
     let props: props = {
       \\"input\\": Js.Nullable.from_opt(input),
       \\"b\\": Js.Nullable.bind(Js.Nullable.from_opt(b), [@bs] ((x) => Js.Boolean.to_js_boolean(x)))
     };
-    ReasonReact.wrapJsForReason(~reactClass=reactcomponent_reactComponent, ~props, children)
+    ReasonReact.wrapJsForReason(~reactClass=reactComponent, ~props, children);
   };
 };
 "
@@ -19,12 +55,10 @@ module ReactComponent = {
 
 exports[`Compile duplicate-type.re 1`] = `
 "[@bs.module \\"duplicate-type\\"]
-external add : (~x: [@bs.unwrap] [ | \`Number(float) | \`String(string)]) => float =
-  \\"\\";
+external add : (~x: [@bs.unwrap] [ | \`Number(float) | \`String(string)]) => float = \\"\\";
 
 [@bs.module \\"duplicate-type\\"]
-external sub : (~x: [@bs.unwrap] [ | \`Number(float) | \`String(string)]) => float =
-  \\"\\";
+external sub : (~x: [@bs.unwrap] [ | \`Number(float) | \`String(string)]) => float = \\"\\";
 "
 `;
 
@@ -48,7 +82,11 @@ module Adder = {
   [@bs.new] [@bs.module \\"generics\\"] external make : 'x => t('x) = \\"Adder\\";
 };
 
-type subOpts('m, 'n) = {. \\"m\\": 'm, \\"n\\": Adder.t('n)};
+type subOpts('m, 'n) = {
+  .
+  \\"m\\": 'm,
+  \\"n\\": Adder.t('n)
+};
 "
 `;
 
@@ -56,8 +94,7 @@ exports[`Compile interface.re 1`] = `
 "type options = {. \\"op\\": string};
 
 [@bs.module \\"interface\\"]
-external apply : (~x: float, ~y: float, ~options: options=?, unit) => float =
-  \\"\\";
+external apply : (~x: float, ~y: float, ~options: options=?, unit) => float = \\"\\";
 "
 `;
 
@@ -101,9 +138,17 @@ exports[`Compile numbers.re 2`] = `
 `;
 
 exports[`Compile object-type.re 1`] = `
-"type subscribeOptions = {. \\"start\\": float, \\"stop\\": float};
+"type subscribeOptions = {
+  .
+  \\"start\\": float,
+  \\"stop\\": float
+};
 
-type testOptions = {. \\"method\\": string, \\"subscribe\\": subscribeOptions};
+type testOptions = {
+  .
+  \\"method\\": string,
+  \\"subscribe\\": subscribeOptions
+};
 
 [@bs.module \\"object-type\\"] external test : (~options: testOptions) => string = \\"\\";
 "
@@ -150,24 +195,19 @@ exports[`Compile spread-args.re 1`] = `
 [@bs.module \\"spread-args\\"] [@bs.splice] external optFoo : (~bars: array(float)) => unit = \\"\\";
 
 [@bs.module \\"spread-args\\"] [@bs.splice]
-external bothFoo : (~anArg: string, ~bars: array(float)) => unit =
-  \\"\\";
+external bothFoo : (~anArg: string, ~bars: array(float)) => unit = \\"\\";
 
 [@bs.module \\"spread-args\\"] [@bs.splice]
-external bothOptFoo : (~anArg: string, ~bars: array(float)) => unit =
-  \\"\\";
+external bothOptFoo : (~anArg: string, ~bars: array(float)) => unit = \\"\\";
 
 [@bs.module \\"spread-args\\"] [@bs.splice]
-external soManyOpts : (~anArg: string=?, unit, ~bars: array(float)) => unit =
-  \\"\\";
+external soManyOpts : (~anArg: string=?, unit, ~bars: array(float)) => unit = \\"\\";
 
 [@bs.module \\"spread-args\\"] [@bs.splice]
-external returns : (~anArg: string, ~bars: array(float)) => float =
-  \\"\\";
+external returns : (~anArg: string, ~bars: array(float)) => float = \\"\\";
 
 [@bs.module \\"spread-args\\"] [@bs.splice]
-external multipleLists : (~foos: array(float), ~bars: array(float)) => unit =
-  \\"\\";
+external multipleLists : (~foos: array(float), ~bars: array(float)) => unit = \\"\\";
 "
 `;
 
@@ -180,8 +220,7 @@ exports[`Compile type-decl.re 1`] = `
 
 exports[`Compile union-type.re 1`] = `
 "[@bs.module \\"union-type\\"]
-external double : (~x: [@bs.unwrap] [ | \`Number(float) | \`String(string)]) => float =
-  \\"\\";
+external double : (~x: [@bs.unwrap] [ | \`Number(float) | \`String(string)]) => float = \\"\\";
 "
 `;
 

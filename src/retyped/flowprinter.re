@@ -108,6 +108,7 @@ let rec show_decl =
   Modulegen.(
     fun
     | BsDecl.Noop => ""
+    | BsDecl.Ignore(s) => "ignored: " ++ s
     | BsDecl.ExportsDecl(of_type) => "declare module.exports: " ++ show_type(of_type)
     | BsDecl.ModuleDecl(name, decls) =>
       "declare module "
@@ -151,4 +152,6 @@ let rec show_decl =
         )
         ++ (" } from '" ++ (module_name ++ "'\n"))
       )
+    | BsDecl.ReactClass(className, of_type) =>
+      "react class " ++ className ++ " with prop type " ++ show_type(of_type)
   );

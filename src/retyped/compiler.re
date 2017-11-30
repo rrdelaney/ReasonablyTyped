@@ -5,12 +5,18 @@ module Stage = {
     let (_, statements, _) = ocaml_ast;
     statements
   };
-  let make_typetable =
+  let make_module_typetable =
     fun
     | Modulegen.BsDecl.ModuleDecl(_, statements) => Typetable.create(statements)
     | _ => [];
-  let optimize_program = (program) => Optimizer.optimize(make_typetable(program), program);
-  let render_program = (program) => Codegen.program_to_code(program, make_typetable(program));
+  let optimize_program = (program) => Optimizer.optimize(make_module_typetable(program), program);
+  let optimize_programs = (programs) => List.map(optimize_program, programs);
+  let render_program = (globalTypeTable, program) =>
+    Codegen.program_to_code(program, make_module_typetable(program) @ globalTypeTable);
+  let render_programs = (programs) => {
+    let globalTypeTable = Typetable.create(programs);
+    List.map(render_program(globalTypeTable), programs)
+  };
   let combine_programs =
     List.fold_left(
       ((current_id, all_code), result) =>
@@ -32,9 +38,10 @@ module Stage = {
     };
     let show_types = (programs) => {
       print_endline("\027[1;36m=== Types ===\027[0m");
+      Typetable.show(Typetable.create(programs));
       List.iter(
         fun
-        | ModuleDecl(name, statements) as md => Typetable.show(make_typetable(md))
+        | ModuleDecl(name, statements) as md => Typetable.show(make_module_typetable(md))
         | _ => (),
         programs
       )
@@ -59,8 +66,8 @@ let compile = (~debug=false, module_name, module_def) => {
     Stage.parse_source(module_name, module_def)
     |> List.map(Modulegen.statement_to_program)
     |> Imports.link
-    |> List.map(Stage.optimize_program)
-    |> List.map(Stage.render_program)
+    |> Stage.optimize_programs
+    |> Stage.render_programs
     |> Stage.combine_programs;
   if (debug) {
     let debug_programs =

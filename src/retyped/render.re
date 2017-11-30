@@ -17,17 +17,20 @@ let lambda = (l, body) => {
 
 let quote = (x) => "\"" ++ x ++ "\"";
 
+let bsModule = (name) => {
+  let quotedName = name == "" ? name : " " ++ quote(name);
+  "[@bs.module" ++ quotedName ++ "]"
+};
+
 let jsObject = (l) =>
   "{" ++ (List.map(((k, v)) => quote(k) ++ ": " ++ v, l) |> String.concat(", ")) ++ "}";
 
 let variableDeclaration =
     (~name, ~module_id, ~type_of, ~is_exports=false, ~splice=false, ~code="", ()) =>
   if (is_exports) {
-    "external " ++ name ++ " : " ++ type_of ++ " = \"" ++ module_id ++ "\" [@@bs.module];\n"
+    bsModule("") ++ " external " ++ name ++ " : " ++ type_of ++ " = \"" ++ module_id ++ "\" ;\n"
   } else {
-    " [@bs.module \""
-    ++ module_id
-    ++ "\"]"
+    bsModule(module_id)
     ++ (splice ? "[@bs.splice]" : "")
     ++ "external "
     ++ name
@@ -50,10 +53,9 @@ let classDeclaration = (~name, ~exported_as, ~module_id, ~class_type, ~ctor_type
   ++ " = "
   ++ class_type
   ++ ";\n  "
-  ++ "[@bs.new] [@bs.module \""
-  ++ module_id
-  ++ "\"] "
-  ++ "external make : "
+  ++ "[@bs.new] "
+  ++ bsModule(module_id)
+  ++ " external make : "
   ++ ctor_type
   ++ " = \""
   ++ exported_as
@@ -162,16 +164,15 @@ let classType = (~types, ()) =>
 
 let alias = (~name, ~value) => "let " ++ name ++ " = " ++ value ++ ";\n";
 
-let react_component = (~module_name, ~component_name, ~js_name, ~props, ()) =>
-  "\nmodule "
-  ++ component_name
-  ++ " = {\n"
-  ++ "  [@bs.module \""
-  ++ module_name
-  ++ "\"]\n"
+let react_component =
+    (~define_module, ~module_name, ~component_name, ~js_name, ~props, ~props_type_string) =>
+  (define_module ? "\nmodule " ++ component_name ++ " = {\n" : "\n")
+  ++ "  "
+  ++ bsModule(module_name)
+  ++ "\n"
   ++ "  external "
-  ++ String.lowercase_ascii(component_name)
-  ++ "_reactComponent : ReasonReact.reactClass = \""
+  ++ String.uncapitalize_ascii(component_name)
+  ++ " : ReasonReact.reactClass = \""
   ++ js_name
   ++ "\""
   ++ ";\n"
@@ -180,7 +181,9 @@ let react_component = (~module_name, ~component_name, ~js_name, ~props, ()) =>
        List.map(((name, _js, _t, optional, _is_bool)) => Labelled(name, optional), props)
        @ [Unlabelled("children")],
        "{"
-       ++ "\n    let props: props = "
+       ++ "\n    let props: "
+       ++ props_type_string
+       ++ " = "
        ++ jsObject(
             {
               let wrapArg = (~optional, ~is_bool, x) =>
@@ -206,13 +209,9 @@ let react_component = (~module_name, ~component_name, ~js_name, ~props, ()) =>
        ++ "\n    "
        ++ applyArgs(
             "ReasonReact.wrapJsForReason",
-            [
-              "~reactClass=" ++ String.lowercase_ascii(component_name) ++ "_reactComponent",
-              "~props",
-              "children"
-            ]
+            ["~reactClass=" ++ String.uncapitalize_ascii(component_name), "~props", "children"]
           )
        ++ ";\n"
-       ++ "  }"
+       ++ "  };"
      )
-  ++ "\n};";
+  ++ (define_module ? "\n};" : "");

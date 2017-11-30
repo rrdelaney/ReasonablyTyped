@@ -311,37 +311,65 @@ let constructor_type = (type_table) =>
     }
   | _ => raise(CodegenConstructorError("Type has no constructor"));
 
-let render_react_component = (module_id, name, type_table, component) => {
-  let prop_types =
-    Genutils.React.extract_props(type_table, component)
-    |> (
-      fun
-      | Object(o) => o
-      | _ => []
-    )
-    |> List.map(
-         ((name, t, optional_prop)) => {
-           let prop_name = Genutils.normalize_name(name);
-           let (prop_type, is_optional, is_boolean) =
-             switch t {
-             | Optional(Boolean) => (Boolean, true, true)
-             | Optional(t) => (t, true, false)
-             | Boolean => (Boolean, false, true)
-             | _ => (t, false, false)
-             };
-           let code = bstype_to_code(~ctx={...intctx, type_table}, prop_type);
-           /* prop name, js_name, prop type, optional */
-           (prop_name, name, code, is_optional || optional_prop, is_boolean)
-         }
-       );
+let get_prop_types = (type_table, t: Modulegen.BsType.t) =>
+  (
+    switch (Genutils.React.extract_props(type_table, t)) {
+    | Object(o) => o
+    | _ => []
+    }
+  )
+  |> List.map(
+       ((name, t, optional_prop)) => {
+         let prop_name = Genutils.normalize_name(name);
+         let (prop_type, is_optional, is_boolean) =
+           switch t {
+           | Optional(Boolean) => (Boolean, true, true)
+           | Optional(t) => (t, true, false)
+           | Boolean => (Boolean, false, true)
+           | _ => (t, false, false)
+           };
+         let code = bstype_to_code(~ctx={...intctx, type_table}, prop_type);
+         /* prop name, js_name, prop type, optional */
+         (prop_name, name, code, is_optional || optional_prop, is_boolean)
+       }
+     );
+
+let render_react_component = (module_id, name, type_table, propsType) => {
+  let props = get_prop_types(type_table, propsType);
   let module_name = Genutils.unquote(module_id);
   let component_name = name |> Genutils.normalize_name |> String.capitalize_ascii;
-  Render.react_component(~module_name, ~component_name, ~js_name=name, ~props=prop_types, ())
+  let props_type_string =
+    bstype_to_code(~ctx={...intctx, type_table}, Genutils.React.extract_component_type(propsType));
+  Render.react_component(
+    ~define_module=true,
+    ~module_name,
+    ~component_name,
+    ~js_name=name,
+    ~props,
+    ~props_type_string
+  )
+};
+
+let render_react_class = (~className, ~type_table, ~propsType) => {
+  let props = get_prop_types(type_table, propsType);
+  let module_name = "";
+  let component_name = className;
+  let js_name = className ++ ".react";
+  let props_type_string = bstype_to_code(~ctx={...intctx, type_table}, propsType);
+  Render.react_component(
+    ~define_module=false,
+    ~module_name,
+    ~component_name,
+    ~js_name,
+    ~props,
+    ~props_type_string
+  )
 };
 
 let rec declaration_to_code = (module_id, type_table) =>
   fun
   | Noop => ""
+  | Ignore(_) => ""
   | VarDecl(id, component) when Genutils.Is.react_component(component) =>
     render_react_component(module_id, id, type_table, component)
   | VarDecl(id, type_of) =>
@@ -421,9 +449,10 @@ let rec declaration_to_code = (module_id, type_table) =>
         ()
       )
     }
-  | ImportDecl(_, _) => "";
+  | ImportDecl(_, _) => ""
+  | ReactClass(className, propsType) => render_react_class(~className, ~type_table, ~propsType);
 
-let program_to_code = (program, typeof_table) =>
+let program_to_code = (program, type_table) =>
   switch program {
   | ModuleDecl(id, statements) =>
     /* is the module nested ? */
@@ -453,12 +482,14 @@ let program_to_code = (program, typeof_table) =>
       ++ (
         Precode.from_program(program)
         ++ (
-          String.concat("\n", List.map(declaration_to_code(id, typeof_table), statements))
+          String.concat("\n", List.map(declaration_to_code(id, type_table), statements))
           ++ module_postfix
         )
       )
     ))
   | TypeDecl(_, _, _) =>
     Some(("", Precode.from_program(program) ++ declaration_to_code("", [], program)))
+  | ReactClass(className, propsType) =>
+    Some(("", render_react_class(~className, ~type_table, ~propsType)))
   | _ => None
   };
