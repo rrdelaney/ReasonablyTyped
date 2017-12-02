@@ -7,7 +7,14 @@ type test_result = {
   status: test_status
 };
 
-let it = (name, fn) => {
+type test_case = {
+  name: string,
+  fn: unit => unit
+};
+
+let suite = ref([]);
+
+let run_test = ({name, fn}) => {
   let result =
     switch (fn()) {
     | result => {name, status: Pass}
@@ -23,3 +30,7 @@ let it = (name, fn) => {
   let output = ok ++ " - " ++ reason;
   print_endline(output)
 };
+
+let it = (name, fn) => suite := suite^ @ [{name, fn}];
+
+let collect = ((), ()) => ();

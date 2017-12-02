@@ -12,6 +12,11 @@
     (js_of_ocaml ((flags (--pretty))))
     (libraries (retyped js_of_ocaml))))
 
+(executable
+  ((name test)
+    (modules (test))
+    (libraries (retyped_test spec))))
+
 (alias
  ((name runtest)
   (deps (test.exe))

@@ -2,9 +2,10 @@
 
 (library
   ((name retyped)
-    (modules (:standard \  (glob_files *.test.re)))
+    (modules (codegen compiler flowprinter genutils imports modulegen optimizer render typetable))
     (libraries (sedlex flow_parser))))
 
 (library
   ((name retyped_test)
-    (libraries (spec))))
+    (modules (genutils_test))
+    (libraries (retyped spec))))
