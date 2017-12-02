@@ -2,4 +2,9 @@
 
 (library
   ((name retyped)
+    (modules (:standard \  (glob_files *.test.re)))
     (libraries (sedlex flow_parser))))
+
+(library
+  ((name retyped_test)
+    (libraries (spec))))
