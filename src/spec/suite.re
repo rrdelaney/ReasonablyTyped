@@ -55,6 +55,15 @@ module Runner = {
   let jest = {case: (case) => (), before_run: (cases) => (), after_case: (case, result) => ()};
 };
 
+let has_failure =
+  List.exists(
+    ((_, result)) =>
+      switch result.status {
+      | Fail(_) => true
+      | _ => false
+      }
+  );
+
 let run = (runner_type) => {
   let test_suite = Test.suite^;
   let runner =
@@ -64,6 +73,11 @@ let run = (runner_type) => {
     };
   List.iter(runner.case, test_suite);
   runner.before_run(test_suite);
-  List.map((case) => (case, run_test(case)), test_suite)
-  |> List.iter(((case, result)) => runner.after_case(case, result))
+  let results = List.map((case) => (case, run_test(case)), test_suite);
+  List.iter(((case, result)) => runner.after_case(case, result), results);
+  if (has_failure(results)) {
+    exit(1)
+  } else {
+    ()
+  }
 };
