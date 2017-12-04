@@ -35,20 +35,16 @@ let show = (table) => {
     ((id, typeof)) =>
       print_endline(
         "typeof "
+        ++ id
+        ++ " = "
         ++ (
-          id
-          ++ (
-            " = "
-            ++ (
-              switch typeof {
-              | Class => "Class"
-              | None => "None"
-              | NotFound => "NotFound"
-              | Variable(s) => "typeof " ++ s
-              | Type(t) => Flowprinter.show_type(t)
-              }
-            )
-          )
+          switch typeof {
+          | Class => "Class"
+          | None => "None"
+          | NotFound => "NotFound"
+          | Variable(s) => "typeof " ++ s
+          | Type(t) => Flowprinter.show_type(t)
+          }
         )
       ),
     table
