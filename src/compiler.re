@@ -71,7 +71,7 @@ module Stage = {
   };
 };
 
-let compile = (~debug=false, module_name, module_def) => {
+let compile = (module_name, module_def, debug) => {
   let result =
     Stage.parse_source(module_name, module_def)
     |> List.map(Modulegen.statement_to_program)
