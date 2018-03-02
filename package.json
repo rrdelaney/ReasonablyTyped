@@ -22,25 +22,12 @@
     "url": "https://github.com/rrdelaney/ReasonablyTyped/issues"
   },
   "homepage": "https://github.com/rrdelaney/ReasonablyTyped",
-  "files": [
-    "lib/cli.js",
-    "lib/index.js",
-    "lib/retyped_node.js"
-  ],
   "dependencies": {
     "babel-code-frame": "^6.26.0",
     "chalk": "^2.1.0",
     "meow": "^3.7.0",
-    "reasonable-flowgen": "^0.1.3",
-    "reason": "^3.0.0"
-  },
-  "scripts": {
-    "build:native": "jbuilder build src/cli.exe",
-    "build:js": "jbuilder build src/retyped_node.bc.js && cp _build/default/src/retyped_node.bc.js lib/retyped_node.js",
-    "ctp": "jbuilder build src/cli.exe && ./_build/default/src/cli.exe _test.js",
-    "pretest": "jbuilder clean && jbuilder build src/retyped_node.bc.js && cp _build/default/src/retyped_node.bc.js lib/retyped_node.js",
-    "test": "jest",
-    "precommit": "lint-staged"
+    "reason": "^3.0.0",
+    "flow-dev-tools": "bsansouci/flow#bsb-support"
   },
   "devDependencies": {
     "glob": "^7.1.2",
@@ -49,28 +36,5 @@
     "jest-cli": "^20.0.4",
     "lint-staged": "^4.0.2",
     "prettier": "^1.5.3"
-  },
-  "lint-staged": {
-    "*.js": [
-      "prettier --no-semi --single-quote --write",
-      "git add"
-    ]
-  },
-  "jest": {
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/flow/",
-      "/reason-tools/",
-      "/fixtures/",
-      "/flow-typed/",
-      "/definitely-typed/"
-    ],
-    "modulePathIgnorePatterns": [
-      "/flow/"
-    ],
-    "transformIgnorePatterns": [
-      "/node_modules/",
-      "/lib/"
-    ]
   }
 }

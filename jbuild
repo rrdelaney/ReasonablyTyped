@@ -1,7 +1,0 @@
-(alias
-  ((name native)
-   (deps (src/cli.exe))))
-
-(alias
-  ((name js)
-   (deps (src/retyped_node.bc.js))))

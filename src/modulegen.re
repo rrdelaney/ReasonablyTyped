@@ -1,3 +1,5 @@
+module Ast = Spider_monkey_ast;
+
 open Ast.Statement.Block;
 
 open Ast.Literal;
@@ -40,29 +42,25 @@ exception ModulegenStatementError(string);
 let loc_to_msg = ({source, start, _end}: Loc.t) =>
   (
     switch source {
-    | Some(fname) => " [in " ++ (Loc.string_of_filename(fname) ++ " ")
+    | Some(fname) => " [in " ++ Loc.string_of_filename(fname) ++ " "
     | None => " ["
     }
   )
-  ++ (
-    "from "
-    ++ (
-      string_of_int(start.line)
-      ++ (
-        ":"
-        ++ (
-          string_of_int(start.column)
-          ++ (" to " ++ (string_of_int(_end.line) ++ (":" ++ (string_of_int(_end.column) ++ "]"))))
-        )
-      )
-    )
-  );
+  ++ "from "
+  ++ string_of_int(start.line)
+  ++ ":"
+  ++ string_of_int(start.column)
+  ++ " to "
+  ++ string_of_int(_end.line)
+  ++ ":"
+  ++ string_of_int(_end.column)
+  ++ "]";
 
 let not_supported = (interface, context: context) =>
-  interface ++ (" is not currently supported" ++ loc_to_msg(context.loc));
+  interface ++ " is not currently supported" ++ loc_to_msg(context.loc);
 
 let sanity_check = (problem, context: context) =>
-  problem ++ (" should not happen" ++ loc_to_msg(context.loc));
+  problem ++ " should not happen" ++ loc_to_msg(context.loc);
 
 module BsType = {
   type t =
@@ -102,10 +100,18 @@ let string_of_key = (key: Ast.Expression.Object.Property.key) =>
     switch value {
     | String(s) => s
     | _ =>
-      raise(ModulegenTypeError(sanity_check("Non-string as object property", {...intctx, loc})))
+      raise(
+        ModulegenTypeError(
+          sanity_check("Non-string as object property", {...intctx, loc})
+        )
+      )
     }
   | Computed((loc, _)) =>
-    raise(ModulegenTypeError(not_supported("Computed object properties", {...intctx, loc})))
+    raise(
+      ModulegenTypeError(
+        not_supported("Computed object properties", {...intctx, loc})
+      )
+    )
   };
 
 let extract_type_params = (ctx, type_parameters) => {
@@ -114,17 +120,29 @@ let extract_type_params = (ctx, type_parameters) => {
   let get_params = ((loc, {name, bound, variance, default})) =>
     switch (bound, variance, default) {
     | (Some(_), _, _) =>
-      raise(ModulegenTypeError(not_supported("Type parameter bounds", {...ctx, loc})))
+      raise(
+        ModulegenTypeError(
+          not_supported("Type parameter bounds", {...ctx, loc})
+        )
+      )
     | (_, Some(_), _) =>
-      raise(ModulegenTypeError(not_supported("Type parameter variance", {...ctx, loc})))
+      raise(
+        ModulegenTypeError(
+          not_supported("Type parameter variance", {...ctx, loc})
+        )
+      )
     | (_, _, Some(_)) =>
-      raise(ModulegenTypeError(not_supported("Type parameter defaults", {...ctx, loc})))
+      raise(
+        ModulegenTypeError(
+          not_supported("Type parameter defaults", {...ctx, loc})
+        )
+      )
     | _ => name
     };
   switch type_parameters {
   | Some((loc, {params})) => List.map(get_params, params)
   | None => []
-  }
+  };
 };
 
 let rec type_annotation_to_bstype = (annotation: option(Ast.Type.annotation)) =>
@@ -137,15 +155,15 @@ and type_to_bstype = (ctx: context) =>
   | String => BsType.String
   | Object(o) =>
     if (List.length(o.properties) == 0) {
-      BsType.Object([])
+      BsType.Object([]);
     } else {
       let first_prop = List.hd(o.properties);
       switch first_prop {
       | Indexer((_, {value})) =>
         let (_, value_type) = value;
-        BsType.Dict(type_to_bstype(ctx, value_type))
+        BsType.Dict(type_to_bstype(ctx, value_type));
       | _ => BsType.Object(object_type_to_bstype(o))
-      }
+      };
     }
   | Nullable((loc, t)) => BsType.Optional(type_to_bstype({...ctx, loc}, t))
   | Void => BsType.Unit
@@ -156,7 +174,10 @@ and type_to_bstype = (ctx: context) =>
   | Boolean => BsType.Boolean
   | Function(f) => function_type_to_bstype(ctx, f)
   | Array((loc, t)) => BsType.Array(type_to_bstype({...ctx, loc}, t))
-  | Tuple(types) => BsType.Tuple(List.map(((loc, t)) => type_to_bstype({...ctx, loc}, t), types))
+  | Tuple(types) =>
+    BsType.Tuple(
+      List.map(((loc, t)) => type_to_bstype({...ctx, loc}, t), types)
+    )
   | Intersection((loc_a, first), (loc_b, second), rest) =>
     raise(ModulegenTypeError(not_supported("Intersection types", ctx)))
   | Union((loc_a, first), (loc_b, second), rest) =>
@@ -177,15 +198,18 @@ and function_type_to_bstype = (ctx, f) => {
   open Ast.Type.Function.Param;
   let {params: (formal, rest), returnType: (rt_loc, rt), typeParameters} = f;
   let type_params = extract_type_params(ctx, typeParameters);
-  let arg_types = ((_, {typeAnnotation: (loc, t), name, optional}): Ast.Type.Function.Param.t) => (
+  let arg_types =
+      (
+        (_, {typeAnnotation: (loc, t), name, optional}): Ast.Type.Function.Param.t
+      ) => (
     switch name {
     | Some(id) => string_of_id(id)
     | None => ""
     },
     if (optional) {
-      BsType.Optional(type_to_bstype({...ctx, loc}, t))
+      BsType.Optional(type_to_bstype({...ctx, loc}, t));
     } else {
-      type_to_bstype({...ctx, loc}, t)
+      type_to_bstype({...ctx, loc}, t);
     }
   );
   let formal_params = List.map(arg_types, formal);
@@ -199,7 +223,7 @@ and function_type_to_bstype = (ctx, f) => {
         | (id, BsType.Optional(t)) => (id, t)
         | t => t
         }
-      )
+      );
     | None => None
     };
   /* because you can't have a zero-arity Reason function */
@@ -210,7 +234,7 @@ and function_type_to_bstype = (ctx, f) => {
     no_args ? [("", BsType.Unit)] : formal_params,
     rest_params,
     return_type
-  )
+  );
 }
 and value_to_bstype = (value: Ast.Type.Object.Property.value) =>
   switch value {
@@ -233,16 +257,31 @@ and object_type_to_bstype = ({properties}) =>
         if (static) {
           raise(
             ModulegenTypeError(
-              not_supported("static CallProperty on Object types", {...intctx, loc})
+              not_supported(
+                "static CallProperty on Object types",
+                {...intctx, loc}
+              )
             )
-          )
+          );
         };
-        ("$$callProperty", type_to_bstype({...intctx, loc}, Function(value)), false)
+        (
+          "$$callProperty",
+          type_to_bstype({...intctx, loc}, Function(value)),
+          false
+        );
       }
     | Indexer((loc, _)) =>
-      raise(ModulegenTypeError(not_supported("Indexer on Object types", {...intctx, loc})))
+      raise(
+        ModulegenTypeError(
+          not_supported("Indexer on Object types", {...intctx, loc})
+        )
+      )
     | SpreadProperty((loc, _)) =>
-      raise(ModulegenTypeError(not_supported("SpreadProperty on Object types", {...intctx, loc}))),
+      raise(
+        ModulegenTypeError(
+          not_supported("SpreadProperty on Object types", {...intctx, loc})
+        )
+      ),
     properties
   )
 and generic_type_to_bstype = (ctx, g) => {
@@ -252,7 +291,7 @@ and generic_type_to_bstype = (ctx, g) => {
   switch id {
   | Qualified((_, q)) => BsType.Named([], string_of_id(q.id), None)
   | Unqualified(q) => named_to_bstype(ctx, typeParameters, q)
-  }
+  };
 }
 and named_to_bstype = (ctx, type_params, (loc, id)) =>
   switch id {
@@ -264,13 +303,21 @@ and named_to_bstype = (ctx, type_params, (loc, id)) =>
     let params =
       switch type_params {
       | Some((_, {params: []})) =>
-        raise(ModulegenTypeError(not_supported("Array with no types", {...ctx, loc})))
+        raise(
+          ModulegenTypeError(
+            not_supported("Array with no types", {...ctx, loc})
+          )
+        )
       | Some((_, {params})) => params
       | None =>
-        raise(ModulegenTypeError(not_supported("Array with more than one type", {...ctx, loc})))
+        raise(
+          ModulegenTypeError(
+            not_supported("Array with more than one type", {...ctx, loc})
+          )
+        )
       };
     let (loc, inner_type) = List.hd(params);
-    BsType.Array(type_to_bstype({...ctx, loc}, inner_type))
+    BsType.Array(type_to_bstype({...ctx, loc}, inner_type));
   | "Function" => BsType.AnyFunction
   | "Class" =>
     open Ast.Type.ParameterInstantiation;
@@ -278,43 +325,58 @@ and named_to_bstype = (ctx, type_params, (loc, id)) =>
       switch type_params {
       | Some((_, {params: [type_param]})) => type_param
       | None =>
-        raise(ModulegenTypeError("Class must have exactly one type parameter. Found none."))
+        raise(
+          ModulegenTypeError(
+            "Class must have exactly one type parameter. Found none."
+          )
+        )
       | Some((_, {params})) =>
         raise(
           ModulegenTypeError(
             "Class must have exactly one type parameter. Got: "
-            ++ (string_of_int @@ List.length(params))
+            ++ string_of_int @@
+            List.length(params)
           )
         )
       };
-    BsType.Typeof(type_to_bstype({...ctx, loc}, inner_type))
+    BsType.Typeof(type_to_bstype({...ctx, loc}, inner_type));
   | "Promise" =>
     open Ast.Type.ParameterInstantiation;
     let (loc, inner_type) =
       switch type_params {
       | Some((_, {params: [type_param]})) => type_param
       | None =>
-        raise(ModulegenTypeError("Promise must have exactly one type parameter. Found none."))
+        raise(
+          ModulegenTypeError(
+            "Promise must have exactly one type parameter. Found none."
+          )
+        )
       | Some((_, {params})) =>
         raise(
           ModulegenTypeError(
             "Promise must have exactly one type parameter. Got: "
-            ++ (string_of_int @@ List.length(params))
+            ++ string_of_int @@
+            List.length(params)
           )
         )
       };
-    BsType.Promise(type_to_bstype({...ctx, loc}, inner_type))
+    BsType.Promise(type_to_bstype({...ctx, loc}, inner_type));
   | _ =>
-    if (String.length(id) > 0 && id.[0] == '$' && String.sub(id, 0, 4) != "$npm") {
-      raise(ModulegenTypeError(not_supported("Built-in type " ++ id, ctx)))
+    if (String.length(id) > 0
+        && id.[0] == '$'
+        && String.sub(id, 0, 4) != "$npm") {
+      raise(ModulegenTypeError(not_supported("Built-in type " ++ id, ctx)));
     } else {
       let type_params =
         switch type_params {
         | None => []
         | Some((_, {params})) =>
-          List.map(((loc, type_of)) => type_to_bstype({...ctx, loc}, type_of), params)
+          List.map(
+            ((loc, type_of)) => type_to_bstype({...ctx, loc}, type_of),
+            params
+          )
         };
-      BsType.Named(type_params, id, None)
+      BsType.Named(type_params, id, None);
     }
   };
 
@@ -344,20 +406,24 @@ module BsDecl = {
     | Ignore(string);
 };
 
-let rec declaration_to_jsdecl = (loc) =>
+let rec declaration_to_jsdecl = loc =>
   Ast.Statement.Interface.(
     fun
     | Variable((loc, {id, typeAnnotation})) =>
-      BsDecl.VarDecl(string_of_id(id), type_annotation_to_bstype(typeAnnotation))
+      BsDecl.VarDecl(
+        string_of_id(id),
+        type_annotation_to_bstype(typeAnnotation)
+      )
     | Function((loc, {id, typeAnnotation})) => {
         let bstype = type_annotation_to_bstype(Some(typeAnnotation));
-        BsDecl.FuncDecl(string_of_id(id), bstype)
+        BsDecl.FuncDecl(string_of_id(id), bstype);
       }
     | Class((loc, c)) => declare_class_to_jsdecl(loc, c)
     | _ =>
       raise(
         ModulegenDeclError(
-          "Unknown declaration when converting a module property declaration" ++ loc_to_msg(loc)
+          "Unknown declaration when converting a module property declaration"
+          ++ loc_to_msg(loc)
         )
       )
   )
@@ -367,7 +433,11 @@ and declare_interface_to_jsdecl = (loc, s) => {
   let {id, body, typeParameters, extends} = s;
   switch extends {
   | [(loc, _extends), ...t] =>
-    raise(ModulegenStatementError(not_supported("Inheriting in interfaces", {...intctx, loc})))
+    raise(
+      ModulegenStatementError(
+        not_supported("Inheriting in interfaces", {...intctx, loc})
+      )
+    )
   | _ => ()
   };
   let (body_loc, obj_type) = body;
@@ -376,7 +446,7 @@ and declare_interface_to_jsdecl = (loc, s) => {
     string_of_id(id),
     extract_type_params(intctx, typeParameters),
     type_to_bstype({...intctx, loc: body_loc}, body_type)
-  )
+  );
 }
 and declare_class_to_jsdecl = (loc, s) => {
   open Ast.Statement.Interface;
@@ -385,10 +455,13 @@ and declare_class_to_jsdecl = (loc, s) => {
   let inheritedClasses =
     switch extends {
     | [] => None
-    | [(loc, parent)] => Some(type_to_bstype({...intctx, loc}, Ast.Type.Generic(parent)))
+    | [(loc, parent)] =>
+      Some(type_to_bstype({...intctx, loc}, Ast.Type.Generic(parent)))
     | _ =>
       raise(
-        ModulegenStatementError(not_supported("Inheriting from multiple types", {...intctx, loc}))
+        ModulegenStatementError(
+          not_supported("Inheriting from multiple types", {...intctx, loc})
+        )
       )
     };
   let properties = object_type_to_bstype(interface);
@@ -397,7 +470,7 @@ and declare_class_to_jsdecl = (loc, s) => {
     string_of_id(id),
     extract_type_params(intctx, typeParameters),
     BsType.Class(inheritedClasses, properties)
-  )
+  );
 };
 
 let import_decl_to_jsdecl = (loc, s) => {
@@ -423,12 +496,20 @@ let import_decl_to_jsdecl = (loc, s) => {
         | _ => ("", ""),
         specifiers
       );
-    BsDecl.ImportDecl(import_names, imported_module)
+    BsDecl.ImportDecl(import_names, imported_module);
   | ImportTypeof =>
-    raise(ModulegenStatementError(not_supported("'import typeof'", {...intctx, loc})))
+    raise(
+      ModulegenStatementError(
+        not_supported("'import typeof'", {...intctx, loc})
+      )
+    )
   | ImportValue =>
-    raise(ModulegenStatementError(not_supported("Importing values", {...intctx, loc})))
-  }
+    raise(
+      ModulegenStatementError(
+        not_supported("Importing values", {...intctx, loc})
+      )
+    )
+  };
 };
 
 let rec statement_to_program = ((loc, s)) =>
@@ -450,44 +531,76 @@ let rec statement_to_program = ((loc, s)) =>
     | Ast.Statement.DeclareModule(s) => declare_module_to_jsdecl(loc, s)
     | Ast.Statement.DeclareVariable({id, typeAnnotation}) =>
       if (string_of_id(id) == "exports") {
-        BsDecl.ExportsDecl(type_annotation_to_bstype(typeAnnotation))
+        BsDecl.ExportsDecl(type_annotation_to_bstype(typeAnnotation));
       } else {
-        BsDecl.VarDecl(string_of_id(id), type_annotation_to_bstype(typeAnnotation))
+        BsDecl.VarDecl(
+          string_of_id(id),
+          type_annotation_to_bstype(typeAnnotation)
+        );
       }
-    | Ast.Statement.InterfaceDeclaration(s) => declare_interface_to_jsdecl(loc, s)
-    | Ast.Statement.DeclareInterface(s) => declare_interface_to_jsdecl(loc, s)
-    | Ast.Statement.DeclareTypeAlias({id, typeParameters, right: (loc, t)}) =>
-      BsDecl.TypeDecl(
-        string_of_id(id),
-        extract_type_params(intctx, typeParameters),
-        type_to_bstype({...intctx, loc}, t)
-      )
+    | Ast.Statement.InterfaceDeclaration(s) =>
+      declare_interface_to_jsdecl(loc, s)
+    /* | Ast.Statement.DeclareInterface(s) => declare_interface_to_jsdecl(loc, s) */
+    /* | Ast.Statement.DeclareTypeAlias({id, typeParameters, right: (loc, t)}) =>
+       BsDecl.TypeDecl(
+         string_of_id(id),
+         extract_type_params(intctx, typeParameters),
+         type_to_bstype({...intctx, loc}, t)
+       ) */
     | Ast.Statement.ImportDeclaration(s) => import_decl_to_jsdecl(loc, s)
-    | Ast.Statement.DeclareOpaqueType(_) =>
-      raise(ModulegenStatementError(not_supported("Opaque types", {...intctx, loc})))
+    /* | Ast.Statement.DeclareOpaqueType(_) =>
+       raise(
+         ModulegenStatementError(
+           not_supported("Opaque types", {...intctx, loc})
+         )
+       ) */
     | Ast.Statement.ClassDeclaration({
         id: Some((_loc, className)),
         superClass:
-          Some((_, Member({_object: (_, Identifier(oID)), property: PropertyIdentifier(pID)}))),
+          Some((
+            _,
+            Member({
+              _object: (_, Identifier(oID)),
+              property: PropertyIdentifier(pID)
+            })
+          )),
         superTypeParameters: Some((_, {params: [(_, propt), ..._]}))
       })
         when
           string_of_id(oID) == "React"
-          && (string_of_id(pID) == "Component" || string_of_id(pID) == "PureComponent") =>
+          && (
+            string_of_id(pID) == "Component"
+            || string_of_id(pID) == "PureComponent"
+          ) =>
       let propsType = type_to_bstype({...intctx, loc}, propt);
-      BsDecl.ReactClass(className, propsType)
+      BsDecl.ReactClass(className, propsType);
     | Ast.Statement.ClassDeclaration(_) =>
-      raise(ModulegenStatementError(not_supported("Class declatations", {...intctx, loc})))
+      raise(
+        ModulegenStatementError(
+          not_supported("Class declatations", {...intctx, loc})
+        )
+      )
     | Ast.Statement.Empty => BsDecl.Noop
     | Ast.Statement.ExportDefaultDeclaration(_) =>
-      raise(ModulegenStatementError(not_supported("ExportDefaultDeclaration", {...intctx, loc})))
+      raise(
+        ModulegenStatementError(
+          not_supported("ExportDefaultDeclaration", {...intctx, loc})
+        )
+      )
     | Ast.Statement.ExportNamedDeclaration(_) =>
-      raise(ModulegenStatementError(not_supported("ExportNamedDeclaration", {...intctx, loc})))
-    | Ast.Statement.VariableDeclaration(_) => BsDecl.Ignore("variable declaration")
+      raise(
+        ModulegenStatementError(
+          not_supported("ExportNamedDeclaration", {...intctx, loc})
+        )
+      )
+    | Ast.Statement.VariableDeclaration(_) =>
+      BsDecl.Ignore("variable declaration")
     | Ast.Statement.Expression(_) => BsDecl.Ignore("expression statement")
     | _ =>
       raise(
-        ModulegenStatementError("Unknown statement type when parsing libdef" ++ loc_to_msg(loc))
+        ModulegenStatementError(
+          "Unknown statement type when parsing libdef" ++ loc_to_msg(loc)
+        )
       )
     }
   )
@@ -500,8 +613,9 @@ and declare_module_to_jsdecl = (loc, s) => {
   | _ =>
     raise(
       ModulegenDeclError(
-        "Unknown declaration type when converting a module declaration" ++ loc_to_msg(loc)
+        "Unknown declaration type when converting a module declaration"
+        ++ loc_to_msg(loc)
       )
     )
-  }
+  };
 };

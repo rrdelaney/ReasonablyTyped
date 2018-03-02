@@ -1,16 +1,17 @@
 open Modulegen.BsType;
 
-let unquote = (str) => {
+let unquote = str => {
   let has_start_quote = str.[0] == '"' || str.[0] == '\'';
-  let has_end_quote = str.[String.length(str) - 1] == '"' || str.[String.length(str) - 1] == '\'';
+  let has_end_quote =
+    str.[String.length(str) - 1] == '"' || str.[String.length(str) - 1] == '\'';
   if (has_start_quote && has_end_quote) {
-    String.sub(str, 1, String.length(str) - 2)
+    String.sub(str, 1, String.length(str) - 2);
   } else {
-    str
-  }
+    str;
+  };
 };
 
-let normalize_chars = String.map((ch) => ch == '-' || ch == '$' ? '_' : ch);
+let normalize_chars = String.map(ch => ch == '-' || ch == '$' ? '_' : ch);
 
 let normalize_keywords =
   fun
@@ -19,13 +20,13 @@ let normalize_keywords =
   | "to" => "_to"
   | str => str;
 
-let normalize_name = (name) => normalize_chars(name) |> normalize_keywords;
+let normalize_name = name => normalize_chars(name) |> normalize_keywords;
 
-let import_module_name = (name) => normalize_name(name) |> String.capitalize_ascii;
+let import_module_name = name => normalize_name(name) |> String.capitalize;
 
-let to_module_name = (str) => normalize_name(unquote(str));
+let to_module_name = str => normalize_name(unquote(str));
 
-let to_type_param = (str) => "'" ++ String.uncapitalize_ascii(str) |> normalize_name;
+let to_type_param = str => "'" ++ String.uncapitalize(str) |> normalize_name;
 
 let rec split = (sep, str, acc) => {
   open String;
@@ -42,25 +43,25 @@ let rec split = (sep, str, acc) => {
       sep,
       sub(str, beginning, len - beginning),
       List.append(acc, [sub(str, 0, max(0, beginning - 1))])
-    )
-  }
+    );
+  };
 };
 
 let rec uniq =
   fun
   | [] => []
   | [h, ...t] => {
-      let no_dups = uniq(List.filter((x) => x != h, t));
-      [h, ...no_dups]
+      let no_dups = uniq(List.filter(x => x != h, t));
+      [h, ...no_dups];
     };
 
 module Is = {
-  let optional = (type_of) =>
+  let optional = type_of =>
     switch type_of {
     | Optional(_) => true
     | _ => false
     };
-  let type_param = (params, t) => List.exists((p) => p == t, params);
+  let type_param = (params, t) => List.exists(p => p == t, params);
   let class_type = (t, table) =>
     switch (Typetable.get(t, table)) {
     | Class => true
@@ -80,17 +81,31 @@ module Is = {
     | Named(_params, "ComponentType", Some("React")) => true
     | Named(_params, "React$StatelessFunctionalComponent", None) => true
     | Named(_params, "StatelessFunctionalComponent", Some("React")) => true
-    | Function(_type_params, _params, _rest, Named(_ntype_params, "React$Element", None)) => true
-    | Function(_type_params, _params, _rest, Named(_ntype_params, "Element", Some("React"))) =>
+    | Function(
+        _type_params,
+        _params,
+        _rest,
+        Named(_ntype_params, "React$Element", None)
+      ) =>
+      true
+    | Function(
+        _type_params,
+        _params,
+        _rest,
+        Named(_ntype_params, "Element", Some("React"))
+      ) =>
       true
     | _ => false;
 };
 
 module React = {
-  let extract_component_type = (component) =>
+  let extract_component_type = component =>
     switch component {
     | Class(Some(Named([props, ..._params], "React$Component", None)), _props) => props
-    | Class(Some(Named([props, ..._params], "Component", Some("React"))), _props) => props
+    | Class(
+        Some(Named([props, ..._params], "Component", Some("React"))),
+        _props
+      ) => props
     | Named([props, ..._params], "React$ComponentType", None) => props
     | Named([props, ..._params], "ComponentType", Some("React")) => props
     | Named([props, ..._params], "React$StatelessFunctionalComponent", None) => props
@@ -120,11 +135,11 @@ module React = {
       | _ => component_type
       }
     | _ => component_type
-    }
+    };
   };
 };
 
-let walk = (replacer) => {
+let walk = replacer => {
   open Modulegen.BsDecl;
   open Modulegen.BsType;
   let or_value = (transform, t) =>
@@ -151,7 +166,13 @@ let walk = (replacer) => {
     | Object(fields) as ot =>
       switch (replacer(ot)) {
       | Some(new_t) when recurse => walk_type(~recurse=false, new_t)
-      | _ => Object(List.map(((name, t, optional)) => (name, walk_type(t), optional), fields))
+      | _ =>
+        Object(
+          List.map(
+            ((name, t, optional)) => (name, walk_type(t), optional),
+            fields
+          )
+        )
       }
     | Class(extends, fields) as ct =>
       switch (replacer(ct)) {
@@ -212,5 +233,5 @@ let walk = (replacer) => {
   | FuncDecl(name, t) => FuncDecl(name, walk_type(t))
   | TypeDecl(name, params, t) => TypeDecl(name, params, walk_type(t))
   | ClassDecl(name, params, t) => ClassDecl(name, params, walk_type(t))
-  | s => s
+  | s => s;
 };

@@ -9,3 +9,5 @@ _test.d.ts
 _test.re
 .merlin
 lib/retyped_node.js
+lib/bs
+lib/js
