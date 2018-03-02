@@ -130,13 +130,6 @@ exports[`Compile numbers.re 1`] = `
 "
 `;
 
-exports[`Compile numbers.re 2`] = `
-"[@bs.module \\"numbers\\"] external xfg : float = \\"\\";
-
-[@bs.module \\"numbers\\"] external add : (~a: float, ~b: float) => float = \\"\\";
-"
-`;
-
 exports[`Compile object-type.re 1`] = `
 "type subscribeOptions = {
   .
