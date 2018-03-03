@@ -83,19 +83,11 @@ module Is = {
       true
     | BsTypeAst.Named(_params, "StatelessFunctionalComponent", Some("React")) =>
       true
-    | BsTypeAst.Function(
-        _type_params,
-        _params,
-        _rest,
-        Named(_ntype_params, "React$Element", None)
-      ) =>
+    | BsTypeAst.Function({
+        returnType: Named(_ntype_params, "React$Element", None)
+      }) =>
       true
-    | Function(
-        _type_params,
-        _params,
-        _rest,
-        Named(_ntype_params, "Element", Some("React"))
-      ) =>
+    | Function({returnType: Named(_ntype_params, "Element", Some("React"))}) =>
       true
     | _ => false;
 };
@@ -124,18 +116,14 @@ module React = {
         Some("React")
       ) => props
     | BsTypeAst.Named([], _, None) => component
-    | BsTypeAst.Function(
-        _type_params,
-        [(_param_name, props), ..._params],
-        _rest,
-        Named(_ntype_params, "React$Element", None)
-      ) => props
-    | BsTypeAst.Function(
-        _type_params,
-        [(_param_name, props), ..._params],
-        _rest,
-        Named(_ntype_params, "Element", Some("React"))
-      ) => props
+    | BsTypeAst.Function({
+        formalParams: [(_param_name, props), ..._params],
+        returnType: Named(_ntype_params, "React$Element", None)
+      }) => props
+    | BsTypeAst.Function({
+        formalParams: [(_param_name, props), ..._params],
+        returnType: Named(_ntype_params, "Element", Some("React"))
+      }) => props
     | BsTypeAst.Object(_) => component
     | _ => Unit
     };
@@ -161,19 +149,21 @@ let walk = replacer => {
     };
   let rec walk_type = (~recurse=true, walkable) =>
     switch walkable {
-    | Function(type_params, formal_params, rest_param, return_type) as ft =>
+    | Function(func) as ft =>
       switch (replacer(ft)) {
       | Some(new_t) when recurse => walk_type(~recurse=false, new_t)
       | _ =>
-        Function(
-          type_params,
-          List.map(((name, t)) => (name, walk_type(t)), formal_params),
-          switch rest_param {
-          | Some((name, t)) => Some((name, walk_type(t)))
-          | None => None
-          },
-          walk_type(return_type)
-        )
+        Function({
+          ...func,
+          formalParams:
+            List.map(((name, t)) => (name, walk_type(t)), func.formalParams),
+          restParam:
+            switch func.restParam {
+            | Some((name, t)) => Some((name, walk_type(t)))
+            | None => None
+            },
+          returnType: walk_type(func.returnType)
+        })
       }
     | Object(fields) as ot =>
       switch (replacer(ot)) {

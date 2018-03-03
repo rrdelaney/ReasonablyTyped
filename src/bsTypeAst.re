@@ -1,10 +1,16 @@
-type t =
+type func = {
+  typeParams: list(string),
+  formalParams: list((string, t)),
+  restParam: option((string, t)),
+  returnType: t
+}
+and t =
   | Null
   | Number
   | Regex
   | String
   /* type params, formal params, rest param, return type */
-  | Function(list(string), list((string, t)), option((string, t)), t)
+  | Function(func)
   | AnyFunction
   | Object(list((string, t, bool)))
   | AnyObject

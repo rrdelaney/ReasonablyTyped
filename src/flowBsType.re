@@ -181,12 +181,12 @@ and function_type_to_bstype = (ctx, f) => {
   /* because you can't have a zero-arity Reason function */
   let no_args = List.length(formal_params) == 0 && rest_params === None;
   let return_type = type_to_bstype({...ctx, loc: rt_loc}, rt);
-  BsTypeAst.Function(
-    type_params,
-    no_args ? [("", BsTypeAst.Unit)] : formal_params,
-    rest_params,
-    return_type
-  );
+  BsTypeAst.Function({
+    typeParams: type_params,
+    formalParams: no_args ? [("", BsTypeAst.Unit)] : formal_params,
+    restParam: rest_params,
+    returnType: return_type
+  });
 }
 and value_to_bstype = (value: Ast.Type.Object.Property.value) =>
   switch value {

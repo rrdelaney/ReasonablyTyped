@@ -13,7 +13,7 @@ module Stage = {
     Optimizer.optimize(make_module_typetable(program), program);
   let optimize_programs = programs => List.map(optimize_program, programs);
   let render_program = (globalTypeTable, program) =>
-    Codegen.program_to_code(
+    BsTypeReason.program_to_code(
       program,
       make_module_typetable(program) @ globalTypeTable
     );
@@ -56,7 +56,7 @@ module Stage = {
     };
     let show_flow = programs => {
       let flow_code =
-        List.map(Flowprinter.show_decl, programs) |> String.concat("\n");
+        List.map(BsTypeFlow.show_decl, programs) |> String.concat("\n");
       print_endline("\027[1;36m=== Flow Definition ===\027[0m");
       print_endline(flow_code);
       print_newline();
@@ -73,7 +73,7 @@ module Stage = {
 let compile = (module_name, module_def, debug) => {
   let result =
     Stage.parse_source(module_name, module_def)
-    |> List.map(Modulegen.statement_to_program)
+    |> List.map(FlowBsType.statement_to_program)
     |> Imports.link
     |> Stage.optimize_programs
     |> Stage.render_programs
@@ -81,7 +81,7 @@ let compile = (module_name, module_def, debug) => {
   if (debug) {
     let debug_programs =
       Stage.parse_source(module_name, module_def)
-      |> List.map(Modulegen.statement_to_program);
+      |> List.map(FlowBsType.statement_to_program);
     Stage.Debug.show_imports(debug_programs);
     Stage.Debug.show_types(debug_programs);
     Stage.Debug.show_flow(debug_programs);

@@ -41,7 +41,7 @@ let show = table => {
           | None => "None"
           | NotFound => "NotFound"
           | Variable(s) => "typeof " ++ s
-          | Type(t) => Flowprinter.show_type(t)
+          | Type(t) => BsTypeFlow.show_type(t)
           }
         )
       ),

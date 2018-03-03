@@ -19,9 +19,9 @@ let inline_union_types = types =>
 
 let optimize_function = types =>
   fun
-  | BsTypeAst.Function(type_params, params, rest_param, rt) => {
-      let params = inline_union_types(types, params);
-      BsTypeAst.Function(type_params, params, rest_param, rt);
+  | BsTypeAst.Function(func) => {
+      let formalParams = inline_union_types(types, func.formalParams);
+      BsTypeAst.Function({...func, formalParams});
     }
   | f => f;
 

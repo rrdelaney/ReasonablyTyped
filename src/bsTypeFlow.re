@@ -18,7 +18,7 @@ let rec show_type =
     "[" ++ (List.map(show_type, types) |> String.concat(", ")) ++ "]"
   | BsTypeAst.Array(t) => show_type(t) ++ "[]"
   | BsTypeAst.Typeof(t) => "typeof " ++ show_type(t)
-  | BsTypeAst.Function(type_params, params, rest_param, return) => {
+  | BsTypeAst.Function({typeParams, formalParams, restParam, returnType}) => {
       let paramList =
         List.map(
           ((name, type_of)) =>
@@ -27,15 +27,15 @@ let rec show_type =
             | BsTypeAst.Optional(t) => name ++ "?: " ++ show_type(t)
             | _ => name ++ ": " ++ show_type(type_of)
             },
-          params
+          formalParams
         );
-      (List.length(type_params) > 0 ? "<" : "")
-      ++ String.concat(", ", type_params)
-      ++ (List.length(type_params) > 0 ? ">" : "")
+      (List.length(typeParams) > 0 ? "<" : "")
+      ++ String.concat(", ", typeParams)
+      ++ (List.length(typeParams) > 0 ? ">" : "")
       ++ "("
       ++ String.concat(", ", paramList)
       ++ (
-        switch rest_param {
+        switch restParam {
         | Some((name, type_of)) =>
           (List.length(paramList) > 0 ? ", " : "")
           ++ "..."
@@ -46,7 +46,7 @@ let rec show_type =
         }
       )
       ++ "): "
-      ++ show_type(return);
+      ++ show_type(returnType);
     }
   | BsTypeAst.Null => "null"
   | BsTypeAst.Number => "number"

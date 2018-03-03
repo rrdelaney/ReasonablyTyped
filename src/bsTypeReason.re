@@ -130,7 +130,12 @@ let rec bstype_to_code = (~ctx=intctx) =>
         "Cannot use string literal outside the context of a union type"
       )
     )
-  | Function(type_params, params, rest_param, rt) => {
+  | Function({
+      typeParams: type_params,
+      formalParams: params,
+      restParam: rest_param,
+      returnType: rt
+    }) => {
       let ctx = {...ctx, type_params: type_params @ ctx.type_params};
       let print = ((name, param)) => (
         name,
@@ -180,20 +185,21 @@ let rec bstype_to_code = (~ctx=intctx) =>
           ((key, type_of)) => {
             let is_meth =
               switch type_of {
-              | Function(_, _, _, _) => true
+              | Function(_) => true
               | _ => false
               };
             let type_of =
               switch type_of {
-              | Function(type_params, params, rest_param, rt) =>
-                let new_params = List.map(((_, t)) => ("", t), params);
-                Function(type_params, new_params, rest_param, rt);
+              | Function(func) =>
+                let formalParams =
+                  List.map(((_, t)) => ("", t), func.formalParams);
+                Function({...func, formalParams});
               | any => any
               };
             let method_type_params =
               switch type_of {
-              | Function(type_params, _, _, _) =>
-                List.map(Genutils.to_type_param, type_params)
+              | Function({typeParams}) =>
+                List.map(Genutils.to_type_param, typeParams)
               | _any => []
               };
             (key, method_type_params, bstype_to_code(~ctx, type_of), is_meth);
@@ -210,17 +216,17 @@ module Precode = {
     | Union(types) =>
       let types_precode = List.map(bstype_precode, types) |> List.flatten;
       types_precode @ [string_of_union_types(def, types)];
-    | Function(_type_params, params, rest_param, _rt) =>
+    | Function({formalParams, restParam}) =>
       List.map(
         ((_id, t)) =>
           switch t {
           | Union(_) => []
           | type_of => bstype_precode(type_of)
           },
-        params
+        formalParams
       )
       |> List.append(
-           switch rest_param {
+           switch restParam {
            | Some((_, t)) => [bstype_precode(t)]
            | None => []
            }
@@ -327,22 +333,27 @@ let constructor_type = type_table =>
       if (List.length(constructors) == 0) {
         bstype_to_code(
           ~ctx={...intctx, type_table},
-          Function([], [("_", Unit)], None, Named([], "t", None))
+          Function({
+            typeParams: [],
+            formalParams: [("_", Unit)],
+            restParam: None,
+            returnType: Named([], "t", None)
+          })
         );
       } else {
         let (_, cons_type) = List.hd(constructors);
         let cons_type =
           switch cons_type {
-          | Function(type_params, params, rest_param, _rt) =>
-            let new_params = List.map(((_, t)) => ("", t), params);
+          | Function(func) =>
+            let formalParams =
+              List.map(((_, t)) => ("", t), func.formalParams);
             let cons_type_params =
-              List.map(name => Named([], name, None), type_params);
-            Function(
-              type_params,
-              new_params,
-              rest_param,
-              Named(cons_type_params, "t", None)
-            );
+              List.map(name => Named([], name, None), func.typeParams);
+            Function({
+              ...func,
+              formalParams,
+              returnType: Named(cons_type_params, "t", None)
+            });
           | any => any
           };
         bstype_to_code(~ctx={...intctx, type_table}, cons_type);
@@ -429,7 +440,7 @@ let rec declaration_to_code = (module_id, type_table) =>
       ~type_of=bstype_to_code(~ctx={...intctx, type_table}, type_of),
       ~splice=
         switch type_of {
-        | Function(_, _, Some(_), _) => true
+        | Function({restParam: Some(_)}) => true
         | _ => false
         },
       ()
