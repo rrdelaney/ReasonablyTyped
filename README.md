@@ -15,8 +15,8 @@
 declare module 'classes' {
   declare type State = {
     id: number,
-    storeName: string
-  };
+    storeName: string,
+  }
 
   declare export class Store {
     constructor(initialState: State): Store;
@@ -59,6 +59,7 @@ TypeScript has a similar workflow. Compile your TypeScript file with:
 ```
 $ retyped my-definition.d.ts
 ```
+
 </details></p>
 
 <p><details>
@@ -71,6 +72,7 @@ Usage:
 Examples:
   $ retyped file1.js file2.js file3.d.ts                                           [boolean]
 ```
+
 </details></p>
 
 <p><details>
@@ -92,6 +94,7 @@ Formats a block of code using `refmt`
 **`compile (code: string, filename?: string) => string`**
 
 Compiles a libdef, formats the result, and handles errors cleanly
+
 </details></p>
 
 ## Development
@@ -104,15 +107,15 @@ See [DEVELOPING](DEVELOPING.md) and [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Roadmap
 
-- [x] Basic types like `string`
-- [x] Function types
-- [x] Record types
-- [ ] Literals as types
-- [x] Union types
-- [ ] Instersection types
-- [x] Named types
-- [x] Optional parameters
-- [x] Classes
-- [x] Generics
-- [x] Built-ins like Promises
-- [x] React components
+* [x] Basic types like `string`
+* [x] Function types
+* [x] Record types
+* [ ] Literals as types
+* [x] Union types
+* [ ] Instersection types
+* [x] Named types
+* [x] Optional parameters
+* [x] Classes
+* [x] Generics
+* [x] Built-ins like Promises
+* [x] React components

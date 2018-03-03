@@ -95,7 +95,7 @@ let objectType = (~statements, ()) =>
   "{. "
   ++ (
     List.filter(
-      ((key, type_of, _optional)) => key != "__callProperty",
+      ((key, _type_of, _optional)) => key != "__callProperty",
       statements
     )
     |> List.map(((key, type_of, optional)) =>
@@ -178,7 +178,7 @@ let inlineUnion = (~types, ()) =>
 let classType = (~types, ()) =>
   "{. "
   ++ (
-    List.filter(((key, _, type_of, _)) => key != "constructor", types)
+    List.filter(((key, _, _type_of, _)) => key != "constructor", types)
     |> List.map(((key, type_params, type_of, is_meth)) =>
          "\""
          ++ key

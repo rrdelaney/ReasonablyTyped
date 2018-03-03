@@ -7,8 +7,7 @@ module Stage = {
   };
   let make_module_typetable =
     fun
-    | Modulegen.BsDecl.ModuleDecl(_, statements) =>
-      Typetable.create(statements)
+    | BsTypeAst.ModuleDecl(_, statements) => Typetable.create(statements)
     | _ => [];
   let optimize_program = program =>
     Optimizer.optimize(make_module_typetable(program), program);
@@ -39,7 +38,7 @@ module Stage = {
       ("Unknown ID", "")
     );
   module Debug = {
-    open Modulegen.BsDecl;
+    open BsTypeAst;
     let show_imports = programs => {
       print_endline("\027[1;36m=== Imports ===\027[0m");
       Imports.show_imports(programs);

@@ -1,6 +1,6 @@
 type t =
   | Class
-  | Type(Modulegen.BsType.t)
+  | Type(BsTypeAst.t)
   | Variable(string)
   | None
   | NotFound;
@@ -13,24 +13,22 @@ let rec get = (key, table) => {
   switch lookup {
   | Variable(s) => get(s, table)
   | switch_ => switch_
-  }
+  };
 };
 
-let create = (statements) =>
+let create = statements =>
   List.map(
-    Modulegen.BsDecl.(
-      fun
-      | VarDecl(id, type_of) => (id, None)
-      | ClassDecl(id, type_params, type_of) => (id, Class)
-      | TypeDecl(id, type_params, type_of) => (id, Type(type_of))
-      | FuncDecl(id, type_of) => (id, Type(type_of))
-      | _ => ("", None)
-    ),
+    fun
+    | BsTypeAst.VarDecl(id, _type_of) => (id, None)
+    | BsTypeAst.ClassDecl(id, _type_params, _type_of) => (id, Class)
+    | BsTypeAst.TypeDecl(id, _type_params, type_of) => (id, Type(type_of))
+    | BsTypeAst.FuncDecl(id, type_of) => (id, Type(type_of))
+    | _ => ("", None),
     statements
   )
   |> List.filter(((key, _)) => key != "");
 
-let show = (table) => {
+let show = table => {
   List.iter(
     ((id, typeof)) =>
       print_endline(
@@ -49,5 +47,5 @@ let show = (table) => {
       ),
     table
   );
-  print_newline()
+  print_newline();
 };

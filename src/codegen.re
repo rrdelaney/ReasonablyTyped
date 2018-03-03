@@ -1,6 +1,4 @@
-open Modulegen.BsDecl;
-
-open Modulegen.BsType;
+open BsTypeAst;
 
 exception CodegenTypeError(string);
 
@@ -169,7 +167,7 @@ let rec bstype_to_code = (~ctx=intctx) =>
           | None => None
           },
         ~has_optional=
-          List.exists(((name, t)) => Genutils.Is.optional(t), params),
+          List.exists(((_name, t)) => Genutils.Is.optional(t), params),
         ~return_type=bstype_to_code(~ctx, rt),
         ()
       );
@@ -196,7 +194,7 @@ let rec bstype_to_code = (~ctx=intctx) =>
               switch type_of {
               | Function(type_params, _, _, _) =>
                 List.map(Genutils.to_type_param, type_params)
-              | any => []
+              | _any => []
               };
             (key, method_type_params, bstype_to_code(~ctx, type_of), is_meth);
           },
@@ -212,9 +210,9 @@ module Precode = {
     | Union(types) =>
       let types_precode = List.map(bstype_precode, types) |> List.flatten;
       types_precode @ [string_of_union_types(def, types)];
-    | Function(type_params, params, rest_param, rt) =>
+    | Function(_type_params, params, rest_param, _rt) =>
       List.map(
-        ((id, t)) =>
+        ((_id, t)) =>
           switch t {
           | Union(_) => []
           | type_of => bstype_precode(type_of)
@@ -229,10 +227,10 @@ module Precode = {
          )
       |> List.flatten
     | Object(types) =>
-      List.map(((id, type_of, _optional)) => bstype_precode(type_of), types)
+      List.map(((_id, type_of, _optional)) => bstype_precode(type_of), types)
       |> List.flatten
     | Class(_extends, types) =>
-      List.map(((id, type_of)) => bstype_precode(type_of), types)
+      List.map(((_id, type_of)) => bstype_precode(type_of), types)
       |> List.flatten
     | Optional(t) => bstype_precode(t)
     | Array(t) => bstype_precode(t)
@@ -256,10 +254,10 @@ module Precode = {
     };
   let call_property_precode = (module_id, var_name, statements) =>
     List.filter(
-      ((key, type_of, _optional)) => key == "$$callProperty",
+      ((key, _type_of, _optional)) => key == "$$callProperty",
       statements
     )
-    |> List.map(((key, type_of, optional)) =>
+    |> List.map(((_key, type_of, _optional)) =>
          bstype_precode(type_of)
          @ [
            Render.variableDeclaration(
@@ -335,7 +333,7 @@ let constructor_type = type_table =>
         let (_, cons_type) = List.hd(constructors);
         let cons_type =
           switch cons_type {
-          | Function(type_params, params, rest_param, rt) =>
+          | Function(type_params, params, rest_param, _rt) =>
             let new_params = List.map(((_, t)) => ("", t), params);
             let cons_type_params =
               List.map(name => Named([], name, None), type_params);
@@ -352,7 +350,7 @@ let constructor_type = type_table =>
     }
   | _ => raise(CodegenConstructorError("Type has no constructor"));
 
-let get_prop_types = (type_table, t: Modulegen.BsType.t) =>
+let get_prop_types = (type_table, t: BsTypeAst.t) =>
   (
     switch (Genutils.React.extract_props(type_table, t)) {
     | Object(o) => o
@@ -430,32 +428,27 @@ let rec declaration_to_code = (module_id, type_table) =>
       ~module_id=Genutils.unquote(module_id),
       ~type_of=bstype_to_code(~ctx={...intctx, type_table}, type_of),
       ~splice=
-        Modulegen.(
-          switch type_of {
-          | Function(_, _, Some(_), _) => true
-          | _ => false
-          }
-        ),
+        switch type_of {
+        | Function(_, _, Some(_), _) => true
+        | _ => false
+        },
       ()
     )
   | ExportsDecl(type_of) =>
     switch type_of {
     | Typeof(Named(_, t, _)) =>
-      Typetable.(
-        switch (Typetable.get(t, type_table)) {
-        | Class =>
-          Render.alias(
-            ~name=Genutils.to_module_name(module_id),
-            ~value=t ++ ".make"
-          )
-        | None => raise(CodegenTypeError("typeof can only operate on classes"))
-        | NotFound => raise(CodegenTypeError("Unknown identifier: " ++ t))
-        | Variable(s) =>
-          raise(CodegenTypeError("Cannot use typeof with variable: " ++ s))
-        | _ =>
-          raise(CodegenTypeError("Invalid type from table being rendered"))
-        }
-      )
+      switch (Typetable.get(t, type_table)) {
+      | Class =>
+        Render.alias(
+          ~name=Genutils.to_module_name(module_id),
+          ~value=t ++ ".make"
+        )
+      | None => raise(CodegenTypeError("typeof can only operate on classes"))
+      | NotFound => raise(CodegenTypeError("Unknown identifier: " ++ t))
+      | Variable(s) =>
+        raise(CodegenTypeError("Cannot use typeof with variable: " ++ s))
+      | _ => raise(CodegenTypeError("Invalid type from table being rendered"))
+      }
     | _ =>
       Render.variableDeclaration(
         ~name=Genutils.to_module_name(module_id),
@@ -471,7 +464,7 @@ let rec declaration_to_code = (module_id, type_table) =>
       ~statements=List.map(declaration_to_code(id, type_table), statements),
       ()
     )
-  | TypeDecl(id, type_params, type_of) => ""
+  | TypeDecl(_id, _type_params, _type_of) => ""
   | ClassDecl(id, _type_params, component)
       when Genutils.Is.react_component(component) =>
     render_react_component(module_id, id, type_table, component)

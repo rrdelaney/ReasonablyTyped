@@ -1,5 +1,3 @@
-open Modulegen.BsType;
-
 let unquote = str => {
   let has_start_quote = str.[0] == '"' || str.[0] == '\'';
   let has_end_quote =
@@ -58,7 +56,7 @@ let rec uniq =
 module Is = {
   let optional = type_of =>
     switch type_of {
-    | Optional(_) => true
+    | BsTypeAst.Optional(_) => true
     | _ => false
     };
   let type_param = (params, t) => List.exists(p => p == t, params);
@@ -70,18 +68,22 @@ module Is = {
   let string_union =
     List.for_all(
       fun
-      | StringLiteral(_) => true
+      | BsTypeAst.StringLiteral(_) => true
       | _ => false
     );
   let react_component =
     fun
-    | Class(Some(Named(_params, "React$Component", None)), _props) => true
-    | Class(Some(Named(_params, "Component", Some("React"))), _props) => true
-    | Named(_params, "React$ComponentType", None) => true
-    | Named(_params, "ComponentType", Some("React")) => true
-    | Named(_params, "React$StatelessFunctionalComponent", None) => true
-    | Named(_params, "StatelessFunctionalComponent", Some("React")) => true
-    | Function(
+    | BsTypeAst.Class(Some(Named(_params, "React$Component", None)), _props) =>
+      true
+    | BsTypeAst.Class(Some(Named(_params, "Component", Some("React"))), _props) =>
+      true
+    | BsTypeAst.Named(_params, "React$ComponentType", None) => true
+    | BsTypeAst.Named(_params, "ComponentType", Some("React")) => true
+    | BsTypeAst.Named(_params, "React$StatelessFunctionalComponent", None) =>
+      true
+    | BsTypeAst.Named(_params, "StatelessFunctionalComponent", Some("React")) =>
+      true
+    | BsTypeAst.Function(
         _type_params,
         _params,
         _rest,
@@ -101,29 +103,40 @@ module Is = {
 module React = {
   let extract_component_type = component =>
     switch component {
-    | Class(Some(Named([props, ..._params], "React$Component", None)), _props) => props
-    | Class(
+    | BsTypeAst.Class(
+        Some(Named([props, ..._params], "React$Component", None)),
+        _props
+      ) => props
+    | BsTypeAst.Class(
         Some(Named([props, ..._params], "Component", Some("React"))),
         _props
       ) => props
-    | Named([props, ..._params], "React$ComponentType", None) => props
-    | Named([props, ..._params], "ComponentType", Some("React")) => props
-    | Named([props, ..._params], "React$StatelessFunctionalComponent", None) => props
-    | Named([props, ..._params], "StatelessFunctionalComponent", Some("React")) => props
-    | Named([], _, None) => component
-    | Function(
+    | BsTypeAst.Named([props, ..._params], "React$ComponentType", None) => props
+    | BsTypeAst.Named([props, ..._params], "ComponentType", Some("React")) => props
+    | BsTypeAst.Named(
+        [props, ..._params],
+        "React$StatelessFunctionalComponent",
+        None
+      ) => props
+    | BsTypeAst.Named(
+        [props, ..._params],
+        "StatelessFunctionalComponent",
+        Some("React")
+      ) => props
+    | BsTypeAst.Named([], _, None) => component
+    | BsTypeAst.Function(
         _type_params,
         [(_param_name, props), ..._params],
         _rest,
         Named(_ntype_params, "React$Element", None)
       ) => props
-    | Function(
+    | BsTypeAst.Function(
         _type_params,
         [(_param_name, props), ..._params],
         _rest,
         Named(_ntype_params, "Element", Some("React"))
       ) => props
-    | Object(_) => component
+    | BsTypeAst.Object(_) => component
     | _ => Unit
     };
   let extract_props = (type_table, component) => {
@@ -140,8 +153,7 @@ module React = {
 };
 
 let walk = replacer => {
-  open Modulegen.BsDecl;
-  open Modulegen.BsType;
+  open BsTypeAst;
   let or_value = (transform, t) =>
     switch (transform(t)) {
     | Some(result) => result

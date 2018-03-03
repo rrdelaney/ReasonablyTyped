@@ -2,7 +2,7 @@
   "name": "reasonably-typed",
   "version": "0.14",
   "sources": ["src"],
-  "bs-dependencies": ["flow-dev-tools"],
+  "bs-dependencies": ["@glennsl/bs-json", "flow-dev-tools"],
   "package-specs": {
     "module": "commonjs"
   },
