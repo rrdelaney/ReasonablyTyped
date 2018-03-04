@@ -99,7 +99,7 @@ Compiles a libdef, formats the result, and handles errors cleanly
 
 ## Development
 
-See [DEVELOPING](DEVELOPING.md) and [CONTRIBUTING](CONTRIBUTING.md).
+See [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Status
 
