@@ -9,7 +9,6 @@ and t =
   | Number
   | Regex
   | String
-  /* type params, formal params, rest param, return type */
   | Function(func)
   | AnyFunction
   | Object(list((string, t, bool)))
