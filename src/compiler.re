@@ -8,7 +8,7 @@ module Stage = {
     };
     let parseTypescriptSource = (name, source) =>
       Typescript.parse(name, source);
-    let extension = String.sub(name, String.length(name) - 4, 3);
+    let extension = String.sub(name, String.length(name) - 3, 3);
     switch extension {
     | ".js" =>
       parseFlowSource(name, source) |> List.map(FlowBsType.flowAstToBsTypeAst)

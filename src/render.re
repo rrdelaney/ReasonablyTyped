@@ -48,8 +48,8 @@ let variableDeclaration =
     ++ "\" ;\n";
   } else {
     bsModule(module_id)
-    ++ (splice ? "[@bs.splice]" : "")
-    ++ "external "
+    ++ (splice ? " [@bs.splice]" : "")
+    ++ " external "
     ++ name
     ++ " : "
     ++ type_of

@@ -770,11 +770,11 @@ module Decoder = {
     Parameter(
       Json.Decode.{
         pos: json |> field("pos", int),
-        end_: json |> field("end_", int),
+        end_: json |> field("end", int),
         dotDotDotToken: None,
         name: json |> field("name", node),
         questionToken: None,
-        type_: json |> field("type_", node)
+        type_: json |> field("type", node)
       }
     )
   and unknown = json => {
