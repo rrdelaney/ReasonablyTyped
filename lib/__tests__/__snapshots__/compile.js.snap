@@ -98,6 +98,11 @@ external apply : (~x: float, ~y: float, ~options: options=?, unit) => float = \\
 "
 `;
 
+exports[`Compile literal-type.re 1`] = `
+"[@bs.module \\"literal-type\\"] external f : (~x: [@bs.string] [ | \`a | \`b]) => unit = \\"\\";
+"
+`;
+
 exports[`Compile multiple-modules.re 1`] = `
 "[@bs.module \\"multiple-modules\\"] external someTopLevel : unit => unit = \\"\\";
 

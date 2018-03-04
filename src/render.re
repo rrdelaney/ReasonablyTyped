@@ -139,9 +139,12 @@ let functionType =
 let tupleType = (~types, ()) => "(" ++ String.concat(", ", types) ++ ")";
 
 let unionTypeStrings = (~types, ()) =>
-  "(["
-  ++ (List.map(type_name => "`" ++ type_name, types) |> String.concat(" | "))
-  ++ "] [@bs.string])";
+  Printf.(
+    sprintf(
+      "([@bs.string] [%s])",
+      types |> List.map(sprintf("`%s")) |> String.concat(" | ")
+    )
+  );
 
 let unionType = (~name, ~types, ()) =>
   "type union_of_"
