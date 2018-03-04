@@ -653,12 +653,23 @@ and sourceFile = {
   identifierCount: int,
   parseDiagnostics: array(parseDiagnostic)
 }
+and parameter = {
+  pos: int,
+  end_: int,
+  dotDotDotToken: option(node),
+  name: node,
+  questionToken: option(node),
+  type_: node
+}
 and node =
   | DeclareKeyword(keyword)
   | ExportKeyword(keyword)
+  | StringKeyword(keyword)
+  | NumberKeyword(keyword)
   | Identifier(identifier)
   | FunctionDeclaration(functionDeclaration)
   | SourceFile(sourceFile)
+  | Parameter(parameter)
   | Unknown(int);
 
 module Decoder = {
@@ -673,9 +684,12 @@ module Decoder = {
   let rec decoders = [
     (Internal.SyntaxKind.declareKeyword, declareKeyword),
     (Internal.SyntaxKind.exportKeyword, exportKeyword),
+    (Internal.SyntaxKind.numberKeyword, numberKeyword),
+    (Internal.SyntaxKind.stringKeyword, stringKeyword),
     (Internal.SyntaxKind.identifier, identifier),
     (Internal.SyntaxKind.functionDeclaration, functionDeclaration),
-    (Internal.SyntaxKind.sourceFile, sourceFile)
+    (Internal.SyntaxKind.sourceFile, sourceFile),
+    (Internal.SyntaxKind.parameter, parameter)
   ]
   and node = json => {
     let syntaxKind = json |> Json.Decode.field("kind", Json.Decode.int);
@@ -694,6 +708,20 @@ module Decoder = {
     )
   and exportKeyword = json =>
     ExportKeyword(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int)
+      }
+    )
+  and numberKeyword = json =>
+    NumberKeyword(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int)
+      }
+    )
+  and stringKeyword = json =>
+    StringKeyword(
       Json.Decode.{
         pos: json |> field("pos", int),
         end_: json |> field("end", int)
@@ -738,6 +766,17 @@ module Decoder = {
           json |> field("parseDiagnostics", array(parseDiagnostic))
       }
     )
+  and parameter = json =>
+    Parameter(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end_", int),
+        dotDotDotToken: None,
+        name: json |> field("name", node),
+        questionToken: None,
+        type_: json |> field("type_", node)
+      }
+    )
   and unknown = json => {
     let kind = Json.Decode.field("kind", Json.Decode.int, json);
     Unknown(kind);
@@ -746,4 +785,15 @@ module Decoder = {
     let json = nodeToJson(tsNode);
     node(json);
   };
+};
+
+let parse = (fileName: string, source: string) => {
+  let sourceFile =
+    Internal.createSourceFile(
+      fileName,
+      source,
+      Internal.ScriptTarget.es2015,
+      Js.false_
+    );
+  Decoder.decode(sourceFile);
 };

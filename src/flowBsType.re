@@ -428,7 +428,7 @@ let import_decl_to_jsdecl = (loc, s) => {
   };
 };
 
-let rec statement_to_program = ((loc, s)) =>
+let rec flowAstToBsTypeAst = ((loc, s)) =>
   switch s {
   | Ast.Statement.DeclareModuleExports(annotation) =>
     BsTypeAst.ExportsDecl(type_annotation_to_bstype(Some(annotation)))
@@ -519,7 +519,7 @@ let rec statement_to_program = ((loc, s)) =>
     )
   }
 and block_to_program = ((_loc, {body}: Block.t)) =>
-  List.map(statement_to_program, body)
+  List.map(flowAstToBsTypeAst, body)
 and declare_module_to_jsdecl = (loc, s) => {
   let {id, body}: DeclareModule.t = s;
   switch id {
