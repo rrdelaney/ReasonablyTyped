@@ -6,8 +6,15 @@ module Stage = {
       let (_, statements, _) = flowAst;
       statements;
     };
-    let parseTypescriptSource = (name, source) =>
-      Typescript.parse(name, source);
+    let parseTypescriptSource = (filename, source) => {
+      let last5 = String.sub(filename, String.length(filename) - 5, 5);
+      let module_name =
+        switch last5 {
+        | ".d.ts" => String.sub(filename, 0, String.length(filename) - 5)
+        | _ => String.sub(filename, 0, String.length(filename) - 3)
+        };
+      Typescript.parse(module_name, source);
+    };
     let extension = String.sub(name, String.length(name) - 3, 3);
     switch extension {
     | ".js" =>

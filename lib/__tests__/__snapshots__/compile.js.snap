@@ -179,6 +179,11 @@ exports[`Compile simple.re 1`] = `
 "
 `;
 
+exports[`Compile simple.re 2`] = `
+"[@bs.module \\"simple\\"] external add : (~x: float, ~y: float) => float = \\"\\";
+"
+`;
+
 exports[`Compile simple-class.re 1`] = `
 "module Test = {
   type t = {. \\"action\\": 't 's .[@bs.meth] (float => string)};
