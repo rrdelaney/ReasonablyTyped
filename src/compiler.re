@@ -108,13 +108,34 @@ module Stage = {
   };
 };
 
+exception ReportableError(string);
+
 let compile = (moduleName, moduleSource, debug) => {
   let result =
-    Stage.parseSource(moduleName, moduleSource)
-    |> Imports.link
-    |> List.map(Stage.optimizeAst)
-    |> Stage.renderAst
-    |> Stage.combineAst;
+    try (
+      Stage.parseSource(moduleName, moduleSource)
+      |> Imports.link
+      |> List.map(Stage.optimizeAst)
+      |> Stage.renderAst
+      |> Stage.combineAst
+    ) {
+    | Parse_error.Error(xs) =>
+      raise(ReportableError(
+        xs
+        |> List.map(
+          ((loc, ty)) => {
+            let { Loc.line, column } = Loc.(loc.start);
+            let offset = Belt.List.make(column, " ") |> String.concat("");
+            moduleSource
+              |> Js.String.split("\n")
+              |> Belt.List.ofArray
+              |> Belt.List.getExn(_, (line - 1))
+              |> (s => Printf.sprintf("%s\n%s^ %s", s, offset, Parse_error.PP.error(ty)))
+          }
+        )
+        |> String.concat("\n")
+      ));
+    };
   if (debug) {
     let debugAsts = Stage.parseSource(moduleName, moduleSource);
     Stage.Debug.showSource(moduleName, moduleSource);
