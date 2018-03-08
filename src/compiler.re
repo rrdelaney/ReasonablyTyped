@@ -120,21 +120,7 @@ let compile = (moduleName, moduleSource, debug) => {
       |> Stage.combineAst
     ) {
     | Parse_error.Error(xs) =>
-      raise(ReportableError(
-        xs
-        |> List.map(
-          ((loc, ty)) => {
-            let { Loc.line, column } = Loc.(loc.start);
-            let offset = Belt.List.make(column, " ") |> String.concat("");
-            moduleSource
-              |> Js.String.split("\n")
-              |> Belt.List.ofArray
-              |> Belt.List.getExn(_, (line - 1))
-              |> (s => Printf.sprintf("%s\n%s^ %s", s, offset, Parse_error.PP.error(ty)))
-          }
-        )
-        |> String.concat("\n")
-      ));
+      raise(Diagnostic.diagnosticOfFlow(xs, moduleSource))
     };
   if (debug) {
     let debugAsts = Stage.parseSource(moduleName, moduleSource);

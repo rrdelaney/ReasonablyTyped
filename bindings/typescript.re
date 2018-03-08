@@ -618,6 +618,7 @@ type parseDiagnostic = {
   start: int,
   messageText: string,
   category: int,
+  length: int,
   code: int
 };
 
@@ -727,7 +728,8 @@ module Decoder = {
       start: json |> field("start", int),
       messageText: json |> field("messageText", string),
       category: json |> field("category", int),
-      code: json |> field("code", int)
+      code: json |> field("code", int),
+      length: json |> field("length", int)
     };
   external nodeToJson : Internal.node => Js.Json.t = "%identity";
   let rec decoders = [

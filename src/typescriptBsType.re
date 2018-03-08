@@ -38,12 +38,16 @@ and typescriptAstToBsType =
 let rec typescriptAstToBsTypeAst =
   fun
   | Typescript.SourceFile(sourceFile) =>
-    BsTypeAst.ModuleDecl(
-      "\"" ++ Genutils.normalize_name(sourceFile.fileName) ++ "\"",
-      sourceFile.statements
-      |> Array.to_list
-      |> List.map(typescriptAstToBsTypeAst)
-    )
+    if (Array.length(sourceFile.parseDiagnostics) > 0) {
+      raise(Diagnostic.diagnosticOfTs(sourceFile));
+    } else {
+      BsTypeAst.ModuleDecl(
+        "\"" ++ Genutils.normalize_name(sourceFile.fileName) ++ "\"",
+        sourceFile.statements
+        |> Array.to_list
+        |> List.map(typescriptAstToBsTypeAst)
+      );
+    }
   | Typescript.FunctionDeclaration(func) =>
     BsTypeAst.FuncDecl(
       getName(func.name),
