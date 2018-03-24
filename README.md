@@ -4,7 +4,11 @@
   $ npm install --global reasonably-typed
 </pre>
 
-<h4 align="center"><i>Converts TypeScript and Flow definitions to Reason interfaces</i></h4>
+<h4 align="center">
+  <i>Converts TypeScript and Flow definitions to Reason interfaces</i>
+  <br>
+  <i>(Also maybe TypeScript definitions to Flow)</i>
+</h4>
 
 <hr>
 
