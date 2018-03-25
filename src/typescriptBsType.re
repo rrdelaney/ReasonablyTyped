@@ -1,4 +1,4 @@
-exception ExpectedIdentifier;
+exception CannotExtractName;
 
 let getName =
   fun
@@ -6,7 +6,10 @@ let getName =
   | Typescript.InterfaceDeclaration({name: Identifier({text})}) => text
   | Typescript.Parameter({name: Identifier({text})}) => text
   | Typescript.Identifier({text}) => text
-  | _ => raise(ExpectedIdentifier);
+  | Typescript.TypeParameter({name: Identifier({text})}) => text
+  | _ => raise(CannotExtractName);
+
+let getNamesOfArray = names => names |> Array.to_list |> List.map(getName);
 
 let rec memberToObjectProperty =
   fun
@@ -28,6 +31,8 @@ and typescriptAstToBsType =
     BsTypeAst.Object(
       literal.members |> Array.to_list |> List.map(memberToObjectProperty)
     )
+  | Typescript.TypeReference(typeRef) =>
+    BsTypeAst.Named([], getName(typeRef.typeName), None)
   | _ => BsTypeAst.Any;
 
 let rec typescriptAstToBsTypeAst =
@@ -43,7 +48,7 @@ let rec typescriptAstToBsTypeAst =
     BsTypeAst.FuncDecl(
       getName(func.name),
       BsTypeAst.Function({
-        typeParams: [],
+        typeParams: getNamesOfArray(func.typeParameters),
         formalParams:
           func.parameters
           |> Array.to_list
@@ -55,7 +60,7 @@ let rec typescriptAstToBsTypeAst =
   | Typescript.InterfaceDeclaration(interface) =>
     BsTypeAst.InterfaceDecl(
       getName(interface.name),
-      /*type params */ [],
+      getNamesOfArray(interface.typeParameters),
       BsTypeAst.Object(
         interface.members |> Array.to_list |> List.map(memberToObjectProperty)
       )
@@ -63,7 +68,7 @@ let rec typescriptAstToBsTypeAst =
   | Typescript.TypeAliasDeclaration(decl) =>
     BsTypeAst.TypeDecl(
       getName(decl.name),
-      /*type params */ [],
+      getNamesOfArray(decl.typeParameters),
       typescriptAstToBsType(decl.type_)
     )
   | _ => BsTypeAst.Noop;

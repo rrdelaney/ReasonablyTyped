@@ -693,6 +693,16 @@ and parameter = {
   questionToken: option(node),
   type_: node
 }
+and typeParameter = {
+  pos: int,
+  end_: int,
+  name: node
+}
+and typeReference = {
+  pos: int,
+  end_: int,
+  typeName: node
+}
 and node =
   | DeclareKeyword(keyword)
   | ExportKeyword(keyword)
@@ -707,6 +717,8 @@ and node =
   | TypeLiteral(typeLiteral)
   | SourceFile(sourceFile)
   | Parameter(parameter)
+  | TypeParameter(typeParameter)
+  | TypeReference(typeReference)
   | Unknown(int);
 
 module Decoder = {
@@ -731,7 +743,9 @@ module Decoder = {
     (Internal.SyntaxKind.propertySignature, propertySignature),
     (Internal.SyntaxKind.questionToken, questionToken),
     (Internal.SyntaxKind.sourceFile, sourceFile),
-    (Internal.SyntaxKind.parameter, parameter)
+    (Internal.SyntaxKind.parameter, parameter),
+    (Internal.SyntaxKind.typeParameter, typeParameter),
+    (Internal.SyntaxKind.typeReference, typeReference)
   ]
   and node = json => {
     let syntaxKind = json |> Json.Decode.field("kind", Json.Decode.int);
@@ -867,6 +881,22 @@ module Decoder = {
         name: json |> field("name", node),
         questionToken: None,
         type_: json |> field("type", node)
+      }
+    )
+  and typeParameter = json =>
+    TypeParameter(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int),
+        name: json |> field("name", node)
+      }
+    )
+  and typeReference = json =>
+    TypeReference(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int),
+        typeName: json |> field("typeName", node)
       }
     )
   and unknown = json => {
