@@ -660,6 +660,18 @@ and questionToken = {
   pos: int,
   end_: int
 }
+and typeAliasDeclaration = {
+  pos: int,
+  end_: int,
+  name: node,
+  typeParameters: array(node),
+  type_: node
+}
+and typeLiteral = {
+  pos: int,
+  end_: int,
+  members: array(node)
+}
 and sourceFile = {
   pos: int,
   end_: int,
@@ -691,6 +703,8 @@ and node =
   | InterfaceDeclaration(interfaceDeclaration)
   | PropertySignature(propertySignature)
   | QuestionToken(questionToken)
+  | TypeAliasDeclaration(typeAliasDeclaration)
+  | TypeLiteral(typeLiteral)
   | SourceFile(sourceFile)
   | Parameter(parameter)
   | Unknown(int);
@@ -712,6 +726,8 @@ module Decoder = {
     (Internal.SyntaxKind.identifier, identifier),
     (Internal.SyntaxKind.functionDeclaration, functionDeclaration),
     (Internal.SyntaxKind.interfaceDeclaration, interfaceDeclaration),
+    (Internal.SyntaxKind.typeAliasDeclaration, typeAliasDeclaration),
+    (Internal.SyntaxKind.typeLiteral, typeLiteral),
     (Internal.SyntaxKind.propertySignature, propertySignature),
     (Internal.SyntaxKind.questionToken, questionToken),
     (Internal.SyntaxKind.sourceFile, sourceFile),
@@ -796,7 +812,7 @@ module Decoder = {
         name: json |> field("name", node),
         type_: json |> field("type", node),
         questionToken:
-          json |> field("questionToken", Json.Decode.optional(node))
+          json |> Json.Decode.optional(field("questionToken", node))
       }
     )
   and questionToken = json =>
@@ -804,6 +820,25 @@ module Decoder = {
       Json.Decode.{
         pos: json |> field("pos", int),
         end_: json |> field("end", int)
+      }
+    )
+  and typeAliasDeclaration = json =>
+    TypeAliasDeclaration(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int),
+        name: json |> field("name", node),
+        type_: json |> field("type", node),
+        typeParameters:
+          json |> withDefault([||], field("typeParameters", array(node)))
+      }
+    )
+  and typeLiteral = json =>
+    TypeLiteral(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int),
+        members: json |> field("members", array(node))
       }
     )
   and sourceFile = json =>
