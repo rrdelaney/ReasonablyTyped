@@ -102,7 +102,7 @@ Compiles a libdef, formats the result, and handles errors cleanly
 
 ## Development
 
-See [CONTRIBUTING](CONTRIBUTING.md).
+See [DEVELOPING](DEVELOPING.md) and [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Status
 
