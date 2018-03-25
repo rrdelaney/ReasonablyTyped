@@ -640,6 +640,26 @@ and functionDeclaration = {
   parameters: array(node),
   type_: node
 }
+and interfaceDeclaration = {
+  pos: int,
+  end_: int,
+  modifiers: array(node),
+  name: node,
+  typeParameters: array(node),
+  members: array(node)
+}
+and propertySignature = {
+  pos: int,
+  end_: int,
+  modifiers: array(node),
+  name: node,
+  questionToken: option(node),
+  type_: node
+}
+and questionToken = {
+  pos: int,
+  end_: int
+}
 and sourceFile = {
   pos: int,
   end_: int,
@@ -668,6 +688,9 @@ and node =
   | NumberKeyword(keyword)
   | Identifier(identifier)
   | FunctionDeclaration(functionDeclaration)
+  | InterfaceDeclaration(interfaceDeclaration)
+  | PropertySignature(propertySignature)
+  | QuestionToken(questionToken)
   | SourceFile(sourceFile)
   | Parameter(parameter)
   | Unknown(int);
@@ -688,6 +711,9 @@ module Decoder = {
     (Internal.SyntaxKind.stringKeyword, stringKeyword),
     (Internal.SyntaxKind.identifier, identifier),
     (Internal.SyntaxKind.functionDeclaration, functionDeclaration),
+    (Internal.SyntaxKind.interfaceDeclaration, interfaceDeclaration),
+    (Internal.SyntaxKind.propertySignature, propertySignature),
+    (Internal.SyntaxKind.questionToken, questionToken),
     (Internal.SyntaxKind.sourceFile, sourceFile),
     (Internal.SyntaxKind.parameter, parameter)
   ]
@@ -747,6 +773,37 @@ module Decoder = {
           json |> withDefault([||], field("typeParameters", array(node))),
         parameters: json |> field("parameters", array(node)),
         type_: json |> field("type", node)
+      }
+    )
+  and interfaceDeclaration = json =>
+    InterfaceDeclaration(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int),
+        modifiers: json |> withDefault([||], field("modifiers", array(node))),
+        name: json |> field("name", node),
+        members: json |> field("members", array(node)),
+        typeParameters:
+          json |> withDefault([||], field("typeParameters", array(node)))
+      }
+    )
+  and propertySignature = json =>
+    PropertySignature(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int),
+        modifiers: json |> withDefault([||], field("modifiers", array(node))),
+        name: json |> field("name", node),
+        type_: json |> field("type", node),
+        questionToken:
+          json |> field("questionToken", Json.Decode.optional(node))
+      }
+    )
+  and questionToken = json =>
+    QuestionToken(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int)
       }
     )
   and sourceFile = json =>
