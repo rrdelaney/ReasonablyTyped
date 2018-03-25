@@ -106,19 +106,4 @@ See [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Status
 
-[![CircleCI](https://circleci.com/gh/ReasonablyTyped/ReasonablyTyped.svg?style=svg)](https://circleci.com/gh/ReasonablyTyped/ReasonablyTyped)
-
-## Roadmap
-
-* [x] Basic types like `string`
-* [x] Function types
-* [x] Record types
-* [ ] Literals as types
-* [x] Union types
-* [ ] Instersection types
-* [x] Named types
-* [x] Optional parameters
-* [x] Classes
-* [x] Generics
-* [x] Built-ins like Promises
-* [x] React components
+[![CircleCI](https://circleci.com/gh/rrdelaney/ReasonablyTyped.svg?style=svg)](https://circleci.com/gh/rrdelaney/ReasonablyTyped)
