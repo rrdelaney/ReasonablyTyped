@@ -41,11 +41,10 @@ $ retyped class.js
 ```reason
 /* Module classes */
 
-type state = Js.t {. id : float, storeName : string};
-
+type state = {. "id": float, "storeName": string };
 module Store = {
-  type t = Js.t {. state : state, update : (state => unit) [@bs.meth]};
-  external make : state => t = "Store" [@@bs.new] [@@bs.module "classes"];
+  type t = {. "state": (state), "update": [@bs.meth](state => unit)};
+  [@bs.new] [@bs.module "classes"] external make : state => t = "Store";
 };
 ```
 
