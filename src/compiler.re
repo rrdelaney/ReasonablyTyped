@@ -31,6 +31,9 @@ module Stage = {
     | "graphql" => [
         Graphql.parse(name, source) |> GraphqlBsType.graphqlAstToBsTypeAst
       ]
+    | "css" => [
+        Csstree.parse(name, source) |> CssBsType.cssAstToBsTypeAst(name)
+      ]
     | _ => []
     };
   };
