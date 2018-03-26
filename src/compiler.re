@@ -69,6 +69,11 @@ module Stage = {
     );
   module Debug = {
     open BsTypeAst;
+    let showSource = (fileName, source) => {
+      print_endline("\027[1;36m=== Source ===\027[0m");
+      print_endline("\027[1;30m/* " ++ fileName ++ " */\027[0m");
+      print_endline(source);
+    };
     let showImports = programs => {
       print_endline("\027[1;36m=== Imports ===\027[0m");
       Imports.show_imports(programs);
@@ -109,6 +114,7 @@ let compile = (moduleName, moduleSource, debug) => {
     |> Stage.combineAst;
   if (debug) {
     let debugAsts = Stage.parseSource(moduleName, moduleSource);
+    Stage.Debug.showSource(moduleName, moduleSource);
     Stage.Debug.showImports(debugAsts);
     Stage.Debug.showTypes(debugAsts);
     Stage.Debug.showFlow(debugAsts);
