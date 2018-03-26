@@ -7,21 +7,29 @@ module Stage = {
       statements;
     };
     let parseTypescriptSource = (filename, source) => {
-      let last5 = String.sub(filename, String.length(filename) - 5, 5);
+      let isDts =
+        String.sub(filename, String.length(filename) - 5, 5) == ".d.ts";
       let module_name =
-        switch last5 {
-        | ".d.ts" => String.sub(filename, 0, String.length(filename) - 5)
-        | _ => String.sub(filename, 0, String.length(filename) - 3)
+        if (isDts) {
+          String.sub(filename, 0, String.length(filename) - 5);
+        } else {
+          String.sub(filename, 0, String.length(filename) - 3);
         };
       Typescript.parse(module_name, source);
     };
-    let extension = String.sub(name, String.length(name) - 3, 3);
+    let extension = {
+      let parts = Js.String.split(".", name);
+      parts[Array.length(parts) - 1];
+    };
     switch extension {
-    | ".js" =>
+    | "js" =>
       parseFlowSource(name, source) |> List.map(FlowBsType.flowAstToBsTypeAst)
-    | ".ts" => [
+    | "ts" => [
         parseTypescriptSource(name, source)
         |> TypescriptBsType.typescriptAstToBsTypeAst
+      ]
+    | "graphql" => [
+        Graphql.parse(name, source) |> GraphqlBsType.graphqlAstToBsTypeAst
       ]
     | _ => []
     };

@@ -15,7 +15,12 @@
     "type": "git",
     "url": "https://github.com/rrdelaney/ReasonablyTyped"
   },
-  "keywords": ["Reason", "OCaml", "Bucklescript", "Flow"],
+  "keywords": [
+    "Reason",
+    "OCaml",
+    "Bucklescript",
+    "Flow"
+  ],
   "author": "Ryan Delaney <rrdelaney@outlook.com>",
   "license": "MIT",
   "bugs": {
@@ -26,6 +31,7 @@
     "@glennsl/bs-json": "^1.1.2",
     "babel-code-frame": "^6.26.0",
     "chalk": "^2.1.0",
+    "graphql": "^0.13.2",
     "meow": "^3.7.0",
     "reason": "^3.0.0",
     "typescript": "^2.7.2"
@@ -38,6 +44,9 @@
     "jest": "^22.4.2"
   },
   "jest": {
-    "testPathIgnorePatterns": ["/node_modules/", "/fixtures/"]
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/fixtures/"
+    ]
   }
 }
