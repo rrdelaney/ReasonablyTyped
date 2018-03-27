@@ -38,8 +38,7 @@ let diagnosticOfFlow = (errors, source) =>
          (),
        );
      })
-  |> String.concat("\n----------------\n")
-  |> (x => Error(x));
+  |> String.concat("\n----------------\n");
 
 let rec computeColumnAndLine = (~column=1, ~line=1, ~pre="", source) =>
   fun

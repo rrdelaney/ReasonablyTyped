@@ -21,18 +21,19 @@ module Stage = {
       let parts = Js.String.split(".", name);
       parts[Array.length(parts) - 1];
     };
-    switch extension {
+    switch (extension) {
     | "js" =>
-      parseFlowSource(name, source) |> List.map(FlowBsType.flowAstToBsTypeAst)
+      parseFlowSource(name, source)
+      |> List.map(FlowBsType.flowAstToBsTypeAst)
     | "ts" => [
         parseTypescriptSource(name, source)
-        |> TypescriptBsType.typescriptAstToBsTypeAst
+        |> TypescriptBsType.typescriptAstToBsTypeAst,
       ]
     | "graphql" => [
-        Graphql.parse(name, source) |> GraphqlBsType.graphqlAstToBsTypeAst
+        Graphql.parse(name, source) |> GraphqlBsType.graphqlAstToBsTypeAst,
       ]
     | "css" => [
-        Csstree.parse(name, source) |> CssBsType.cssAstToBsTypeAst(name)
+        Csstree.parse(name, source) |> CssBsType.cssAstToBsTypeAst(name),
       ]
     | _ => []
     };
@@ -49,26 +50,26 @@ module Stage = {
       program =>
         BsTypeReason.program_to_code(
           program,
-          make_module_typetable(program) @ globalTypeTable
+          make_module_typetable(program) @ globalTypeTable,
         ),
-      programs
+      programs,
     );
   };
   let combineAst =
     List.fold_left(
       ((current_id, all_code), result) =>
-        switch result {
+        switch (result) {
         | Some((program_id, program_code)) when program_id !== "" => (
             program_id,
-            all_code ++ "\n" ++ program_code
+            all_code ++ "\n" ++ program_code,
           )
         | Some((_program_id, program_code)) => (
             current_id,
-            all_code ++ "\n" ++ program_code
+            all_code ++ "\n" ++ program_code,
           )
         | None => (current_id, all_code)
         },
-      ("Unknown ID", "")
+      ("Unknown ID", ""),
     );
   module Debug = {
     open BsTypeAst;
@@ -89,7 +90,7 @@ module Stage = {
         | ModuleDecl(_name, _statements) as md =>
           Typetable.show(make_module_typetable(md))
         | _ => (),
-        programs
+        programs,
       );
     };
     let showFlow = programs => {
@@ -100,7 +101,7 @@ module Stage = {
       print_newline();
     };
     let showCode = result => {
-      let (name, code) = result;
+      let (name, code, _) = result;
       print_endline("\027[1;36m=== Bucklescript Definition ===\027[0m");
       print_endline("\027[1;30m/* Module " ++ name ++ " */\027[0m");
       print_endline(code);
@@ -118,9 +119,18 @@ let compile = (moduleName, moduleSource, debug) => {
       |> List.map(Stage.optimizeAst)
       |> Stage.renderAst
       |> Stage.combineAst
+      |> (((id, code)) => (id, code, ""))
     ) {
-    | Parse_error.Error(xs) =>
-      raise(Diagnostic.diagnosticOfFlow(xs, moduleSource))
+    | Parse_error.Error(xs) => (
+        "Unknown ID",
+        "",
+        Diagnostic.diagnosticOfFlow(xs, moduleSource),
+      )
+    | Diagnostic.Error(x) => (
+        "Unknown ID",
+        "",
+        x
+      )
     };
   if (debug) {
     let debugAsts = Stage.parseSource(moduleName, moduleSource);
