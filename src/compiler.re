@@ -119,17 +119,17 @@ let compile = (moduleName, moduleSource, debug) => {
       |> List.map(Stage.optimizeAst)
       |> Stage.renderAst
       |> Stage.combineAst
-      |> (((id, code)) => (id, code, ""))
+      |> (((id, code)) => (id, code, [||]))
     ) {
     | Parse_error.Error(xs) => (
         "Unknown ID",
         "",
         Diagnostic.diagnosticOfFlow(xs, moduleSource),
       )
-    | Diagnostic.Error(x) => (
+    | Diagnostic.Error(xs) => (
         "Unknown ID",
         "",
-        x
+        xs
       )
     };
   if (debug) {

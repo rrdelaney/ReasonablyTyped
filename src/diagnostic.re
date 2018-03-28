@@ -1,44 +1,19 @@
-exception Error(string);
-
-module BabelCodeFrame = {
-  type babelCodeFrameOptions = {
-    .
-    "highlightCode": Js.undefined(Js.boolean),
-    "linesBelow": Js.undefined(int),
-    "linesAbove": Js.undefined(int),
-    "forceColor": Js.undefined(Js.boolean),
-  };
-  [@bs.module]
-  external default :
-    (
-      ~rawLines: string,
-      ~lineNumber: int,
-      ~colNumber: int,
-      ~options: babelCodeFrameOptions=?,
-      unit
-    ) =>
-    string =
-    "babel-code-frame";
+type diagnostic = {
+  .
+  "source": string,
+  "line": int,
+  "column": int,
 };
+
+exception Error(array(diagnostic));
 
 let diagnosticOfFlow = (errors, source) =>
   errors
   |> List.map(((loc, _ty)) => {
        let {Loc.line, column} = Loc.(loc.start);
-       BabelCodeFrame.default(
-         ~rawLines=source,
-         ~lineNumber=line,
-         ~colNumber=column,
-         ~options={
-           "highlightCode": Js.Undefined.return(Js.true_),
-           "linesBelow": Js.Undefined.empty,
-           "linesAbove": Js.Undefined.empty,
-           "forceColor": Js.Undefined.empty,
-         },
-         (),
-       );
+       ({"source": source, "line": line, "column": column}) ;
      })
-  |> String.concat("\n----------------\n");
+  |> Array.of_list;
 
 let rec computeColumnAndLine = (~column=1, ~line=1, ~pre="", source) =>
   fun
@@ -58,23 +33,9 @@ let rec computeColumnAndLine = (~column=1, ~line=1, ~pre="", source) =>
 let diagnosticOfTs = sourceFile => {
   let {Typescript.text, parseDiagnostics} = sourceFile;
   parseDiagnostics
-  |> Belt.List.ofArray
-  |> List.map(d => {
+  |> Array.map(d => {
        let {Typescript.start} = d;
        let (column, line) = computeColumnAndLine(text, start);
-       BabelCodeFrame.default(
-         ~rawLines=text,
-         ~lineNumber=line,
-         ~colNumber=column,
-         ~options={
-           "highlightCode": Js.Undefined.return(Js.true_),
-           "linesBelow": Js.Undefined.empty,
-           "linesAbove": Js.Undefined.empty,
-           "forceColor": Js.Undefined.empty,
-         },
-         (),
-       );
-     })
-  |> String.concat("\n")
-  |> (x => Error(x));
+       ({"source": text, "line": line, "column": column}) ;
+     });
 };
