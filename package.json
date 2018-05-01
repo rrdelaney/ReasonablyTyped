@@ -31,7 +31,8 @@
     "babel-code-frame": "^6.26.0",
     "chalk": "^2.1.0",
     "meow": "^3.7.0",
-    "reason": "^3.0.0",
+    "prettier": "^1.11.1",
+    "reason": "^3.1.0",
     "typescript": "^2.7.2"
   },
   "devDependencies": {
