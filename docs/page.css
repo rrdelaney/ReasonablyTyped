@@ -1,0 +1,100 @@
+.header {
+  font-family: montserrat !important;
+  text-transform: uppercase !important;
+}
+
+.header code {
+  background-color: white;
+  border: 1px solid white;
+  border-radius: 0.5rem;
+  color: #505050;
+  font-family: 'Operator Mono', 'Fira Code', 'Anonymous Pro', monospace !important;
+  font-weight: 300;
+  font-size: 12pt;
+  margin-top: 1rem;
+  padding: 1rem;
+  text-transform: lowercase !important;
+}
+
+.header .spacer {
+  display: block;
+  height: 2rem;
+}
+
+.header.divider {
+  color: #505050 !important;
+}
+
+p {
+  font-family: 'Open Sans' !important;
+}
+
+p code {
+  font-family: 'Operator Mono', 'Fira Code', 'Anonymous Pro', monospace !important;
+  white-space: pre-wrap;
+}
+
+.column > pre {
+  height: 100%;
+}
+
+label {
+  font-family: montserrat !important;
+  text-transform: uppercase !important;
+  color: #505050 !important;
+}
+
+.mono-input {
+  font-family: 'Operator Mono', 'Fira Code', 'Anonymous Pro', monospace;
+}
+
+.menu.square {
+  border-radius: 0;
+}
+
+.menu.inverted.reason {
+  background-color: #db4d3f;
+}
+
+.header.hero {
+  font-size: 48pt;
+}
+
+#libdef-output {
+  opacity: 1;
+}
+
+#libdef-output.error {
+  color: indianred;
+  border-color: indianred;
+}
+
+#is-it-ready {
+  text-align: center;
+  font-size: 72pt;
+}
+
+#is-it-ready-table {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  padding: 1rem 10vw;
+}
+
+#is-it-ready-message {
+  text-align: center;
+}
+
+.test-box {
+  height: 1rem;
+  width: 1rem;
+  margin: 2px;
+}
+
+.failing.test-box {
+  background-color: indianred;
+}
+
+.passing.test-box {
+  background-color: darkseagreen;
+}

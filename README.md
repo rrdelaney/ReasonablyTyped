@@ -4,7 +4,11 @@
   $ npm install --global reasonably-typed
 </pre>
 
-<h4 align="center"><i>Converts TypeScript and Flow definitions to Reason interfaces</i></h4>
+<h4 align="center">
+  <i>Converts TypeScript and Flow definitions to Reason interfaces</i>
+  <br>
+  <i>(Also maybe TypeScript definitions to Flow)</i>
+</h4>
 
 <hr>
 
@@ -37,11 +41,10 @@ $ retyped class.js
 ```reason
 /* Module classes */
 
-type state = Js.t {. id : float, storeName : string};
-
+type state = {. "id": float, "storeName": string };
 module Store = {
-  type t = Js.t {. state : state, update : (state => unit) [@bs.meth]};
-  external make : state => t = "Store" [@@bs.new] [@@bs.module "classes"];
+  type t = {. "state": (state), "update": [@bs.meth](state => unit)};
+  [@bs.new] [@bs.module "classes"] external make : state => t = "Store";
 };
 ```
 
@@ -99,23 +102,8 @@ Compiles a libdef, formats the result, and handles errors cleanly
 
 ## Development
 
-See [CONTRIBUTING](CONTRIBUTING.md).
+See [DEVELOPING](DEVELOPING.md) and [CONTRIBUTING](CONTRIBUTING.md).
 
 ## Status
 
-[![CircleCI](https://circleci.com/gh/ReasonablyTyped/ReasonablyTyped.svg?style=svg)](https://circleci.com/gh/ReasonablyTyped/ReasonablyTyped)
-
-## Roadmap
-
-* [x] Basic types like `string`
-* [x] Function types
-* [x] Record types
-* [ ] Literals as types
-* [x] Union types
-* [ ] Instersection types
-* [x] Named types
-* [x] Optional parameters
-* [x] Classes
-* [x] Generics
-* [x] Built-ins like Promises
-* [x] React components
+[![CircleCI](https://circleci.com/gh/rrdelaney/ReasonablyTyped.svg?style=svg)](https://circleci.com/gh/rrdelaney/ReasonablyTyped)

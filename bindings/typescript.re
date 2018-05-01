@@ -618,6 +618,7 @@ type parseDiagnostic = {
   start: int,
   messageText: string,
   category: int,
+  length: int,
   code: int
 };
 
@@ -640,6 +641,38 @@ and functionDeclaration = {
   parameters: array(node),
   type_: node
 }
+and interfaceDeclaration = {
+  pos: int,
+  end_: int,
+  modifiers: array(node),
+  name: node,
+  typeParameters: array(node),
+  members: array(node)
+}
+and propertySignature = {
+  pos: int,
+  end_: int,
+  modifiers: array(node),
+  name: node,
+  questionToken: option(node),
+  type_: node
+}
+and questionToken = {
+  pos: int,
+  end_: int
+}
+and typeAliasDeclaration = {
+  pos: int,
+  end_: int,
+  name: node,
+  typeParameters: array(node),
+  type_: node
+}
+and typeLiteral = {
+  pos: int,
+  end_: int,
+  members: array(node)
+}
 and sourceFile = {
   pos: int,
   end_: int,
@@ -661,6 +694,16 @@ and parameter = {
   questionToken: option(node),
   type_: node
 }
+and typeParameter = {
+  pos: int,
+  end_: int,
+  name: node
+}
+and typeReference = {
+  pos: int,
+  end_: int,
+  typeName: node
+}
 and node =
   | DeclareKeyword(keyword)
   | ExportKeyword(keyword)
@@ -668,8 +711,15 @@ and node =
   | NumberKeyword(keyword)
   | Identifier(identifier)
   | FunctionDeclaration(functionDeclaration)
+  | InterfaceDeclaration(interfaceDeclaration)
+  | PropertySignature(propertySignature)
+  | QuestionToken(questionToken)
+  | TypeAliasDeclaration(typeAliasDeclaration)
+  | TypeLiteral(typeLiteral)
   | SourceFile(sourceFile)
   | Parameter(parameter)
+  | TypeParameter(typeParameter)
+  | TypeReference(typeReference)
   | Unknown(int);
 
 module Decoder = {
@@ -678,7 +728,8 @@ module Decoder = {
       start: json |> field("start", int),
       messageText: json |> field("messageText", string),
       category: json |> field("category", int),
-      code: json |> field("code", int)
+      code: json |> field("code", int),
+      length: json |> field("length", int)
     };
   external nodeToJson : Internal.node => Js.Json.t = "%identity";
   let rec decoders = [
@@ -688,8 +739,15 @@ module Decoder = {
     (Internal.SyntaxKind.stringKeyword, stringKeyword),
     (Internal.SyntaxKind.identifier, identifier),
     (Internal.SyntaxKind.functionDeclaration, functionDeclaration),
+    (Internal.SyntaxKind.interfaceDeclaration, interfaceDeclaration),
+    (Internal.SyntaxKind.typeAliasDeclaration, typeAliasDeclaration),
+    (Internal.SyntaxKind.typeLiteral, typeLiteral),
+    (Internal.SyntaxKind.propertySignature, propertySignature),
+    (Internal.SyntaxKind.questionToken, questionToken),
     (Internal.SyntaxKind.sourceFile, sourceFile),
-    (Internal.SyntaxKind.parameter, parameter)
+    (Internal.SyntaxKind.parameter, parameter),
+    (Internal.SyntaxKind.typeParameter, typeParameter),
+    (Internal.SyntaxKind.typeReference, typeReference)
   ]
   and node = json => {
     let syntaxKind = json |> Json.Decode.field("kind", Json.Decode.int);
@@ -749,6 +807,56 @@ module Decoder = {
         type_: json |> field("type", node)
       }
     )
+  and interfaceDeclaration = json =>
+    InterfaceDeclaration(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int),
+        modifiers: json |> withDefault([||], field("modifiers", array(node))),
+        name: json |> field("name", node),
+        members: json |> field("members", array(node)),
+        typeParameters:
+          json |> withDefault([||], field("typeParameters", array(node)))
+      }
+    )
+  and propertySignature = json =>
+    PropertySignature(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int),
+        modifiers: json |> withDefault([||], field("modifiers", array(node))),
+        name: json |> field("name", node),
+        type_: json |> field("type", node),
+        questionToken:
+          json |> Json.Decode.optional(field("questionToken", node))
+      }
+    )
+  and questionToken = json =>
+    QuestionToken(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int)
+      }
+    )
+  and typeAliasDeclaration = json =>
+    TypeAliasDeclaration(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int),
+        name: json |> field("name", node),
+        type_: json |> field("type", node),
+        typeParameters:
+          json |> withDefault([||], field("typeParameters", array(node)))
+      }
+    )
+  and typeLiteral = json =>
+    TypeLiteral(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int),
+        members: json |> field("members", array(node))
+      }
+    )
   and sourceFile = json =>
     SourceFile(
       Json.Decode.{
@@ -775,6 +883,22 @@ module Decoder = {
         name: json |> field("name", node),
         questionToken: None,
         type_: json |> field("type", node)
+      }
+    )
+  and typeParameter = json =>
+    TypeParameter(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int),
+        name: json |> field("name", node)
+      }
+    )
+  and typeReference = json =>
+    TypeReference(
+      Json.Decode.{
+        pos: json |> field("pos", int),
+        end_: json |> field("end", int),
+        typeName: json |> field("typeName", node)
       }
     )
   and unknown = json => {

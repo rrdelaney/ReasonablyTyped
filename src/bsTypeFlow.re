@@ -64,7 +64,12 @@ let rec show_type =
              } else {
                format_obj_key(key)
                ++ (optional ? "?" : "")
-               ++ ": "
+               ++ (
+                 switch prop {
+                 | BsTypeAst.Function(_) => ""
+                 | _ => ": "
+                 }
+               )
                ++ show_type(prop);
              },
            props

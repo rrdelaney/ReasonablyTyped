@@ -8,7 +8,8 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "jest",
-    "build": "bsb -clean-world -make-world"
+    "build": "bsb -clean-world -make-world",
+    "build-docs": "browserify -e lib/index.js -o docs/retyped.js -s retyped"
   },
   "repository": {
     "type": "git",
@@ -30,6 +31,8 @@
     "@glennsl/bs-json": "^1.1.2",
     "babel-code-frame": "^6.26.0",
     "chalk": "^2.1.0",
+    "css-tree": "^1.0.0-alpha.28",
+    "graphql": "^0.13.2",
     "meow": "^3.7.0",
     "prettier": "^1.11.1",
     "reason": "^3.1.0",
@@ -37,6 +40,7 @@
   },
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.2",
+    "browserify": "^16.1.1",
     "bs-platform": "^2.2.2",
     "flow-dev-tools": "bsansouci/flow#bsb-support",
     "jest": "^22.4.2"

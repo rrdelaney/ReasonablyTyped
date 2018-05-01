@@ -5,223 +5,14 @@
   <title>ReasonablyTyped</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat|Open+Sans">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.min.css" />
+  <link rel="stylesheet" href="page.css">
+  <link rel="stylesheet" href="code.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/prism.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/components/prism-javascript.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/components/prism-reason.min.js"></script>
-  <script src="https://unpkg.com/reasonably-typed@0.12.0-beta3/lib/retyped_node.js"></script>
-  <script src="https://unpkg.com/refmt@1.13.7-1/refmt.js"></script>
-
-  <style>
-    .header {
-      font-family: montserrat !important;
-      text-transform: uppercase !important;
-    }
-
-    .header code {
-      background-color: white;
-      border: 1px solid white;
-      border-radius: .5rem;
-      color: #505050;
-      font-family: "Operator Mono", "Fira Code", "Anonymous Pro", monospace !important;
-      font-weight: 300;
-      font-size: 12pt;
-      margin-top: 1rem;
-      padding: 1rem;
-      text-transform: lowercase !important;
-    }
-
-    .header .spacer {
-      display: block;
-      height: 2rem;
-    }
-
-    .header.divider {
-      color: #505050 !important;
-    }
-
-    p {
-      font-family: "Open Sans" !important;
-    }
-
-    p code {
-      font-family: "Operator Mono", "Fira Code", "Anonymous Pro", monospace !important;
-      white-space: pre-wrap;
-    }
-
-    .column > pre {
-      height: 100%
-    }
-
-    label {
-      font-family: montserrat !important;
-      text-transform: uppercase !important;
-      color: #505050 !important;
-    }
-
-    .mono-input {
-      font-family: "Operator Mono", "Fira Code", "Anonymous Pro", monospace;
-    }
-
-    .menu.square {
-      border-radius: 0;
-    }
-
-    .menu.inverted.reason {
-      background-color: #db4d3f;
-    }
-
-    .header.hero {
-      font-size: 48pt;
-    }
-
-    #libdef-output {
-      opacity: 1;
-    }
-
-    #libdef-output.error {
-      color: indianred;
-      border-color: indianred;
-    }
-
-    #is-it-ready {
-      text-align: center;
-      font-size: 72pt;
-    }
-
-    #is-it-ready-table {
-      display: flex;
-      justify-content: flex-start;
-      flex-wrap: wrap;
-      padding: 1rem 10vw;
-    }
-
-    #is-it-ready-message {
-      text-align: center;
-    }
-
-    .test-box {
-      height: 1rem;
-      width: 1rem;
-      margin: 2px;
-    }
-
-    .failing.test-box {
-      background-color: indianred;
-    }
-
-    .passing.test-box {
-      background-color: darkseagreen;
-    }
-    </style>
-    <style>
-    code[class*="language-"],
-    pre[class*="language-"] {
-        color: #393A34;
-        font-family: "Operator Mono", "Fira Code", "Anonymous Pro", monospace;
-        direction: ltr;
-        text-align: left;
-        white-space: pre;
-        word-spacing: normal;
-        word-break: normal;
-        font-size: 0.95em;
-        line-height: 1.2em;
-        tab-size: 4;
-        hyphens: none;
-    }
-
-    pre[class*="language-"]::-moz-selection, pre[class*="language-"] ::-moz-selection,
-    code[class*="language-"]::-moz-selection, code[class*="language-"] ::-moz-selection {
-        background: #b3d4fc;
-    }
-
-    pre[class*="language-"]::selection, pre[class*="language-"] ::selection,
-    code[class*="language-"]::selection, code[class*="language-"] ::selection {
-        background: #b3d4fc;
-    }
-
-    pre[class*="language-"] {
-        padding: 1em;
-        margin: .5em 0;
-        overflow: auto;
-        border: 1px solid #dddddd;
-        background-color: white;
-    }
-
-    :not(pre) > code[class*="language-"],
-    pre[class*="language-"] {
-    }
-
-    :not(pre) > code[class*="language-"] {
-        padding: .2em;
-        padding-top: 1px; padding-bottom: 1px;
-        background: #f8f8f8;
-        border: 1px solid #dddddd;
-    }
-
-    .token.comment,
-    .token.prolog,
-    .token.doctype,
-    .token.cdata {
-        color: #999988; font-style: italic;
-    }
-
-    .token.namespace {
-        opacity: .7;
-    }
-
-    .token.string,
-    .token.attr-value {
-        color: #e3116c;
-    }
-    .token.punctuation,
-    .token.operator {
-        color: #393A34;
-    }
-
-    .token.entity,
-    .token.url,
-    .token.symbol,
-    .token.number,
-    .token.boolean,
-    .token.variable,
-    .token.constant,
-    .token.property,
-    .token.regex,
-    .token.inserted {
-        color: #36acaa;
-    }
-
-    .token.atrule,
-    .token.keyword,
-    .token.attr-name,
-    .language-autohotkey .token.selector {
-        color: #00a4db;
-    }
-
-    .token.function,
-    .token.deleted,
-    .language-autohotkey .token.tag {
-        color: #9a050f;
-    }
-
-    .token.tag,
-    .token.selector,
-    .language-autohotkey .token.keyword {
-        color: #00009f;
-    }
-
-    .token.important,
-    .token.function,
-    .token.bold {
-        font-weight: bold;
-    }
-
-    .token.italic {
-        font-style: italic;
-    }
-  </style>
+  <script src="retyped.js"></script>
 </head>
 
 <body>
@@ -394,9 +185,13 @@
       <div class="column">
         <div class="ui form">
           <div class="field">
-            <label for="libdef-input">Flow Definition</label>
+            <label for="libdef-output" id="libdef-lang-label">Flow Declaration</label>
             <textarea class="mono-input" spellcheck="false" name="libdef-input" id="libdef-input" rows="20"></textarea>
           </div>
+          <select class="ui dropdown" id="libdef-lang">
+            <option value="Flow">Flow</option>
+            <option value="TypeScript">TypeScript</option>
+          </select>
         </div>
       </div>
       <div class="column">
@@ -415,109 +210,7 @@
   <h1 class="ui header" id="is-it-ready"></h1>
   <h3 class="ui header" id="is-it-ready-message"></h3>
   <div id="is-it-ready-table"></div>
-
-  <script type="text/javascript">
-  const libs = {
-  'is-url': [
-    "declare module 'is-url' {",
-    '  declare module.exports: (url: string) => boolean',
-    '}'
-  ].join('\n')
-}
-
-const defaultLibDef = [
-  "declare module 'math-fns' {",
-  '  declare function add(x: number, y: number): number',
-  '  declare function double(x: number | string): number',
-  '}'
-].join('\n')
-
-class SyntaxError extends Error {}
-
-const compileText = str => {
-  try {
-    const [moduleId, bsCode] = compile('test', str)
-    const [fmtType, fmtCode] = refmt(bsCode, 'RE', 'implementation', 'RE')
-
-    if (fmtCode.includes('SYNTAX ERROR>')) {
-      throw new SyntaxError(fmtCode)
-    }
-
-    return `/* Module ${moduleId} */\n\n${fmtCode}`
-  } catch (e) {
-    const err =
-      (e[1] && (e[1].c || (e[1][1] && e[1][1].c))) + (e[2] ? ' ' + e[2].c : '')
-    if (err === 'Parse_error.Error') throw new SyntaxError(e)
-    throw new Error(err)
-  }
-}
-
-$('.code.column').each(function() {
-  const $this = $(this)
-  const libdef = compileText($this.text())
-  const outputBlock = $this
-    .siblings()
-    .first()
-    .find('code')
-  outputBlock.text(libdef)
-})
-
-$('#libdef-input').val(defaultLibDef)
-$('#libdef-output').val(compileText(defaultLibDef))
-
-$('#libdef-input').on('change keyup paste ', function() {
-  try {
-    const libdef = $(this).val()
-    const output = compileText(libdef)
-    $('#libdef-output').removeClass('error')
-    $('#libdef-output ').val(output)
-  } catch (e) {
-    const errorText =
-      e instanceof SyntaxError
-        ? 'Error parsing JS code O_o'
-        : 'Unable to generate code :('
-
-    $('#libdef-output').addClass('error')
-    $('#libdef-output').val(errorText)
-  }
-})
-
-$.getJSON('test-results.json', data => {
-  const results = data.testResults[0].assertionResults
-  const passedTests = data.numPassedTests
-  const allTests = data.numTotalTests
-  const allPassing = allTests === passedTests
-
-  if (allPassing) {
-    $('#is-it-ready').text('Yes')
-    $('#is-it-ready-message').text('Woohoo!')
-  } else {
-    $('#is-it-ready').text('No')
-    $('#is-it-ready-message').text(
-      `But it passes ${passedTests} / ${allTests} tests`
-    )
-  }
-
-  $('#is-it-ready-table').append(
-    results.map(result => {
-      const title = result.title.replace('Library ', '')
-      const isFailing = result.status === 'failed'
-      const message = result.failureMessages[0]
-
-      const classes = [isFailing ? 'failing' : 'passing', 'test-box'].join(' ')
-      const tooltip = isFailing
-        ? message.replace(/"/g, '&quot;').split('at compile')[0]
-        : ''
-
-      return $(
-        `<div class="${classes}" data-title="${title}" data-content="${tooltip}"></div>`
-      )
-    })
-  )
-
-  $('.test-box').popup()
-})
-</script>
+  <script src="page.js"></script>
 </body>
 
 </html>
