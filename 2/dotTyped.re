@@ -6,13 +6,19 @@ type t =
   | String
   | Int
   | Float
+  | Boolean
   | Function(function_)
   | Array(t)
+  | Tuple(array(t))
   | Union(array(t))
-  | Map(t, t)
+  | Dict(t, t)
   | Object(object_)
   | Promise(t)
   | TypeVariable(identifier)
+  | Optional(t)
+  | Any
+  | Void
+  | Null
 and property = {
   name: identifier,
   type_: t,
@@ -27,25 +33,27 @@ and object_ = {
   extends: identifier,
 };
 
-type typeBinding = {
+type typeDeclaration = {
   name: identifier,
   type_: t,
   arguments: array(string),
-};
-
-type classBinding = {
+}
+and classDeclaration = {
   name: identifier,
   type_: t,
   arguments: array(string),
-};
-
-type letBinding = {
+}
+and letDeclaration = {
   name: identifier,
   type_: t,
   arguments: array(string),
-};
-
-type binding =
-  | TypeBinding(typeBinding)
-  | ClassBinding(classBinding)
-  | LetBinding(letBinding);
+}
+and moduleDeclaration = {
+  name: identifier,
+  declarations: array(declaration),
+}
+and declaration =
+  | TypeDeclaration(typeDeclaration)
+  | ClassDeclaration(classDeclaration)
+  | LetDeclaration(letDeclaration)
+  | ModuleDeclaration(moduleDeclaration);

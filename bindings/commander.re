@@ -9,6 +9,8 @@ type program;
 
 [@bs.send] external version : (program, string) => program = "";
 
-[@bs.send] external option : (program, string) => program = "";
+[@bs.send] external option : (program, string, string) => program = "";
+
+[@bs.send] external usage : (program, string) => program = "";
 
 [@bs.send] external parse : (program, Process.argv) => Js.Json.t = "";

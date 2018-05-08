@@ -41,7 +41,7 @@
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.2",
     "browserify": "^16.1.1",
-    "bs-platform": "^2.2.2",
+    "bs-platform": "^3.0.0",
     "flow-dev-tools": "bsansouci/flow#bsb-support",
     "jest": "^22.4.2"
   },
