@@ -1,3 +1,5 @@
+open Belt;
+
 module FlowAst = Spider_monkey_ast;
 
 let errorLocation = (loc: Loc.t) =>
@@ -11,6 +13,7 @@ let errorLocation = (loc: Loc.t) =>
 let dotTypedIdentifier = (id: FlowAst.Identifier.t) =>
   DotTyped.Identifier(snd(id));
 
+/** Transforms a typed Flow AST to a DotTyped AST, extracting the types. */
 let rec flowTypeToTyped = (flowType: FlowAst.Type.t) => {
   let (loc, type_) = flowType;
   switch (type_) {
@@ -30,6 +33,7 @@ let rec flowTypeToTyped = (flowType: FlowAst.Type.t) => {
     DotTyped.Tuple(
       types |. Belt.List.toArray |. Belt.Array.map(flowTypeToTyped),
     )
+  | FlowAst.Type.Function(f) => functionTypeToTyped(f)
   | _ =>
     raise(
       Errors2.NotSupported({
@@ -38,6 +42,38 @@ let rec flowTypeToTyped = (flowType: FlowAst.Type.t) => {
       }),
     )
   };
+}
+/** Takes a Flow function and creates a DotTyped type annotation for it. */
+and functionTypeToTyped = (func: FlowAst.Type.Function.t) => {
+  let makeFunctionProperty =
+      (param: FlowAst.Type.Function.Param.t)
+      : DotTyped.property => {
+    open FlowAst.Type.Function.Param;
+    let (_loc, {name, typeAnnotation, optional}) = param;
+    let paramName =
+      switch (name) {
+      | Some(id) => dotTypedIdentifier(id)
+      | None => DotTyped.UnknownIdentifier
+      };
+    let paramType = flowTypeToTyped(typeAnnotation);
+    {name: paramName, type_: paramType, optional};
+  };
+
+  let makeRestProperty = (param: FlowAst.Type.Function.RestParam.t) => {
+    open FlowAst.Type.Function.RestParam;
+    let (_loc, {argument}) = param;
+    makeFunctionProperty(argument);
+  };
+
+  let (formal, rest) = func.params;
+  let formalParamProps = List.map(formal, makeFunctionProperty);
+  let restParamProp = Option.map(rest, makeRestProperty);
+  let returnType = flowTypeToTyped(func.returnType);
+  DotTyped.Function({
+    parameters: List.toArray(formalParamProps),
+    restParameter: restParamProp,
+    returnType,
+  });
 };
 
 let typeAnnotationToTyped = (annotation: FlowAst.Type.annotation) => {
@@ -73,7 +109,6 @@ let parse = (~name: string, ~source: string) => {
   let (_, statements, _) = flowAst;
   DotTyped.ModuleDeclaration({
     name: Identifier(name),
-    declarations:
-      statements |. Belt.List.toArray |. Belt.Array.map(flowAstToTypedAst),
+    declarations: statements |. List.toArray |. Array.map(flowAstToTypedAst),
   });
 };

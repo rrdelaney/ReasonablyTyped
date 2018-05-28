@@ -1,5 +1,6 @@
 type identifier =
-  | Identifier(string);
+  | Identifier(string)
+  | UnknownIdentifier;
 
 /* TODO: Add support for JS Modules and JS typeof. */
 type t =
@@ -26,6 +27,7 @@ and property = {
 }
 and function_ = {
   parameters: array(property),
+  restParameter: option(property),
   returnType: t,
 }
 and object_ = {
