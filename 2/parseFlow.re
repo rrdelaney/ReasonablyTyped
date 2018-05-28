@@ -56,7 +56,7 @@ let flowAstToTypedAst = ((loc: Loc.t, s)) =>
           DotTyped.Any,
           typeAnnotationToTyped,
         ),
-      arguments: [||],
+      typeParameters: [||],
     })
   | _ =>
     raise(

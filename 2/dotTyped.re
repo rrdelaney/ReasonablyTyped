@@ -25,7 +25,7 @@ and property = {
   optional: bool,
 }
 and function_ = {
-  arguments: array(property),
+  parameters: array(property),
   returnType: t,
 }
 and object_ = {
@@ -36,17 +36,17 @@ and object_ = {
 type typeDeclaration = {
   name: identifier,
   type_: t,
-  arguments: array(string),
+  typeParameters: array(string),
 }
 and classDeclaration = {
   name: identifier,
   type_: t,
-  arguments: array(string),
+  typeParameters: array(string),
 }
 and letDeclaration = {
   name: identifier,
   type_: t,
-  arguments: array(string),
+  typeParameters: array(string),
 }
 and moduleDeclaration = {
   name: identifier,
@@ -56,4 +56,5 @@ and declaration =
   | TypeDeclaration(typeDeclaration)
   | ClassDeclaration(classDeclaration)
   | LetDeclaration(letDeclaration)
+  | FunctionDeclaration(letDeclaration)
   | ModuleDeclaration(moduleDeclaration);
