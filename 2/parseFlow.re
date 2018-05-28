@@ -94,6 +94,12 @@ let flowAstToTypedAst = ((loc: Loc.t, s)) =>
         ),
       typeParameters: [||],
     })
+  | FlowAst.Statement.DeclareFunction({id, typeAnnotation}) =>
+    DotTyped.FunctionDeclaration({
+      name: dotTypedIdentifier(id),
+      type_: typeAnnotationToTyped(typeAnnotation),
+      typeParameters: [||],
+    })
   | _ =>
     raise(
       Errors2.NotSupported({
