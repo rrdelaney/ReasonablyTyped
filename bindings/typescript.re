@@ -609,8 +609,7 @@ module Internal = {
   };
   type node = {. "kind": SyntaxKind.t};
   [@bs.module "typescript"]
-  external createSourceFile :
-    (string, string, ScriptTarget.t, Js.boolean) => node =
+  external createSourceFile : (string, string, ScriptTarget.t, bool) => node =
     "";
 };
 
@@ -619,18 +618,18 @@ type parseDiagnostic = {
   messageText: string,
   category: int,
   length: int,
-  code: int
+  code: int,
 };
 
 type keyword = {
   pos: int,
-  end_: int
+  end_: int,
 }
 and identifier = {
   pos: int,
   end_: int,
   escapedText: string,
-  text: string
+  text: string,
 }
 and functionDeclaration = {
   pos: int,
@@ -639,7 +638,7 @@ and functionDeclaration = {
   name: node,
   typeParameters: array(node),
   parameters: array(node),
-  type_: node
+  type_: node,
 }
 and interfaceDeclaration = {
   pos: int,
@@ -647,7 +646,7 @@ and interfaceDeclaration = {
   modifiers: array(node),
   name: node,
   typeParameters: array(node),
-  members: array(node)
+  members: array(node),
 }
 and propertySignature = {
   pos: int,
@@ -655,23 +654,23 @@ and propertySignature = {
   modifiers: array(node),
   name: node,
   questionToken: option(node),
-  type_: node
+  type_: node,
 }
 and questionToken = {
   pos: int,
-  end_: int
+  end_: int,
 }
 and typeAliasDeclaration = {
   pos: int,
   end_: int,
   name: node,
   typeParameters: array(node),
-  type_: node
+  type_: node,
 }
 and typeLiteral = {
   pos: int,
   end_: int,
-  members: array(node)
+  members: array(node),
 }
 and sourceFile = {
   pos: int,
@@ -684,7 +683,7 @@ and sourceFile = {
   statements: array(node),
   nodeCount: int,
   identifierCount: int,
-  parseDiagnostics: array(parseDiagnostic)
+  parseDiagnostics: array(parseDiagnostic),
 }
 and parameter = {
   pos: int,
@@ -692,17 +691,17 @@ and parameter = {
   dotDotDotToken: option(node),
   name: node,
   questionToken: option(node),
-  type_: node
+  type_: node,
 }
 and typeParameter = {
   pos: int,
   end_: int,
-  name: node
+  name: node,
 }
 and typeReference = {
   pos: int,
   end_: int,
-  typeName: node
+  typeName: node,
 }
 and node =
   | DeclareKeyword(keyword)
@@ -729,7 +728,7 @@ module Decoder = {
       messageText: json |> field("messageText", string),
       category: json |> field("category", int),
       code: json |> field("code", int),
-      length: json |> field("length", int)
+      length: json |> field("length", int),
     };
   external nodeToJson : Internal.node => Js.Json.t = "%identity";
   let rec decoders = [
@@ -747,7 +746,7 @@ module Decoder = {
     (Internal.SyntaxKind.sourceFile, sourceFile),
     (Internal.SyntaxKind.parameter, parameter),
     (Internal.SyntaxKind.typeParameter, typeParameter),
-    (Internal.SyntaxKind.typeReference, typeReference)
+    (Internal.SyntaxKind.typeReference, typeReference),
   ]
   and node = json => {
     let syntaxKind = json |> Json.Decode.field("kind", Json.Decode.int);
@@ -761,29 +760,29 @@ module Decoder = {
     DeclareKeyword(
       Json.Decode.{
         pos: json |> field("pos", int),
-        end_: json |> field("end", int)
-      }
+        end_: json |> field("end", int),
+      },
     )
   and exportKeyword = json =>
     ExportKeyword(
       Json.Decode.{
         pos: json |> field("pos", int),
-        end_: json |> field("end", int)
-      }
+        end_: json |> field("end", int),
+      },
     )
   and numberKeyword = json =>
     NumberKeyword(
       Json.Decode.{
         pos: json |> field("pos", int),
-        end_: json |> field("end", int)
-      }
+        end_: json |> field("end", int),
+      },
     )
   and stringKeyword = json =>
     StringKeyword(
       Json.Decode.{
         pos: json |> field("pos", int),
-        end_: json |> field("end", int)
-      }
+        end_: json |> field("end", int),
+      },
     )
   and identifier = json =>
     Identifier(
@@ -791,52 +790,55 @@ module Decoder = {
         pos: json |> field("pos", int),
         end_: json |> field("end", int),
         escapedText: json |> field("escapedText", string),
-        text: json |> field("text", string)
-      }
+        text: json |> field("text", string),
+      },
     )
   and functionDeclaration = json =>
     FunctionDeclaration(
       Json.Decode.{
         pos: json |> field("pos", int),
         end_: json |> field("end", int),
-        modifiers: json |> withDefault([||], field("modifiers", array(node))),
+        modifiers:
+          json |> withDefault([||], field("modifiers", array(node))),
         name: json |> field("name", node),
         typeParameters:
           json |> withDefault([||], field("typeParameters", array(node))),
         parameters: json |> field("parameters", array(node)),
-        type_: json |> field("type", node)
-      }
+        type_: json |> field("type", node),
+      },
     )
   and interfaceDeclaration = json =>
     InterfaceDeclaration(
       Json.Decode.{
         pos: json |> field("pos", int),
         end_: json |> field("end", int),
-        modifiers: json |> withDefault([||], field("modifiers", array(node))),
+        modifiers:
+          json |> withDefault([||], field("modifiers", array(node))),
         name: json |> field("name", node),
         members: json |> field("members", array(node)),
         typeParameters:
-          json |> withDefault([||], field("typeParameters", array(node)))
-      }
+          json |> withDefault([||], field("typeParameters", array(node))),
+      },
     )
   and propertySignature = json =>
     PropertySignature(
       Json.Decode.{
         pos: json |> field("pos", int),
         end_: json |> field("end", int),
-        modifiers: json |> withDefault([||], field("modifiers", array(node))),
+        modifiers:
+          json |> withDefault([||], field("modifiers", array(node))),
         name: json |> field("name", node),
         type_: json |> field("type", node),
         questionToken:
-          json |> Json.Decode.optional(field("questionToken", node))
-      }
+          json |> Json.Decode.optional(field("questionToken", node)),
+      },
     )
   and questionToken = json =>
     QuestionToken(
       Json.Decode.{
         pos: json |> field("pos", int),
-        end_: json |> field("end", int)
-      }
+        end_: json |> field("end", int),
+      },
     )
   and typeAliasDeclaration = json =>
     TypeAliasDeclaration(
@@ -846,16 +848,16 @@ module Decoder = {
         name: json |> field("name", node),
         type_: json |> field("type", node),
         typeParameters:
-          json |> withDefault([||], field("typeParameters", array(node)))
-      }
+          json |> withDefault([||], field("typeParameters", array(node))),
+      },
     )
   and typeLiteral = json =>
     TypeLiteral(
       Json.Decode.{
         pos: json |> field("pos", int),
         end_: json |> field("end", int),
-        members: json |> field("members", array(node))
-      }
+        members: json |> field("members", array(node)),
+      },
     )
   and sourceFile = json =>
     SourceFile(
@@ -871,8 +873,8 @@ module Decoder = {
         nodeCount: json |> field("nodeCount", int),
         identifierCount: json |> field("identifierCount", int),
         parseDiagnostics:
-          json |> field("parseDiagnostics", array(parseDiagnostic))
-      }
+          json |> field("parseDiagnostics", array(parseDiagnostic)),
+      },
     )
   and parameter = json =>
     Parameter(
@@ -882,24 +884,24 @@ module Decoder = {
         dotDotDotToken: None,
         name: json |> field("name", node),
         questionToken: None,
-        type_: json |> field("type", node)
-      }
+        type_: json |> field("type", node),
+      },
     )
   and typeParameter = json =>
     TypeParameter(
       Json.Decode.{
         pos: json |> field("pos", int),
         end_: json |> field("end", int),
-        name: json |> field("name", node)
-      }
+        name: json |> field("name", node),
+      },
     )
   and typeReference = json =>
     TypeReference(
       Json.Decode.{
         pos: json |> field("pos", int),
         end_: json |> field("end", int),
-        typeName: json |> field("typeName", node)
-      }
+        typeName: json |> field("typeName", node),
+      },
     )
   and unknown = json => {
     let kind = Json.Decode.field("kind", Json.Decode.int, json);
@@ -917,7 +919,7 @@ let parse = (fileName: string, source: string) => {
       fileName,
       source,
       Internal.ScriptTarget.es2015,
-      Js.false_
+      false,
     );
   Decoder.decode(sourceFile);
 };

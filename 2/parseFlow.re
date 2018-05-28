@@ -45,7 +45,7 @@ let typeAnnotationToTyped = (annotation: FlowAst.Type.annotation) => {
   flowTypeToTyped(t);
 };
 
-let rec flowAstToTypedAst = ((loc: Loc.t, s)) =>
+let flowAstToTypedAst = ((loc: Loc.t, s)) =>
   switch (s) {
   | FlowAst.Statement.DeclareVariable({id, typeAnnotation}) =>
     DotTyped.LetDeclaration({
