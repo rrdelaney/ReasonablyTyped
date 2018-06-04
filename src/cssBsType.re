@@ -1,7 +1,7 @@
 let selectorChildrenToBsTypeAst =
   fun
   | Csstree.ClassSelector(classSelector) => [
-      BsTypeAst.VarDecl(classSelector.name, BsTypeAst.String)
+      BsTypeAst.VarDecl(classSelector.name, BsTypeAst.String),
     ]
   | _ => [];
 
@@ -36,6 +36,6 @@ let cssAstToBsTypeAst = fileName =>
       sheet.children
       |> Array.to_list
       |> List.map(ruleToBsTypeAst)
-      |> List.flatten
+      |> List.flatten,
     )
   | _ => BsTypeAst.Noop;
