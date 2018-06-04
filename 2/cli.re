@@ -1,3 +1,5 @@
+open Belt;
+
 exception UnrecognizedInput(string);
 
 module Args = {
@@ -31,6 +33,7 @@ let optionToFileType = input =>
   | "css" => Compiler2.CSS
   | "graphql" => Compiler2.GraphQL
   | "typed" => Compiler2.Typed
+  | "reason" => Compiler2.Reason
   | _ => raise(UnrecognizedInput(input))
   };
 
@@ -43,13 +46,12 @@ let program =
   |. Commander.parse(Commander.Process.argv)
   |. Args.decode;
 
-let filename =
-  program |. Args.args |. Belt.Array.get(0) |. Belt.Option.getExn;
+let filename = program |. Args.args |. Array.get(0) |. Option.getExn;
 
 let inputType =
   program
   |. Args.input
-  |. Belt.Option.mapWithDefault(
+  |. Option.mapWithDefault(
        inferInputTypeFromFileExtension(filename),
        optionToFileType,
      );
@@ -57,14 +59,14 @@ let inputType =
 let outputType =
   program
   |. Args.output
-  |. Belt.Option.map(optionToFileType)
-  |. Belt.Option.getWithDefault(Compiler2.Typed);
+  |. Option.map(optionToFileType)
+  |. Option.getWithDefault(Compiler2.Typed);
 
 let inputSource = Node.Fs.readFileAsUtf8Sync(filename);
 
 let inputFile =
   Compiler2.{type_: inputType, name: filename, source: inputSource};
 
-let output = Compiler2.compile(inputFile, outputType);
+let outputs = Compiler2.compile(inputFile, outputType);
 
-Js.log(output);
+Array.forEach(outputs, Js.log);

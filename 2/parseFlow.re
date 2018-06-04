@@ -94,8 +94,12 @@ let parse = (~name: string, ~source: string) => {
   let (flowAst, _errors) =
     Parser_flow.program_file(source, Some(Loc.SourceFile(name)));
   let (_, statements, _) = flowAst;
-  DotTyped.ModuleDeclaration({
-    name: Identifier(name),
-    declarations: statements |. List.toArray |. Array.map(flowAstToTypedAst),
-  });
+  let typedModule =
+    DotTyped.ModuleDeclaration({
+      name: Identifier(name),
+      declarations:
+        statements |. List.toArray |. Array.map(flowAstToTypedAst),
+    });
+
+  [|typedModule|];
 };

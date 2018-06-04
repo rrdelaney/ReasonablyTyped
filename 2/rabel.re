@@ -19,3 +19,22 @@ let optional = t => Ast.apply("option", [|t|]);
 let array = t => Ast.apply("array", [|t|]);
 
 let tuple = ts => Ast.apply("", ts);
+
+let module_ = (name, statements) =>
+  "module "
+  ++ name
+  ++ " = {\n"
+  ++ (statements |. Array.map(s => "  " ++ s) |> Js.Array.joinWith("\n"))
+  ++ "\n}";
+
+let bsModule = (~module_=?, statement) => {
+  let decorator =
+    switch (module_) {
+    | Some(moduleName) => "[@bs.module \"" ++ moduleName ++ "\"]"
+    | None => "[@bs.module]"
+    };
+  decorator ++ " " ++ statement;
+};
+
+let external_ = (name, type_, exported) =>
+  "external " ++ name ++ " : " ++ type_ ++ " = " ++ "\"" ++ exported ++ "\";";

@@ -8,6 +8,7 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "jest",
+    "local": "node lib/js/2/cli.js",
     "build": "bsb -clean-world -make-world",
     "build-docs": "browserify -e lib/index.js -o docs/retyped.js -s retyped"
   },
