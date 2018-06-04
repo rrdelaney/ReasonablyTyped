@@ -43,39 +43,6 @@ let rec flowTypeToTyped = (flowType: FlowAst.Type.t) => {
     )
   };
 }
-<<<<<<< Updated upstream
-/** Takes a Flow function and creates a DotTyped type annotation for it. */
-and functionTypeToTyped = (func: FlowAst.Type.Function.t) => {
-  let makeFunctionProperty =
-      (param: FlowAst.Type.Function.Param.t)
-      : DotTyped.property => {
-    open FlowAst.Type.Function.Param;
-    let (_loc, {name, typeAnnotation, optional}) = param;
-    let paramName =
-      switch (name) {
-      | Some(id) => dotTypedIdentifier(id)
-      | None => DotTyped.UnknownIdentifier
-      };
-    let paramType = flowTypeToTyped(typeAnnotation);
-    {name: paramName, type_: paramType, optional};
-  };
-
-  let makeRestProperty = (param: FlowAst.Type.Function.RestParam.t) => {
-    open FlowAst.Type.Function.RestParam;
-    let (_loc, {argument}) = param;
-    makeFunctionProperty(argument);
-  };
-
-  let (formal, rest) = func.params;
-  let formalParamProps = List.map(formal, makeFunctionProperty);
-  let restParamProp = Option.map(rest, makeRestProperty);
-  let returnType = flowTypeToTyped(func.returnType);
-  DotTyped.Function({
-    parameters: List.toArray(formalParamProps),
-    restParameter: restParamProp,
-    returnType,
-  });
-=======
 and functionTypeToTyped = (f: FlowAst.Type.Function.t) => {
   let {params: (formal, rest), returnType, typeParameters: _typeParams}: FlowAst.Type.Function.t = f;
   let paramToProperty = ((_loc, param): FlowAst.Type.Function.Param.t) =>
@@ -95,7 +62,6 @@ and functionTypeToTyped = (f: FlowAst.Type.Function.t) => {
        );
   let returnType = flowTypeToTyped(returnType);
   DotTyped.Function({parameters, rest, returnType, typeParameters: [||]});
->>>>>>> Stashed changes
 };
 
 let typeAnnotationToTyped = (annotation: FlowAst.Type.annotation) => {
@@ -114,16 +80,6 @@ let flowAstToTypedAst = ((loc: Loc.t, s)) =>
           DotTyped.Any,
           typeAnnotationToTyped,
         ),
-<<<<<<< Updated upstream
-      typeParameters: [||],
-    })
-  | FlowAst.Statement.DeclareFunction({id, typeAnnotation}) =>
-    DotTyped.FunctionDeclaration({
-      name: dotTypedIdentifier(id),
-      type_: typeAnnotationToTyped(typeAnnotation),
-      typeParameters: [||],
-=======
->>>>>>> Stashed changes
     })
   | _ =>
     raise(

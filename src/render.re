@@ -8,7 +8,7 @@ type lambdaArg =
 
 let lambda = (l, body) => {
   let arg = a =>
-    switch a {
+    switch (a) {
     | Labelled(label, optional) => "~" ++ label ++ (optional ? "=?" : "")
     | Unlabelled(name) => name
     };
@@ -24,7 +24,9 @@ let bsModule = name => {
 
 let jsObject = l =>
   "{"
-  ++ (List.map(((k, v)) => quote(k) ++ ": " ++ v, l) |> String.concat(", "))
+  ++ (
+    List.map(((k, v)) => quote(k) ++ ": " ++ v, l) |> String.concat(", ")
+  )
   ++ "}";
 
 let variableDeclaration =
@@ -35,7 +37,7 @@ let variableDeclaration =
       ~is_exports=false,
       ~splice=false,
       ~code="",
-      ()
+      (),
     ) =>
   if (is_exports) {
     bsModule("")
@@ -70,7 +72,7 @@ let classDeclaration =
       ~class_type,
       ~ctor_type,
       ~type_params,
-      ()
+      (),
     ) =>
   "module "
   ++ name
@@ -96,7 +98,7 @@ let objectType = (~statements, ()) =>
   ++ (
     List.filter(
       ((key, _type_of, _optional)) => key != "__callProperty",
-      statements
+      statements,
     )
     |> List.map(((key, type_of, optional)) =>
          "\""
@@ -122,14 +124,14 @@ let functionType =
     |> String.concat(" => ")
     |> (
       it =>
-        switch it {
+        switch (it) {
         | "" => ""
         | s => s ++ " => "
         }
     );
   let optUnit = has_optional ? "unit => " : "";
   let restCode =
-    switch rest_param {
+    switch (rest_param) {
     | Some(param) => print(param) ++ " => "
     | None => ""
     };
@@ -142,7 +144,7 @@ let unionTypeStrings = (~types, ()) =>
   Printf.(
     sprintf(
       "([@bs.string] [%s])",
-      types |> List.map(sprintf("`%s")) |> String.concat(" | ")
+      types |> List.map(sprintf("`%s")) |> String.concat(" | "),
     )
   );
 
@@ -152,8 +154,9 @@ let unionType = (~name, ~types, ()) =>
   ++ " = "
   ++ (
     List.map(
-      ((type_name, type_of)) => "\n| " ++ type_name ++ " (" ++ type_of ++ ")",
-      types
+      ((type_name, type_of)) =>
+        "\n| " ++ type_name ++ " (" ++ type_of ++ ")",
+      types,
     )
     |> String.concat("")
   )
@@ -172,7 +175,7 @@ let inlineUnion = (~types, ()) =>
   ++ (
     List.map(
       ((type_name, type_of)) => "`" ++ type_name ++ "(" ++ type_of ++ ")",
-      types
+      types,
     )
     |> String.concat(" | ")
   )
@@ -188,7 +191,7 @@ let classType = (~types, ()) =>
          ++ "\""
          ++ ": "
          ++ (
-           switch type_params {
+           switch (type_params) {
            | [] => ""
            | p => String.concat(" ", p) ++ " . "
            }
@@ -211,7 +214,7 @@ let react_component =
       ~component_name,
       ~js_name,
       ~props,
-      ~props_type_string
+      ~props_type_string,
     ) =>
   (define_module ? "\nmodule " ++ component_name ++ " = {\n" : "\n")
   ++ "  "
@@ -227,7 +230,7 @@ let react_component =
   ++ lambda(
        List.map(
          ((name, _js, _t, optional, _is_bool)) => Labelled(name, optional),
-         props
+         props,
        )
        @ [Unlabelled("children")],
        "{"
@@ -246,24 +249,25 @@ let react_component =
                       [
                         v,
                         "[@bs]"
-                        ++ lambda([Unlabelled("x")], applyArgs(f, ["x"]))
-                      ]
+                        ++ lambda([Unlabelled("x")], applyArgs(f, ["x"])),
+                      ],
                     );
                   bind(
                     applyArgs("Js.Nullable.from_opt", [x]),
-                    "Js.Boolean.to_js_boolean"
+                    "Js.Boolean.to_js_boolean",
                   );
-                | (false, true) => applyArgs("Js.Boolean.to_js_boolean", [x])
+                | (false, true) =>
+                  applyArgs("Js.Boolean.to_js_boolean", [x])
                 | (false, false) => x
                 };
               List.map(
                 ((name, js, _t, optional, is_bool)) => (
                   js,
-                  wrapArg(~optional, ~is_bool, name)
+                  wrapArg(~optional, ~is_bool, name),
                 ),
-                props
+                props,
               );
-            }
+            },
           )
        ++ ";"
        ++ "\n    "
@@ -272,10 +276,10 @@ let react_component =
             [
               "~reactClass=" ++ String.uncapitalize(component_name),
               "~props",
-              "children"
-            ]
+              "children",
+            ],
           )
        ++ ";\n"
-       ++ "  };"
+       ++ "  };",
      )
   ++ (define_module ? "\n};" : "");

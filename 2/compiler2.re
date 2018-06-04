@@ -19,7 +19,7 @@ let compile = (file, target) => {
     | _ => raise(Errors2.Unimplemented)
     };
   switch (target) {
-  | FlowDefinition => CompileFlow.compile(typedAst)
+  | FlowDefinition => GenerateFlow.compile(typedAst)
   | _ => raise(Errors2.Unimplemented)
   };
 };

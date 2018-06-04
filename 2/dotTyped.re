@@ -1,3 +1,5 @@
+open Belt;
+
 type identifier =
   | Identifier(string)
   | UnknownIdentifier;
@@ -8,6 +10,7 @@ type t =
   | Int
   | Float
   | Boolean
+  | Regex
   | Function(function_)
   | Array(t)
   | Tuple(array(t))
@@ -20,6 +23,7 @@ type t =
   | Any
   | Void
   | Null
+  | ReactComponent(reactComponent)
 and property = {
   name: identifier,
   type_: t,
@@ -35,6 +39,11 @@ and object_ = {
   properties: array(property),
   typeParameters: array(identifier),
   extends: identifier,
+}
+and reactComponent = {
+  name: identifier,
+  props: t,
+  state: t,
 };
 
 type typeDeclaration = {

@@ -8,6 +8,7 @@ let formatObjKey = key =>
 let extractName = identifier =>
   switch (identifier) {
   | DotTyped.Identifier(id) => id
+  | DotTyped.UnknownIdentifier => "Unknown"
   };
 
 let rec compileType =
