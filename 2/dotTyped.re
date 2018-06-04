@@ -27,28 +27,27 @@ and property = {
 }
 and function_ = {
   parameters: array(property),
-  restParameter: option(property),
+  typeParameters: array(identifier),
+  rest: option(property),
   returnType: t,
 }
 and object_ = {
   properties: array(property),
+  typeParameters: array(identifier),
   extends: identifier,
 };
 
 type typeDeclaration = {
   name: identifier,
   type_: t,
-  typeParameters: array(string),
 }
 and classDeclaration = {
   name: identifier,
   type_: t,
-  typeParameters: array(string),
 }
 and letDeclaration = {
   name: identifier,
   type_: t,
-  typeParameters: array(string),
 }
 and moduleDeclaration = {
   name: identifier,

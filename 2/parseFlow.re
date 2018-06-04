@@ -43,6 +43,7 @@ let rec flowTypeToTyped = (flowType: FlowAst.Type.t) => {
     )
   };
 }
+<<<<<<< Updated upstream
 /** Takes a Flow function and creates a DotTyped type annotation for it. */
 and functionTypeToTyped = (func: FlowAst.Type.Function.t) => {
   let makeFunctionProperty =
@@ -74,6 +75,27 @@ and functionTypeToTyped = (func: FlowAst.Type.Function.t) => {
     restParameter: restParamProp,
     returnType,
   });
+=======
+and functionTypeToTyped = (f: FlowAst.Type.Function.t) => {
+  let {params: (formal, rest), returnType, typeParameters: _typeParams}: FlowAst.Type.Function.t = f;
+  let paramToProperty = ((_loc, param): FlowAst.Type.Function.Param.t) =>
+    DotTyped.{
+      name:
+        Belt.Option.map(param.name, dotTypedIdentifier)
+        |. Belt.Option.getWithDefault(DotTyped.Identifier("")),
+      type_: flowTypeToTyped(param.typeAnnotation),
+      optional: false,
+    };
+  let parameters =
+    formal |. Belt.List.toArray |. Belt.Array.map(paramToProperty);
+  let rest =
+    rest
+    |. Belt.Option.map(((_loc, restType)) =>
+         paramToProperty(restType.argument)
+       );
+  let returnType = flowTypeToTyped(returnType);
+  DotTyped.Function({parameters, rest, returnType, typeParameters: [||]});
+>>>>>>> Stashed changes
 };
 
 let typeAnnotationToTyped = (annotation: FlowAst.Type.annotation) => {
@@ -92,6 +114,7 @@ let flowAstToTypedAst = ((loc: Loc.t, s)) =>
           DotTyped.Any,
           typeAnnotationToTyped,
         ),
+<<<<<<< Updated upstream
       typeParameters: [||],
     })
   | FlowAst.Statement.DeclareFunction({id, typeAnnotation}) =>
@@ -99,6 +122,8 @@ let flowAstToTypedAst = ((loc: Loc.t, s)) =>
       name: dotTypedIdentifier(id),
       type_: typeAnnotationToTyped(typeAnnotation),
       typeParameters: [||],
+=======
+>>>>>>> Stashed changes
     })
   | _ =>
     raise(

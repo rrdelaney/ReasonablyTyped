@@ -24,6 +24,34 @@ let rec compileType =
   | DotTyped.Boolean => "boolean"
   | DotTyped.String => "string"
   | DotTyped.Promise(t) => "Promise<" ++ compileType(t) ++ ">"
+  | DotTyped.Function({parameters, rest, returnType}) => {
+      let paramList =
+        Array.map(
+          ({name, type_}: DotTyped.property) =>
+            switch (type_) {
+            | DotTyped.Void => ""
+            | DotTyped.Optional(t) =>
+              extractName(name) ++ "?: " ++ compileType(t)
+            | _ => extractName(name) ++ ": " ++ compileType(type_)
+            },
+          parameters,
+        );
+      "("
+      ++ Js.Array.joinWith(", ", paramList)
+      ++ (
+        switch (rest) {
+        | Some(({name, type_}: DotTyped.property)) =>
+          (Array.length(paramList) > 0 ? ", " : "")
+          ++ "..."
+          ++ extractName(name)
+          ++ ": "
+          ++ compileType(type_)
+        | _ => ""
+        }
+      )
+      ++ ") => "
+      ++ compileType(returnType);
+    }
   | _ => raise(Errors2.Unimplemented);
 
 let rec compile =
