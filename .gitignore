@@ -13,3 +13,4 @@ _test.css
 lib/retyped_node.js
 lib/bs
 lib/js
+.bsb.lock

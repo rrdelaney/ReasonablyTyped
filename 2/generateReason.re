@@ -6,6 +6,9 @@ let extractName = identifier =>
   | DotTyped.UnknownIdentifier => "Unknown"
   };
 
+let extractTypeName = identifier =>
+  identifier |. extractName |. Js.String.toLowerCase;
+
 let rec fromDotTyped =
   fun
   | DotTyped.Regex => Rabel.regex()
@@ -30,5 +33,21 @@ let rec compile = (~moduleName=?, moduleDefinition) =>
     Rabel.bsModule(
       ~module_=Option.getExn(moduleName),
       Rabel.external_(extractName(name), fromDotTyped(type_), ""),
+    )
+
+  | DotTyped.InterfaceDeclaration({
+      name,
+      type_: DotTyped.Object({properties}),
+    }) =>
+    Rabel.type_(
+      extractTypeName(name),
+      Rabel.bsDeriving(
+        "abstract",
+        Rabel.record_(
+          Array.map(properties, prop =>
+            (extractName(prop.name), fromDotTyped(prop.type_))
+          ),
+        ),
+      ),
     )
   };
