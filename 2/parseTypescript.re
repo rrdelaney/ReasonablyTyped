@@ -1,80 +1,92 @@
+open Belt;
+
 exception CannotExtractName;
 
 let getName =
   fun
-  | Typescript.FunctionDeclaration({name: Identifier({text})}) => text
-  | Typescript.InterfaceDeclaration({name: Identifier({text})}) => text
-  | Typescript.Parameter({name: Identifier({text})}) => text
-  | Typescript.Identifier({text}) => text
-  | Typescript.TypeParameter({name: Identifier({text})}) => text
+  | Typescript.FunctionDeclaration({name: Identifier({text})})
+  | Typescript.InterfaceDeclaration({name: Identifier({text})})
+  | Typescript.Parameter({name: Identifier({text})})
+  | Typescript.Identifier({text}) => DotTyped.Identifier(text)
+  | Typescript.TypeParameter({name: Identifier({text})}) =>
+    DotTyped.Identifier(text)
   | _ => raise(CannotExtractName);
-
-let getNamesOfArray = names => names |> Array.to_list |> List.map(getName);
 
 let rec memberToObjectProperty =
   fun
-  | Typescript.PropertySignature(prop) => (
-      getName(prop.name),
-      typescriptAstToBsType(prop.type_),
-      switch (prop.questionToken) {
-      | Some(_) => true
-      | None => false
-      },
-    )
+  | Typescript.PropertySignature(prop) =>
+    DotTyped.{
+      name: getName(prop.name),
+      type_: typescriptAstToDotTyped(prop.type_),
+      optional: Option.isSome(prop.questionToken),
+    }
   | _ => raise(Not_found)
-and typescriptAstToBsType =
+and typescriptAstToDotTyped =
   fun
-  | Typescript.Parameter(parameter) => typescriptAstToBsType(parameter.type_)
-  | Typescript.NumberKeyword(_) => BsTypeAst.Number
-  | Typescript.StringKeyword(_) => BsTypeAst.String
+  | Typescript.Parameter(parameter) =>
+    typescriptAstToDotTyped(parameter.type_)
+  | Typescript.NumberKeyword(_) => DotTyped.Float
+  | Typescript.StringKeyword(_) => DotTyped.String
   | Typescript.TypeLiteral(literal) =>
-    BsTypeAst.Object(
-      literal.members |> Array.to_list |> List.map(memberToObjectProperty),
-    )
+    DotTyped.Object({
+      properties: Array.map(literal.members, memberToObjectProperty),
+      typeParameters: [||],
+      extends: None,
+    })
   | Typescript.TypeReference(typeRef) =>
-    BsTypeAst.Named([], getName(typeRef.typeName), None)
-  | _ => BsTypeAst.Any;
+    DotTyped.Named(getName(typeRef.typeName))
+  | _ => DotTyped.Any;
 
-let rec typescriptAstToBsTypeAst =
-  fun
+let rec astToDotTyped = ast =>
+  switch (ast) {
   | Typescript.SourceFile(sourceFile) =>
     if (Array.length(sourceFile.parseDiagnostics) > 0) {
       raise(Diagnostic.Error(Diagnostic.diagnosticOfTs(sourceFile)));
     } else {
-      BsTypeAst.ModuleDecl(
-        "\"" ++ Genutils.normalize_name(sourceFile.fileName) ++ "\"",
-        sourceFile.statements
-        |> Array.to_list
-        |> List.map(typescriptAstToBsTypeAst),
-      );
+      DotTyped.ModuleDeclaration({
+        name: DotTyped.Identifier(sourceFile.fileName),
+        declarations: Array.map(sourceFile.statements, astToDotTyped),
+      });
     }
   | Typescript.FunctionDeclaration(func) =>
-    BsTypeAst.FuncDecl(
-      getName(func.name),
-      BsTypeAst.Function({
-        typeParams: getNamesOfArray(func.typeParameters),
-        formalParams:
-          func.parameters
-          |> Array.to_list
-          |> List.map(param =>
-               (getName(param), typescriptAstToBsType(param))
-             ),
-        restParam: None,
-        returnType: typescriptAstToBsType(func.type_),
-      }),
-    )
+    DotTyped.FunctionDeclaration({
+      name: getName(func.name),
+      type_:
+        DotTyped.Function({
+          typeParameters: Array.map(func.typeParameters, getName),
+          parameters:
+            Array.map(func.parameters, param =>
+              DotTyped.{
+                name: getName(param),
+                type_: typescriptAstToDotTyped(param),
+                optional: false,
+              }
+            ),
+          rest: None,
+          returnType: typescriptAstToDotTyped(func.type_),
+        }),
+    })
   | Typescript.InterfaceDeclaration(interface) =>
-    BsTypeAst.InterfaceDecl(
-      getName(interface.name),
-      getNamesOfArray(interface.typeParameters),
-      BsTypeAst.Object(
-        interface.members |> Array.to_list |> List.map(memberToObjectProperty),
-      ),
-    )
+    DotTyped.InterfaceDeclaration({
+      name: getName(interface.name),
+      type_:
+        DotTyped.Object({
+          properties: Array.map(interface.members, memberToObjectProperty),
+          typeParameters: Array.map(interface.typeParameters, getName),
+          extends: None,
+        }),
+    })
   | Typescript.TypeAliasDeclaration(decl) =>
-    BsTypeAst.TypeDecl(
-      getName(decl.name),
-      getNamesOfArray(decl.typeParameters),
-      typescriptAstToBsType(decl.type_),
-    )
-  | _ => BsTypeAst.Noop;
+    DotTyped.LetDeclaration({
+      name: getName(decl.name),
+      type_: typescriptAstToDotTyped(decl.type_),
+    })
+  | _ => DotTyped.EmptyDeclaration
+  };
+
+let parse = (~name, ~source) => {
+  let ast = Typescript.parse(name, source);
+  let typedAst = astToDotTyped(ast);
+
+  [|typedAst|];
+};

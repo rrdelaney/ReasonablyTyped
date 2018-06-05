@@ -24,6 +24,8 @@ type t =
   | Void
   | Null
   | ReactComponent(reactComponent)
+  | Named(identifier)
+  | TypeAlias
 and property = {
   name: identifier,
   type_: t,
@@ -38,7 +40,7 @@ and function_ = {
 and object_ = {
   properties: array(property),
   typeParameters: array(identifier),
-  extends: identifier,
+  extends: option(identifier),
 }
 and reactComponent = {
   name: identifier,
@@ -46,15 +48,7 @@ and reactComponent = {
   state: t,
 };
 
-type typeDeclaration = {
-  name: identifier,
-  type_: t,
-}
-and classDeclaration = {
-  name: identifier,
-  type_: t,
-}
-and letDeclaration = {
+type letDeclaration = {
   name: identifier,
   type_: t,
 }
@@ -63,8 +57,9 @@ and moduleDeclaration = {
   declarations: array(declaration),
 }
 and declaration =
-  | TypeDeclaration(typeDeclaration)
-  | ClassDeclaration(classDeclaration)
+  | InterfaceDeclaration(letDeclaration)
+  | ClassDeclaration(letDeclaration)
   | LetDeclaration(letDeclaration)
   | FunctionDeclaration(letDeclaration)
-  | ModuleDeclaration(moduleDeclaration);
+  | ModuleDeclaration(moduleDeclaration)
+  | EmptyDeclaration;
