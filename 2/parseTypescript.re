@@ -54,6 +54,7 @@ let rec astToDotTyped = ast =>
         declarations: Array.map(sourceFile.statements, astToDotTyped),
       });
     }
+
   | Typescript.FunctionDeclaration(func) =>
     DotTyped.FunctionDeclaration({
       name: getName(func.name),
@@ -72,6 +73,7 @@ let rec astToDotTyped = ast =>
           returnType: typescriptAstToDotTyped(func.type_),
         }),
     })
+
   | Typescript.InterfaceDeclaration(interface) =>
     DotTyped.InterfaceDeclaration({
       name: getName(interface.name),
