@@ -42,11 +42,7 @@ and object_ = {
   typeParameters: array(identifier),
   extends: option(identifier),
 }
-and reactComponent = {
-  name: identifier,
-  props: t,
-  state: t,
-};
+and reactComponent = {props: t};
 
 type letDeclaration = {
   name: identifier,

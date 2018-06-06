@@ -12,6 +12,12 @@ let getName =
     DotTyped.Identifier(text)
   | _ => raise(CannotExtractName);
 
+let hasQuestionToken =
+  fun
+  | Typescript.PropertySignature({questionToken})
+  | Typescript.Parameter({questionToken}) => Option.isSome(questionToken)
+  | _ => false;
+
 let rec memberToObjectProperty =
   fun
   | Typescript.PropertySignature(prop) =>
@@ -59,7 +65,7 @@ let rec astToDotTyped = ast =>
               DotTyped.{
                 name: getName(param),
                 type_: typescriptAstToDotTyped(param),
-                optional: false,
+                optional: hasQuestionToken(param),
               }
             ),
           rest: None,
@@ -76,12 +82,6 @@ let rec astToDotTyped = ast =>
           extends: None,
         }),
     })
-  | Typescript.TypeAliasDeclaration(decl) =>
-    DotTyped.LetDeclaration({
-      name: getName(decl.name),
-      type_: typescriptAstToDotTyped(decl.type_),
-    })
-  | _ => DotTyped.EmptyDeclaration
   };
 
 let parse = (~name, ~source) => {

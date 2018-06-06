@@ -881,9 +881,11 @@ module Decoder = {
       Json.Decode.{
         pos: json |> field("pos", int),
         end_: json |> field("end", int),
-        dotDotDotToken: None,
+        dotDotDotToken:
+          json |> Json.Decode.optional(field("dotDotDotToken", node)),
         name: json |> field("name", node),
-        questionToken: None,
+        questionToken:
+          json |> Json.Decode.optional(field("questionToken", node)),
         type_: json |> field("type", node),
       },
     )
