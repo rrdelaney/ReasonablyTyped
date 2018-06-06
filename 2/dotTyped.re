@@ -2,6 +2,7 @@ open Belt;
 
 type identifier =
   | Identifier(string)
+  | MemberAccess(string, identifier)
   | UnknownIdentifier;
 
 /* TODO: Add support for JS Modules and JS typeof. */
@@ -23,7 +24,6 @@ type t =
   | Any
   | Void
   | Null
-  | ReactComponent(reactComponent)
   | Named(identifier)
   | TypeAlias
 and property = {
@@ -41,8 +41,7 @@ and object_ = {
   properties: array(property),
   typeParameters: array(identifier),
   extends: option(identifier),
-}
-and reactComponent = {props: t};
+};
 
 type letDeclaration = {
   name: identifier,
@@ -58,4 +57,5 @@ and declaration =
   | LetDeclaration(letDeclaration)
   | FunctionDeclaration(letDeclaration)
   | ModuleDeclaration(moduleDeclaration)
+  | ReactComponent(letDeclaration)
   | EmptyDeclaration;

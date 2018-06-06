@@ -95,7 +95,7 @@ let module_ = (name, statements) =>
   ++ name
   ++ " = {\n"
   ++ (statements |. Array.map(s => "  " ++ s) |> Js.Array.joinWith("\n"))
-  ++ "\n}";
+  ++ "\n};";
 
 let type_ = (name, t) => "type " ++ name ++ " = " ++ t ++ ";";
 

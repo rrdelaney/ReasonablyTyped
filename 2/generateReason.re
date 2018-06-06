@@ -46,7 +46,7 @@ let rec compile = (~moduleName=?, moduleDefinition) =>
       Array.map(declarations, compile(~moduleName=extractName(name)));
     Js.Array.joinWith("\n", declarations);
 
-  | DotTyped.LetDeclaration({name, type_: DotTyped.ReactComponent({props})}) =>
+  | DotTyped.ReactComponent({name}) =>
     Rabel.module_(
       extractModuleName(name),
       [|
@@ -67,6 +67,7 @@ let rec compile = (~moduleName=?, moduleDefinition) =>
       Rabel.external_(extractName(name), fromDotTyped(type_), ""),
     )
 
+  | DotTyped.ClassDeclaration({name, type_: DotTyped.Object({properties})})
   | DotTyped.InterfaceDeclaration({
       name,
       type_: DotTyped.Object({properties}),
