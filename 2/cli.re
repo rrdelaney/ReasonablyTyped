@@ -26,6 +26,24 @@ let inferInputTypeFromFileExtension = filename =>
   | _ => raise(UnrecognizedInput(filename))
   };
 
+let guessOutuptFilename = output =>
+  Compiler2.(
+    switch (output) {
+    | {type_: Reason, name} when Js.String.endsWith(".d.ts", name) =>
+      Js.String.replace(".d.ts", ".re", name)
+    | {type_: Reason, name} when Js.String.endsWith(".js", name) =>
+      Js.String.replace(".js", ".re", name)
+    | {type_: Reason, name} => name ++ ".re"
+
+    | {type_: FlowDefinition, name} when Js.String.endsWith(".d.ts", name) =>
+      Js.String.replace(".d.ts", ".js", name)
+    | {type_: FlowDefinition, name} when Js.String.endsWith(".js", name) => name
+    | {type_: FlowDefinition, name} => name ++ ".js"
+
+    | {name} => name
+    }
+  );
+
 let optionToFileType = input =>
   switch (input) {
   | "dts" => Compiler2.TypeScriptDefintion
@@ -69,4 +87,10 @@ let inputFile =
 
 let outputs = Compiler2.compile(inputFile, outputType);
 
-Array.forEach(outputs, Js.log);
+Array.forEach(
+  outputs,
+  output => {
+    let outputFilename = guessOutuptFilename(output);
+    Node.Fs.writeFileAsUtf8Sync(outputFilename, output.source);
+  },
+);

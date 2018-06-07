@@ -24,11 +24,16 @@ let compile = (file, target) => {
     | _ => raise(Errors2.Unimplemented)
     };
 
-  Array.map(typedModules, typedMod =>
-    switch (target) {
-    | FlowDefinition => GenerateFlow.compile(typedMod)
-    | Reason => GenerateReason.compile(typedMod)
-    | _ => raise(Errors2.Unimplemented)
-    }
+  Array.map(
+    typedModules,
+    typedMod => {
+      let outputSource =
+        switch (target) {
+        | FlowDefinition => GenerateFlow.compile(typedMod)
+        | Reason => GenerateReason.compile(typedMod)
+        | _ => raise(Errors2.Unimplemented)
+        };
+      {type_: target, name: file.name, source: outputSource};
+    },
   );
 };

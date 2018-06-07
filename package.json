@@ -3,7 +3,7 @@
   "version": "2.0.0-beta1",
   "description": "Converts flow definitions to Bucklescript definitions",
   "bin": {
-    "retyped": "./lib/cli.js",
+    "retyped": "./lib/cli.js"
   },
   "main": "lib/index.js",
   "scripts": {
