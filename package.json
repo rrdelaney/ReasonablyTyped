@@ -1,9 +1,9 @@
 {
   "name": "reasonably-typed",
-  "version": "0.13.0",
+  "version": "2.0.0-beta1",
   "description": "Converts flow definitions to Bucklescript definitions",
   "bin": {
-    "retyped": "./lib/cli.js"
+    "retyped": "./lib/cli.js",
   },
   "main": "lib/index.js",
   "scripts": {
@@ -34,6 +34,7 @@
     "chalk": "^2.1.0",
     "commander": "^2.15.1",
     "css-tree": "^1.0.0-alpha.28",
+    "flow-dev-tools": "bsansouci/flow#bsb-support",
     "graphql": "^0.13.2",
     "meow": "^3.7.0",
     "prettier": "^1.11.1",
@@ -44,7 +45,6 @@
     "@glennsl/bs-jest": "^0.4.2",
     "browserify": "^16.1.1",
     "bs-platform": "^3.0.0",
-    "flow-dev-tools": "bsansouci/flow#bsb-support",
     "jest": "^22.4.2"
   },
   "jest": {
