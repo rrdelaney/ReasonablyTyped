@@ -1,6 +1,6 @@
 module Stage = {
   let parseSource = (name, source) => {
-    let parseFlowSource = (name, source) => {
+    let parseFlowSource = (_name, source) => {
       let (flowAst, _errors) =
         Parser_flow.program_file(source, Some(Loc.SourceFile(name)));
       let (_, statements, _) = flowAst;
@@ -126,11 +126,7 @@ let compile = (moduleName, moduleSource, debug) => {
         "",
         Diagnostic.diagnosticOfFlow(xs, moduleSource),
       )
-    | Diagnostic.Error(xs) => (
-        "Unknown ID",
-        "",
-        xs
-      )
+    | Diagnostic.Error(xs) => ("Unknown ID", "", xs)
     };
   if (debug) {
     let debugAsts = Stage.parseSource(moduleName, moduleSource);

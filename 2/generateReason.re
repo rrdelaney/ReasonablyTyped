@@ -2,10 +2,11 @@ open Belt;
 
 exception ReasonGenerationError(string);
 
-let extractName = identifier =>
+let rec extractName = identifier =>
   switch (identifier) {
   | DotTyped.Identifier(id) => id
   | DotTyped.UnknownIdentifier => "Unknown"
+  | DotTyped.MemberAccess(id, member) => id ++ "." ++ extractName(member)
   };
 
 let extractTypeName = identifier => {
@@ -41,14 +42,22 @@ let rec fromDotTyped =
         (extractName(name), fromDotTyped(type_), optional)
       ),
       fromDotTyped(returnType),
-    );
+    )
 
-let rec compile = (~moduleName=?, moduleDefinition) =>
+  | _ => raise(ReasonGenerationError("Unknown dottyped type"));
+
+let rec compile = (~moduleName=?, ~typeTable=?, moduleDefinition) =>
   switch (moduleDefinition) {
   | DotTyped.ModuleDeclaration({name, declarations}) =>
     let declarations =
-      Array.map(declarations, compile(~moduleName=extractName(name)));
-    Js.Array.joinWith("\n", declarations);
+      Array.map(
+        declarations,
+        compile(
+          ~moduleName=extractName(name),
+          ~typeTable=TypeTable2.make(declarations),
+        ),
+      );
+    Js.Array.joinWith("\n", declarations) |. Reason.parseRE |. Reason.printRE;
 
   | DotTyped.ReactComponent({name, type_: DotTyped.Object(propTypes)}) =>
     Rabel.module_(
@@ -78,6 +87,16 @@ let rec compile = (~moduleName=?, moduleDefinition) =>
     )
 
   | DotTyped.ReactComponent({name, type_: DotTyped.Named(propTypesName)}) =>
+    let maybePropTypes =
+      Map.String.get(Option.getExn(typeTable), extractName(propTypesName));
+    let propTypes =
+      switch (maybePropTypes) {
+      | Some(DotTyped.Object(p)) => p
+      | _ =>
+        raise(ReasonGenerationError("React prop types must be an object"))
+      };
+    let hasOptional = Array.some(propTypes.properties, prop => prop.optional);
+
     Rabel.module_(
       extractModuleName(name),
       [|
@@ -92,12 +111,39 @@ let rec compile = (~moduleName=?, moduleDefinition) =>
         Rabel.let_(
           "make",
           Rabel.function_(
-            Array.concat([||], [|("children", false, None)|]),
-            extractModuleName(propTypesName) ++ ".t",
+            Array.concat(
+              Array.map(propTypes.properties, prop =>
+                (
+                  extractName(prop.name),
+                  true,
+                  prop.optional ? Some("?") : None,
+                )
+              ),
+              [|("children", false, None)|],
+            ),
+            Rabel.Ast.apply(
+              "ReasonReact.wrapJsForReason",
+              [|
+                "~reactClass",
+                "~props="
+                ++ Rabel.Ast.apply(
+                     extractModuleName(propTypesName) ++ ".t",
+                     Array.concat(
+                       Array.map(propTypes.properties, prop =>
+                         "~"
+                         ++ extractName(prop.name)
+                         ++ (prop.optional ? "?" : "")
+                       ),
+                       hasOptional ? [|"()"|] : [||],
+                     ),
+                   ),
+                "children",
+              |],
+            ),
           ),
         ),
       |],
-    )
+    );
 
   | DotTyped.LetDeclaration({name, type_}) =>
     Rabel.Decorators.bsModule(
@@ -113,10 +159,10 @@ let rec compile = (~moduleName=?, moduleDefinition) =>
     Rabel.module_(
       extractModuleName(name),
       [|
-        Rabel.type_(
-          "t",
-          Rabel.Decorators.bsDeriving(
-            "abstract",
+        Rabel.Decorators.bsDeriving(
+          "abstract",
+          Rabel.type_(
+            "t",
             Rabel.Types.record_(
               Array.map(properties, prop =>
                 (
@@ -143,4 +189,6 @@ let rec compile = (~moduleName=?, moduleDefinition) =>
         extractName(name),
       ),
     )
+
+  | _ => raise(ReasonGenerationError("Unknown dottyped declaration"))
   };
