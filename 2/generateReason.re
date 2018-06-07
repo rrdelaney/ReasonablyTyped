@@ -8,8 +8,12 @@ let extractName = identifier =>
   | DotTyped.UnknownIdentifier => "Unknown"
   };
 
-let extractTypeName = identifier =>
-  identifier |. extractName |. Js.String.toLowerCase;
+let extractTypeName = identifier => {
+  let name = extractName(identifier);
+  let first = Js.String.get(name, 0);
+  let rest = Js.String.sliceToEnd(~from=1, name);
+  Js.String.toLowerCase(first) ++ rest;
+};
 
 let extractModuleName = identifier => {
   let name = extractName(identifier);
@@ -46,7 +50,7 @@ let rec compile = (~moduleName=?, moduleDefinition) =>
       Array.map(declarations, compile(~moduleName=extractName(name)));
     Js.Array.joinWith("\n", declarations);
 
-  | DotTyped.ReactComponent({name}) =>
+  | DotTyped.ReactComponent({name, type_: DotTyped.Object(propTypes)}) =>
     Rabel.module_(
       extractModuleName(name),
       [|
@@ -56,6 +60,40 @@ let rec compile = (~moduleName=?, moduleDefinition) =>
             "reactClass",
             "ReasonReact.reactClass",
             extractName(name),
+          ),
+        ),
+        Rabel.let_(
+          "make",
+          Rabel.function_(
+            Array.concat(
+              Array.map(propTypes.properties, prop =>
+                (extractName(prop.name), true, Some("?"))
+              ),
+              [|("children", false, None)|],
+            ),
+            "10",
+          ),
+        ),
+      |],
+    )
+
+  | DotTyped.ReactComponent({name, type_: DotTyped.Named(propTypesName)}) =>
+    Rabel.module_(
+      extractModuleName(name),
+      [|
+        Rabel.Decorators.bsModule(
+          ~module_=Option.getExn(moduleName),
+          Rabel.external_(
+            "reactClass",
+            "ReasonReact.reactClass",
+            extractName(name),
+          ),
+        ),
+        Rabel.let_(
+          "make",
+          Rabel.function_(
+            Array.concat([||], [|("children", false, None)|]),
+            extractModuleName(propTypesName) ++ ".t",
           ),
         ),
       |],

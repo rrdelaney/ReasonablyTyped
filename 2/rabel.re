@@ -1,16 +1,23 @@
 open Belt;
 
 module Ast = {
+  /** Applies a method with arguments. */
   let apply = (func: string, args: array(string)) =>
     func ++ "(" ++ Js.Array.joinWith(",", args) ++ ")";
 
+  /** Decorates a block with a decorator. */
   let decorate = (decorator: string, statement: string) =>
     "[@" ++ decorator ++ "] " ++ statement;
 };
 
 module Decorators = {
+  /** Marks a block with [@bs.optional]. */
   let bsOptional = Ast.decorate("bs.optional");
+
+  /** Marks a block with [@bs.as "name"]. */
   let bsAs = name => Ast.decorate("bs.as \"" ++ name ++ "\"");
+
+  /** Marks a block with [@bs.module "name"]. */
   let bsModule = (~module_=?, statement) => {
     let decorator =
       switch (module_) {
@@ -19,10 +26,13 @@ module Decorators = {
       };
     Ast.decorate(decorator, statement);
   };
+
+  /** Marks a block with [@bs.deriving value]. */
   let bsDeriving = deriving => Ast.decorate("bs.deriving " ++ deriving);
 };
 
 module Types = {
+  /** Creates a Reason record type. ts is (key, value, optional). */
   let record_ = ts => {
     let fields =
       Array.map(
@@ -40,6 +50,7 @@ module Types = {
     "{ " ++ Js.Array.joinWith("", fields) ++ "}";
   };
 
+  /** Creates a JS object type. ts is (key, value). */
   let jsRecord = ts => {
     let fields =
       Array.map(ts, ((name, t)) => "\"" ++ name ++ "\": " ++ t ++ ", ");
@@ -101,3 +112,19 @@ let type_ = (name, t) => "type " ++ name ++ " = " ++ t ++ ";";
 
 let external_ = (name, type_, exported) =>
   "external " ++ name ++ " : " ++ type_ ++ " = " ++ "\"" ++ exported ++ "\";";
+
+let let_ = (name, value) => "let " ++ name ++ " = " ++ value ++ ";";
+
+/** Creates a function. ts is (name, labeled, default). */
+let function_ = (ts, returnValue) => {
+  let paramStrs =
+    Array.map(ts, param =>
+      switch (param) {
+      | (name, false, _) => name
+      | (name, true, None) => "~" ++ name
+      | (name, true, Some(value)) => "~" ++ name ++ "=" ++ value
+      }
+    );
+  let params = Js.Array.joinWith(", ", paramStrs);
+  "(" ++ params ++ ") => {" ++ returnValue ++ "}";
+};
