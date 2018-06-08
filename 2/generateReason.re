@@ -60,9 +60,26 @@ let rec compile = (~moduleName=?, ~typeTable=?, moduleDefinition) =>
     Js.Array.joinWith("\n", declarations) |. Reason.parseRE |. Reason.printRE;
 
   | DotTyped.ReactComponent({name, type_: DotTyped.Object(propTypes)}) =>
+    let hasOptional = Array.some(propTypes.properties, prop => prop.optional);
+
     Rabel.module_(
       extractModuleName(name),
       [|
+        Rabel.Decorators.bsDeriving(
+          "abstract",
+          Rabel.type_(
+            "jsProps",
+            Rabel.Types.record_(
+              Array.map(propTypes.properties, prop =>
+                (
+                  extractName(prop.name),
+                  fromDotTyped(prop.type_),
+                  prop.optional,
+                )
+              ),
+            ),
+          ),
+        ),
         Rabel.Decorators.bsModule(
           ~module_=Option.getExn(moduleName),
           Rabel.external_(
@@ -76,15 +93,37 @@ let rec compile = (~moduleName=?, ~typeTable=?, moduleDefinition) =>
           Rabel.function_(
             Array.concat(
               Array.map(propTypes.properties, prop =>
-                (extractName(prop.name), true, Some("?"))
+                (
+                  extractName(prop.name),
+                  true,
+                  prop.optional ? Some("?") : None,
+                )
               ),
               [|("children", false, None)|],
             ),
-            "10",
+            Rabel.Ast.apply(
+              "ReasonReact.wrapJsForReason",
+              [|
+                "~reactClass",
+                "~props="
+                ++ Rabel.Ast.apply(
+                     "jsProps",
+                     Array.concat(
+                       Array.map(propTypes.properties, prop =>
+                         "~"
+                         ++ extractName(prop.name)
+                         ++ (prop.optional ? "?" : "")
+                       ),
+                       hasOptional ? [|"()"|] : [||],
+                     ),
+                   ),
+                "children",
+              |],
+            ),
           ),
         ),
       |],
-    )
+    );
 
   | DotTyped.ReactComponent({name, type_: DotTyped.Named(propTypesName)}) =>
     let maybePropTypes =

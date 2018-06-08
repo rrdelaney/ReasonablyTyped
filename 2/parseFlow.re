@@ -54,6 +54,7 @@ let rec flowTypeToTyped = (flowType: FlowAst.Type.t) => {
       types |. Belt.List.toArray |. Belt.Array.map(flowTypeToTyped),
     )
   | FlowAst.Type.Function(f) => functionTypeToTyped(f)
+  | FlowAst.Type.Object(o) => objectTypeToTyped(o)
   | FlowAst.Type.Generic(t) =>
     let rec identifierFromGeneric =
             (generic: FlowAst.Type.Generic.Identifier.t) =>
@@ -94,17 +95,15 @@ and functionTypeToTyped = (f: FlowAst.Type.Function.t) => {
        );
   let returnType = flowTypeToTyped(returnType);
   DotTyped.Function({parameters, rest, returnType, typeParameters: [||]});
-};
-
-let objectPropertyValueToTyped = (value: FlowAst.Type.Object.Property.value) =>
+}
+and objectPropertyValueToTyped = (value: FlowAst.Type.Object.Property.value) =>
   switch (value) {
   | FlowAst.Type.Object.Property.Init(t) => flowTypeToTyped(t)
   | FlowAst.Type.Object.Property.Get((_loc, func))
   | FlowAst.Type.Object.Property.Set((_loc, func)) =>
     functionTypeToTyped(func)
-  };
-
-let objectTypeToTyped = (obj: FlowAst.Type.Object.t) => {
+  }
+and objectTypeToTyped = (obj: FlowAst.Type.Object.t) => {
   let properties = List.toArray(obj.properties);
   DotTyped.Object({
     properties:

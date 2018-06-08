@@ -9,6 +9,8 @@ module Args = {
     input: string,
     [@bs.optional]
     output: string,
+    [@bs.optional]
+    debug: bool,
     args: array(string),
   };
   external decode : Js.Json.t => t = "%identity";
@@ -61,6 +63,7 @@ let program =
   |. Commander.usage("[options] <file ...>")
   |. Commander.option("--input [type]", "Input file type")
   |. Commander.option("--output [type]", "Output file type")
+  |. Commander.option("--debug", "Run in debug mode")
   |. Commander.parse(Commander.Process.argv)
   |. Args.decode;
 
@@ -80,6 +83,8 @@ let outputType =
   |. Option.map(optionToFileType)
   |. Option.getWithDefault(Compiler2.Typed);
 
+let debug = program |. Args.debug |. Option.getWithDefault(false);
+
 let inputSource = Node.Fs.readFileAsUtf8Sync(filename);
 
 let inputFile =
@@ -87,10 +92,11 @@ let inputFile =
 
 let outputs = Compiler2.compile(inputFile, outputType);
 
-Array.forEach(
-  outputs,
-  output => {
+Array.forEach(outputs, output =>
+  if (debug) {
+    Js.log(output.source);
+  } else {
     let outputFilename = guessOutuptFilename(output);
     Node.Fs.writeFileAsUtf8Sync(outputFilename, output.source);
-  },
+  }
 );
