@@ -110,6 +110,10 @@ let module_ = (name, statements) =>
 
 let type_ = (name, t) => "type " ++ name ++ " = " ++ t ++ ";";
 
+let emptyType = name => "type " ++ name ++ ";";
+
+let empty = () => "";
+
 let external_ = (name, type_, exported) =>
   "external " ++ name ++ " : " ++ type_ ++ " = " ++ "\"" ++ exported ++ "\";";
 

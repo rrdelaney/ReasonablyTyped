@@ -70,25 +70,30 @@ let rec compile =
 
   | DotTyped.ReactComponent({name, type_: DotTyped.Object(propTypes)}) =>
     let hasOptional = Array.some(propTypes.properties, prop => prop.optional);
+    let needsProps = Array.length(propTypes.properties) > 0;
 
     Rabel.module_(
       extractModuleName(name),
       [|
-        Rabel.Decorators.bsDeriving(
-          "abstract",
-          Rabel.type_(
-            "jsProps",
-            Rabel.Types.record_(
-              Array.map(propTypes.properties, prop =>
-                (
-                  extractName(prop.name),
-                  fromDotTyped(prop.type_),
-                  prop.optional,
-                )
+        if (needsProps) {
+          Rabel.Decorators.bsDeriving(
+            "abstract",
+            Rabel.type_(
+              "jsProps",
+              Rabel.Types.record_(
+                Array.map(propTypes.properties, prop =>
+                  (
+                    extractName(prop.name),
+                    fromDotTyped(prop.type_),
+                    prop.optional,
+                  )
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        } else {
+          Rabel.empty();
+        },
         Rabel.Decorators.bsModule(
           ~module_=Option.getExn(moduleName),
           Rabel.external_(
@@ -115,17 +120,21 @@ let rec compile =
               [|
                 "~reactClass",
                 "~props="
-                ++ Rabel.Ast.apply(
-                     "jsProps",
-                     Array.concat(
-                       Array.map(propTypes.properties, prop =>
-                         "~"
-                         ++ extractName(prop.name)
-                         ++ (prop.optional ? "?" : "")
-                       ),
-                       hasOptional ? [|"()"|] : [||],
-                     ),
-                   ),
+                ++ (
+                  needsProps ?
+                    Rabel.Ast.apply(
+                      "jsProps",
+                      Array.concat(
+                        Array.map(propTypes.properties, prop =>
+                          "~"
+                          ++ extractName(prop.name)
+                          ++ (prop.optional ? "?" : "")
+                        ),
+                        hasOptional ? [|"()"|] : [||],
+                      ),
+                    ) :
+                    "Js.Obj.empty()"
+                ),
                 "children",
               |],
             ),
@@ -144,6 +153,7 @@ let rec compile =
         raise(ReasonGenerationError("React prop types must be an object"))
       };
     let hasOptional = Array.some(propTypes.properties, prop => prop.optional);
+    let needsProps = Array.length(propTypes.properties) > 0;
 
     Rabel.module_(
       extractModuleName(name),
@@ -174,17 +184,21 @@ let rec compile =
               [|
                 "~reactClass",
                 "~props="
-                ++ Rabel.Ast.apply(
-                     extractModuleName(propTypesName) ++ ".t",
-                     Array.concat(
-                       Array.map(propTypes.properties, prop =>
-                         "~"
-                         ++ extractName(prop.name)
-                         ++ (prop.optional ? "?" : "")
-                       ),
-                       hasOptional ? [|"()"|] : [||],
-                     ),
-                   ),
+                ++ (
+                  needsProps ?
+                    Rabel.Ast.apply(
+                      extractModuleName(propTypesName) ++ ".t",
+                      Array.concat(
+                        Array.map(propTypes.properties, prop =>
+                          "~"
+                          ++ extractName(prop.name)
+                          ++ (prop.optional ? "?" : "")
+                        ),
+                        hasOptional ? [|"()"|] : [||],
+                      ),
+                    ) :
+                    "Js.Obj.empty()"
+                ),
                 "children",
               |],
             ),
@@ -207,21 +221,25 @@ let rec compile =
     Rabel.module_(
       extractModuleName(name),
       [|
-        Rabel.Decorators.bsDeriving(
-          "abstract",
-          Rabel.type_(
-            "t",
-            Rabel.Types.record_(
-              Array.map(properties, prop =>
-                (
-                  extractName(prop.name),
-                  fromDotTyped(prop.type_),
-                  prop.optional,
-                )
+        if (Array.length(properties) > 0) {
+          Rabel.Decorators.bsDeriving(
+            "abstract",
+            Rabel.type_(
+              "t",
+              Rabel.Types.record_(
+                Array.map(properties, prop =>
+                  (
+                    extractName(prop.name),
+                    fromDotTyped(prop.type_),
+                    prop.optional,
+                  )
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        } else {
+          Rabel.emptyType("t");
+        },
       |],
     )
 
