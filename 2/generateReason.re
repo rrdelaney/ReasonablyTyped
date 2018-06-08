@@ -46,7 +46,8 @@ let rec fromDotTyped =
 
   | _ => raise(ReasonGenerationError("Unknown dottyped type"));
 
-let rec compile = (~moduleName=?, ~typeTable=?, moduleDefinition) =>
+let rec compile =
+        (~moduleName=?, ~typeTable=?, ~skipFmt=false, moduleDefinition) =>
   switch (moduleDefinition) {
   | DotTyped.ModuleDeclaration({name, declarations}) =>
     let declarations =
@@ -55,9 +56,17 @@ let rec compile = (~moduleName=?, ~typeTable=?, moduleDefinition) =>
         compile(
           ~moduleName=extractName(name),
           ~typeTable=TypeTable2.make(declarations),
+          ~skipFmt,
         ),
       );
-    Js.Array.joinWith("\n", declarations) |. Reason.parseRE |. Reason.printRE;
+
+    if (skipFmt) {
+      Js.Array.joinWith("\n", declarations);
+    } else {
+      Js.Array.joinWith("\n", declarations)
+      |. Reason.parseRE
+      |. Reason.printRE;
+    };
 
   | DotTyped.ReactComponent({name, type_: DotTyped.Object(propTypes)}) =>
     let hasOptional = Array.some(propTypes.properties, prop => prop.optional);

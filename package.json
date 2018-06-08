@@ -1,6 +1,6 @@
 {
   "name": "reasonably-typed",
-  "version": "2.0.0-beta1",
+  "version": "2.0.0-beta3",
   "description": "Converts flow definitions to Bucklescript definitions",
   "bin": {
     "retyped": "./lib/cli.js"
