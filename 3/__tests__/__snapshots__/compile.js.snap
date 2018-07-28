@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`function.js 1`] = `"declare function add(a: number, b: number): number {}"`;
+
+exports[`function-with-union.js 1`] = `
+"declare type buttonSize = \\"small\\" | \\"default\\" | \\"large\\";
+
+declare function getCorrectSize(size: \\"small\\" | \\"default\\" | \\"large\\"): number {}"
+`;
+
+exports[`interface.js 1`] = `
+"declare interface Props {
+  innerRef?: elementRef<*>,
+  htmlType?: \\"submit\\" | \\"button\\",
+  text: react$Node,
+  type: buttonType,
+  onClick?: (SyntheticEvent<*>) => void | Promise<*>,
+  className?: string,
+  loading?: boolean,
+  disabled: boolean,
+  size: buttonSize,
+  style?: object,
+}"
+`;
+
+exports[`interface-with-union.js 1`] = `
+"declare type buttonSize = \\"small\\" | \\"default\\" | \\"large\\";
+declare interface Props {
+  size: \\"small\\" | \\"default\\" | \\"large\\"
+}"
+`;
